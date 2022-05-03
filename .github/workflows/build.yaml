@@ -23,6 +23,9 @@ jobs:
               with:
                   node-version: 17.4.0
                   architecture: x64
+                  registry-url: https://npm.pkg.github.com/
+                  scope: super-protocol
+                  always-auth: true
             - name: Install dependencies
               run: yarn --frozen-lock --ignore-scripts
               env:
