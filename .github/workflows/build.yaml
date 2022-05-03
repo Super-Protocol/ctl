@@ -24,7 +24,9 @@ jobs:
                   node-version: 17.4.0
                   architecture: x64
             - name: Install dependencies
-              run: npm install
+              run: yarn --frozen-lock --ignore-scripts
+              env:
+                NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_GH }}
             - name: Build binary for macOS
               if: ${{ runner.os == 'macOS' }}
               run: >
