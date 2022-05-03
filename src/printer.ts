@@ -1,0 +1,44 @@
+import {MultiBar, SingleBar} from "cli-progress";
+import colors from "colors";
+
+class Printer {
+    private static multibar = new MultiBar({
+        format: "{title} |" + colors.white("{bar}") + "| {percentage}%",
+        barCompleteChar: "\u2588",
+        barIncompleteChar: "\u2591",
+        hideCursor: true,
+    });
+    private static progressBarMap: Map<string, SingleBar> = new Map();
+
+    static print(text: string) {
+        process.stdout.write(text + '\n');
+    }
+
+    static error(message: string) {
+        process.stderr.write(message + '\n');
+    }
+
+    static progress(title: string, total: number, current: number) {
+        this.getProgressBar(title, total).update(current, {
+            title: title,
+        });
+    }
+
+    private static getProgressBar(title: string, total: number) {
+        let progressBar = this.progressBarMap.get(title);
+        if (typeof progressBar == "undefined") {
+            progressBar = this.multibar.create(total, 0);
+            progressBar?.start(total, 0);
+            this.progressBarMap.set(title, progressBar);
+        }
+
+        return progressBar;
+    }
+
+    static stopProgress() {
+        this.multibar.stop();
+        this.progressBarMap = new Map();
+    }
+}
+
+export default Printer;

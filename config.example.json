@@ -1,0 +1,24 @@
+{
+    "blockchain": {
+        "url": "",
+        "contractAddress": ""
+    },
+    "tee": {
+        "offerId": "",
+        "solutionArgs": {}
+    },
+    "storage": {
+        "access": {
+            "storageType": "STORJ",
+            "credentials": {
+                "token": "YOUR_TOKEN_HERE",
+                "storageId": "YOUR_BUCKET_HERE"
+            }
+        },
+        "encryption": {
+            "algo": "AES",
+            "key": "YOUR_KEY_HERE",
+            "encoding": "base64"
+        }
+    }
+}

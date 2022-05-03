@@ -1,0 +1,49 @@
+{
+    "name": "spctl",
+    "version": "0.0.0",
+    "description": "A tool for publishing values in a secure and reliable way.",
+    "main": "build/index.js",
+    "author": "Ilya Shmelev",
+    "bin": "build/index.js",
+    "scripts": {
+        "dev": "ts-node ./src/index.ts",
+        "build:prepare": "$PWD/pre-build.sh && tsc",
+        "build:linux": "npm run build:linux:fix && npm run build:prepare && pkg --target linux-x64 .",
+        "build:win": "npm run build:prepare && pkg --target win-x64 .",
+        "build:macos": "npm run build:prepare  && pkg --target macos-x64 .",
+        "build:linux:fix": "cp ./linux_builder/binding-fix.gyp ./node_modules/uplink-nodejs/binding.gyp && cd ./node_modules/uplink-nodejs && npm install && cd ../../",
+        "prettier": "prettier --tab-width 4 --print-width 120 --write ./src/**/* ./src/*"
+    },
+    "license": "MIT",
+    "private": true,
+    "dependencies": {
+        "@super-protocol/sp-dto-js": "^0.0.10",
+        "@super-protocol/sp-sdk-js": "^0.1.13",
+        "cli-progress": "^3.9.1",
+        "colors": "^1.4.0",
+        "commander": "^8.3.0",
+        "dotenv": "^10.0.0",
+        "fstream": "^1.0.12",
+        "get-folder-size": "^2.0.0",
+        "prettier": "^2.5.1",
+        "tar": "^6.1.11",
+        "zlib": "^1.0.5",
+        "zod": "^3.11.6"
+    },
+    "devDependencies": {
+        "@types/cli-progress": "^3.9.2",
+        "@types/get-folder-size": "^2.0.0",
+        "@types/tar": "^6.1.1",
+        "pkg": "^5.5.2",
+        "ts-node": "^10.4.0",
+        "typescript": "^4.5.4"
+    },
+    "pkg": {
+        "outputPath": "dist",
+        "assets": [
+            "libs/*",
+            "config.example.json",
+            "node_modules/uplink-nodejs/build/Release/uplink.node"
+        ]
+    }
+}
