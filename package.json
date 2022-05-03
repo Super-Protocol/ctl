@@ -1,6 +1,6 @@
 {
     "name": "spctl",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "A tool for publishing values in a secure and reliable way.",
     "main": "build/index.js",
     "author": "Ilya Shmelev",

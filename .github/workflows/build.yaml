@@ -34,17 +34,17 @@ jobs:
               if: ${{ runner.os == 'macOS' }}
               run: >
                   npm run build:macos
-                  && mv ./dist/spctl ./dist/sp-publisher-macos-x64
+                  && mv ./dist/spctl ./dist/spctl-macos-x64
             - name: Build binary for Windows
               if: ${{ runner.os == 'Windows' }}
               run: >
                 npm run build:win
-                && mv ./dist/spctl ./dist/sp-publisher-windows
+                && mv ./dist/spctl ./dist/spctl-windows
             - name: Build binary for Linux
               if: ${{ runner.os == 'Linux' }}
               run: >
                   npm run build:linux
-                  && mv ./dist/spctl ./dist/sp-publisher-linux-x64
+                  && mv ./dist/spctl ./dist/spctl-linux-x64
             - name: "Save build results for release job"
               uses: actions/upload-artifact@v2
               with:
