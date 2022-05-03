@@ -6,10 +6,6 @@ import process from "process";
 import { z } from "zod";
 import Printer from "./printer";
 
-const PROJECT_DIR = path.join(path.dirname(__dirname));
-const CONFIG_EXAMPLE_PATH = path.join(PROJECT_DIR, "config.example.json");
-const CONFIG_PATH = path.join(process.cwd(), "config.json");
-
 const ConfigValidator = z.object({
     blockchain: z.object({
         url: z.string(),
@@ -46,19 +42,21 @@ export type Config = {
 
 let CONFIG: Config | undefined;
 
-export default (): Config => {
+export default (configPath: string): Config => {
     if (CONFIG) return CONFIG;
 
-    if (!fs.existsSync(CONFIG_PATH)) {
+    const PROJECT_DIR = path.join(path.dirname(__dirname));
+    const CONFIG_EXAMPLE_PATH = path.join(PROJECT_DIR, "config.example.json");
+    configPath = path.join(process.cwd(), configPath);
+
+    if (!fs.existsSync(configPath)) {
         Printer.error("Config file doesn't exist.");
-        fs.writeFileSync(CONFIG_PATH, fs.readFileSync(CONFIG_EXAMPLE_PATH));
-        const message = `Blank config file was created: ${CONFIG_PATH}\nPlease configure it.`;
-        Printer.error(message);
-        throw Error(message);
+        fs.writeFileSync(configPath, fs.readFileSync(CONFIG_EXAMPLE_PATH));
+        throw Error(`Blank config file was created: ${configPath}\nPlease configure it.`);
     }
 
     
-    const parsedJson = JSON.parse(fs.readFileSync(CONFIG_PATH).toString());
+    const parsedJson = JSON.parse(fs.readFileSync(configPath).toString());
     const validatedConfig = ConfigValidator.parse(parsedJson);
 
     CONFIG = {
