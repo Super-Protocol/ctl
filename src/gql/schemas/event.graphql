@@ -1,0 +1,7 @@
+subscription Event {
+    event {
+        data
+        type
+        subscriptionSource
+    }
+}

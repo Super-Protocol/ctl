@@ -12,7 +12,8 @@
         "build:win": "npm run build:prepare && pkg --target win-x64 .",
         "build:macos": "npm run build:prepare  && pkg --target macos-x64 .",
         "build:linux:fix": "cp ./linux_builder/binding-fix.gyp ./node_modules/uplink-nodejs/binding.gyp && cd ./node_modules/uplink-nodejs && npm install && cd ../../",
-        "prettier": "prettier --tab-width 4 --print-width 120 --write ./src/**/* ./src/*"
+        "code:format": "prettier --tab-width 4 --print-width 120 --write ./src/**/* ./src/*",
+        "gql:generate": "graphql-codegen --config gql-codegen.yml"
     },
     "license": "MIT",
     "private": true,
@@ -22,15 +23,21 @@
         "cli-progress": "^3.9.1",
         "colors": "^1.4.0",
         "commander": "^8.3.0",
+        "console-table-printer": "^2.11.0",
         "dotenv": "^10.0.0",
         "fstream": "^1.0.12",
         "get-folder-size": "^2.0.0",
+        "graphql": "^16.4.0",
         "prettier": "^2.5.1",
         "tar": "^6.1.11",
         "zlib": "^1.0.5",
         "zod": "^3.11.6"
     },
     "devDependencies": {
+        "@graphql-codegen/cli": "^2.6.2",
+        "@graphql-codegen/typescript": "2.4.8",
+        "@graphql-codegen/typescript-graphql-request": "^4.4.6",
+        "@graphql-codegen/typescript-operations": "^2.3.6",
         "@types/cli-progress": "^3.9.2",
         "@types/get-folder-size": "^2.0.0",
         "@types/tar": "^6.1.1",

@@ -1,0 +1,108 @@
+query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
+    result: orders(pagination: $pagination, filter: $filter) {
+        pageData {
+            ...PageDataDtoFragment
+        }
+        page {
+            edges {
+                cursor
+                node {
+                    _id
+                    address
+                    authority
+                    consumer
+                    parentOrder {
+                        offerName
+                        orderAddress
+                    }
+                    offerInfo {
+                        allowedAccounts
+                        allowedArgs
+                        argsPublicKey
+                        cancelable
+                        description
+                        disabledAfter
+                        group
+                        hash
+                        holdSum
+                        inputFormat
+                        linkage
+                        maxDurationTimeMinutes
+                        name
+                        offerType
+                        outputFormat
+                        properties
+                        restrictions {
+                            offers
+                            types
+                        }
+                        resultUrl
+                    }
+                    offerType
+                    orderInfo {
+                        args {
+                            inputOffers
+                            selectedOffers
+                            slots
+                        }
+                        encryptedArgs
+                        encryptedRequirements
+                        offer
+                        resultPublicKey
+                        status
+                    }
+                    orderResult {
+                        encryptedError
+                        encryptedResult
+                        orderPrice
+                    }
+                    origins {
+                        createdBy
+                        createdDate
+                        modifiedBy
+                        modifiedDate
+                    }
+                    teeOfferInfo {
+                        argsPublicKey
+                        description
+                        minTimeMinutes
+                        name
+                        properties
+                        slots
+                        tcb
+                        teeType
+                        tlb
+                    }
+                }
+            }
+            pageInfo {
+                endCursor
+                hasNextPage
+                hasPreviousPage
+                startCursor
+            }
+        }
+    }
+}
+
+query OrdersSelect($pagination: ConnectionArgs!, $filter: OrdersFilter) {
+    result: orders(pagination: $pagination, filter: $filter) {
+        pageData {
+            ...PageDataDtoFragment
+        }
+        page {
+            edges {
+                cursor
+                node {
+                    address
+                }
+            }
+            pageInfo {
+                endCursor
+                hasNextPage
+                hasPreviousPage
+                startCursor
+            }
+        }
+    }
+}

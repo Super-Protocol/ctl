@@ -38,7 +38,7 @@ export default async (
         encryptedFilePath: encryptedFilepath,
         encryption: {
             ...fileEncryption,
-            key: encryptionConfig.key
+            key: encryptionConfig.key,
         },
     };
 };

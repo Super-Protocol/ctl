@@ -7,28 +7,42 @@ import { z } from "zod";
 import Printer from "./printer";
 
 const ConfigValidator = z.object({
-    blockchain: z.object({
-        url: z.string(),
-        contractAddress: z.string(),
-    }).optional(),
-    tee: z.object({
-        offerId: z.string(),
-        solutionArgs: z.any(),
-    }).optional(),
-    storage: z.object({
-        access: z.object({
-            storageType: z.nativeEnum(StorageType),
-            credentials: z.any(),
-        }),
-        encryption: z.object({
-            algo: z.nativeEnum(CryptoAlgorithm),
-            encoding: z.nativeEnum(Encoding),
-            key: z.string(),
-        }),
-    }).optional(),
+    backend: z
+        .object({
+            url: z.string(),
+        })
+        .optional(),
+    blockchain: z
+        .object({
+            url: z.string(),
+            contractAddress: z.string(),
+        })
+        .optional(),
+    tee: z
+        .object({
+            offerId: z.string(),
+            solutionArgs: z.any(),
+        })
+        .optional(),
+    storage: z
+        .object({
+            access: z.object({
+                storageType: z.nativeEnum(StorageType),
+                credentials: z.any(),
+            }),
+            encryption: z.object({
+                algo: z.nativeEnum(CryptoAlgorithm),
+                encoding: z.nativeEnum(Encoding),
+                key: z.string(),
+            }),
+        })
+        .optional(),
 });
 
 export type Config = {
+    backend?: {
+        url: string;
+    };
     blockchain?: BlockchainConfig;
     tee?: {
         offerId: string;
@@ -55,11 +69,13 @@ export default (configPath: string): Config => {
         throw Error(`Blank config file was created: ${configPath}\nPlease configure it.`);
     }
 
-    
     const parsedJson = JSON.parse(fs.readFileSync(configPath).toString());
     const validatedConfig = ConfigValidator.parse(parsedJson);
 
     CONFIG = {
+        backend: validatedConfig.backend && {
+            url: validatedConfig.backend.url,
+        },
         blockchain: validatedConfig.blockchain && {
             blockchainUrl: validatedConfig.blockchain.url,
             contractAddress: validatedConfig.blockchain.contractAddress,
@@ -78,4 +94,4 @@ export default (configPath: string): Config => {
     };
 
     return CONFIG;
-}
+};

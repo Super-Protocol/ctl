@@ -1,4 +1,7 @@
 {
+    "backend": {
+        "url": "http://localhost:3003/graphql"
+    },
     "blockchain": {
         "url": "",
         "contractAddress": ""

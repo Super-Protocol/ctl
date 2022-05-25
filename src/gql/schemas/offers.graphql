@@ -1,0 +1,101 @@
+query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
+    result: offers(pagination: $pagination, filter: $filter) {
+        pageData {
+            ...PageDataDtoFragment
+        }
+        page {
+            pageInfo {
+                endCursor
+                hasNextPage
+                hasPreviousPage
+                startCursor
+            }
+            edges {
+                node {
+                    _id
+                    address
+                    authority
+                    offerInfo {
+                        group
+                        offerType
+                        allowedAccounts
+                        allowedArgs
+                        argsPublicKey
+                        cancelable
+                        description
+                        disabledAfter
+                        hash
+                        holdSum
+                        inputFormat
+                        linkage
+                        maxDurationTimeMinutes
+                        name
+                        outputFormat
+                        properties
+                        resultUrl
+                        restrictions {
+                            offers
+                            types
+                        }
+                    }
+                    origins {
+                        createdBy
+                        createdDate
+                        modifiedBy
+                        modifiedDate
+                    }
+                    providerInfo {
+                        actionAccount
+                        description
+                        metadata
+                        name
+                        tokenReceiver
+                    }
+                }
+                cursor
+            }
+        }
+    }
+}
+
+query OffersSelect($pagination: ConnectionArgs!, $filter: OfferFilter) {
+    result: offers(pagination: $pagination, filter: $filter) {
+        pageData {
+            ...PageDataDtoFragment
+        }
+        page {
+            pageInfo {
+                endCursor
+                hasNextPage
+                hasPreviousPage
+                startCursor
+            }
+            edges {
+                node {
+                    address
+                    offerInfo {
+                        name
+                    }
+                }
+                cursor
+            }
+        }
+    }
+}
+
+query OffersRestrictions($pagination: ConnectionArgs!, $filter: OfferFilter) {
+    result: offers(pagination: $pagination, filter: $filter) {
+        page {
+            edges {
+                node {
+                    address
+                    offerInfo {
+                        restrictions {
+                            offers
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

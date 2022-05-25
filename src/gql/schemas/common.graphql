@@ -1,0 +1,5 @@
+fragment PageDataDtoFragment on PageDataDto {
+    count
+    limit
+    offset
+}

@@ -1,0 +1,49 @@
+query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
+    result: teeOffers(pagination: $pagination, filter: $filter) {
+        pageData {
+            ...PageDataDtoFragment
+        }
+        page {
+            edges {
+                cursor
+                node {
+                    _id
+                    address
+                    authority
+                    disabledAfter
+                    providerAddress
+                    origins {
+                        createdBy
+                        createdDate
+                        modifiedBy
+                        modifiedDate
+                    }
+                    providerInfo {
+                        actionAccount
+                        description
+                        metadata
+                        name
+                        tokenReceiver
+                    }
+                    teeOfferInfo {
+                        argsPublicKey
+                        description
+                        minTimeMinutes
+                        name
+                        properties
+                        slots
+                        tcb
+                        teeType
+                        tlb
+                    }
+                }
+            }
+            pageInfo {
+                endCursor
+                hasNextPage
+                hasPreviousPage
+                startCursor
+            }
+        }
+    }
+}

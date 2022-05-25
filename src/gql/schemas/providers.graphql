@@ -1,0 +1,40 @@
+# todo pageInfo fragment
+query Providers($pagination: ConnectionArgs!, $filter: ProviderFilter!) {
+    result: providers(pagination: $pagination, filter: $filter) {
+        pageData {
+            ...PageDataDtoFragment
+        }
+        page {
+            pageInfo {
+                endCursor
+                hasNextPage
+                hasPreviousPage
+                startCursor
+            }
+            edges {
+                node {
+                    _id
+                    address
+                    authority
+                    availableDeposit
+                    valueOffers
+                    teeOffers
+                    origins {
+                        createdBy
+                        createdDate
+                        modifiedBy
+                        modifiedDate
+                    }
+                    providerInfo {
+                        actionAccount
+                        description
+                        metadata
+                        name
+                        tokenReceiver
+                    }
+                }
+                cursor
+            }
+        }
+    }
+}

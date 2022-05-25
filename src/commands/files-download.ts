@@ -4,7 +4,7 @@ import { StorageAccess } from "@super-protocol/sp-sdk-js";
 import download from "../services/downloadFile";
 import decryptFile from "../services/decryptFile";
 import Printer from "../printer";
-import uplinkSetupHelper from "../services/uplinkSetupHelper";
+import {isCommandSupported} from "../services/uplinkSetupHelper";
 
 export default async (
     remotePath: string,
@@ -12,19 +12,16 @@ export default async (
     encryption: Encryption,
     storageAccess: StorageAccess
 ): Promise<void> => {
+    if (!isCommandSupported()) return;
+
     localPath = localPath.replace(/\/$/, "");
 
     remotePath = `${remotePath}.encrypted`;
     localPath = `${localPath}.encrypted`;
 
-    try {
-        await download(remotePath, localPath, storageAccess, (total: number, current: number) => {
-            Printer.progress("Downloading", total, current);
-        });
-    } catch (e) {
-        await uplinkSetupHelper();
-        throw e;
-    }
+    await download(remotePath, localPath, storageAccess, (total: number, current: number) => {
+        Printer.progress("Downloading", total, current);
+    });
 
     await decryptFile(localPath, encryption, (total: number, current: number) => {
         Printer.progress("Decrypting", total, current);
@@ -33,4 +30,5 @@ export default async (
     Printer.stopProgress();
     Printer.print("Deleting temp files..");
     await fs.unlink(localPath);
+    Printer.print("Done");
 };
