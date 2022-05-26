@@ -1,4 +1,4 @@
-import fetchProviders from "../services/fetchProvidersGQL";
+import fetchProviders from "../services/fetchProviders";
 import Printer from "../printer";
 import { snakeToCamel } from "../utils";
 

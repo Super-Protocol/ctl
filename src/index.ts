@@ -4,11 +4,13 @@ import { Command, Option } from "commander";
 import fs from "fs";
 import path from "path";
 
-import loadConfig from "./config";
-import download from "./commands/files-download";
-import upload from "./commands/files-upload";
-import providersList from "./commands/providers-list";
-import providersGet from "./commands/providers-get";
+import ConfigLoader, { Config } from "./config";
+import download from "./commands/filesDownload";
+import upload from "./commands/filesUpload";
+import providersList from "./commands/providersList";
+import providersGet from "./commands/providersGet";
+import ordersCancel from "./commands/ordersCancel";
+import ordersReplenishDeposit from "./commands/ordersReplenishDeposit";
 import Printer from "./printer";
 import { commaSeparatedList, processSubCommands, validateFields } from "./utils";
 
@@ -17,6 +19,7 @@ async function main() {
     program.name(packageJson.name).description(packageJson.description).version(packageJson.version);
 
     const providersCommand = program.command("providers");
+    const ordersCommand = program.command("orders");
     const filesCommand = program.command("files");
 
     const providersListFields = ["id", "name", "description", "authority_account", "action_account", "modified_date"],
@@ -35,15 +38,14 @@ async function main() {
         .option("--limit <number>", "Limit of records", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
-            const CONFIG = await loadConfig(options.config);
-            if (!CONFIG.backend)
-                throw Error(`Backend access not specified\nPlease configure backend section in ${options.config}`);
+            const configLoader = new ConfigLoader(options.config);
+            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
 
             validateFields(options.fields, providersGetFields);
 
             await providersList({
                 fields: options.fields,
-                backendUrl: CONFIG.backend.url,
+                backendUrl: backendAccess.url,
                 limit: +options.limit,
                 cursor: options.cursor,
             });
@@ -64,16 +66,49 @@ async function main() {
                 .default(providersGetDefaultFields, providersGetDefaultFields.join(","))
         )
         .action(async (id: string, options: any) => {
-            const CONFIG = await loadConfig(options.config);
-            if (!CONFIG.backend)
-                throw Error(`Backend access not specified\nPlease configure backend section in ${options.config}`);
+            const configLoader = new ConfigLoader(options.config);
+            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
 
             validateFields(options.fields, providersGetFields);
 
             await providersGet({
                 fields: options.fields,
-                backendUrl: CONFIG.backend.url,
+                backendUrl: backendAccess.url,
                 id,
+            });
+        });
+
+    ordersCommand
+        .command("cancel")
+        .description("Cancel order with <address>")
+        .argument("address", "Order address")
+        .action(async (address: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
+
+            await ordersCancel({
+                blockchainConfig: blockchainAccess,
+                actionAccountKey: blockchainKeys.actionAccountKey,
+                address,
+            });
+        });
+
+    ordersCommand
+        .command("replenish-deposit")
+        .description("Replenish order deposit with <address> by <amount>")
+        .argument("address", "Order address")
+        .argument("amount", "Amount of tokens to replenish")
+        .action(async (address: string, amount: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
+
+            await ordersReplenishDeposit({
+                blockchainConfig: blockchainAccess,
+                actionAccountKey: blockchainKeys.actionAccountKey,
+                address,
+                amount: +amount,
             });
         });
 
@@ -85,12 +120,11 @@ async function main() {
         .argument("localPath", "Path to a file for uploading")
         .argument("remotePath", "A place where it should be saved on a remote storage")
         .action(async (localPath: string, remotePath: string, options: any) => {
-            const CONFIG = await loadConfig(options.config);
-            if (!CONFIG.storage)
-                throw Error("Remote storage access not specified\nPlease configure storage section in config.json");
+            const configLoader = new ConfigLoader(options.config);
+            const storageConfig = configLoader.loadSection("storage") as Config["storage"];
 
             localPath = localPath.replace(/\/$/, "");
-            await upload(localPath, remotePath, CONFIG.storage.encryption, CONFIG.storage.access);
+            await upload(localPath, remotePath, storageConfig.encryption, storageConfig.access);
         });
 
     filesCommand
@@ -100,12 +134,11 @@ async function main() {
         .argument("localPath", "Path to a file for uploading")
         .option("--encryption-json <encryptionJson>", "A file with encryption info", "./encryption.json")
         .action(async (remotePath: string, localPath: string, options: any) => {
-            const CONFIG = await loadConfig(options.config);
-            if (!CONFIG.storage)
-                throw Error("Remote storage access not specified\nPlease configure storage section in config.json");
+            const configLoader = new ConfigLoader(options.config);
+            const storageConfig = configLoader.loadSection("storage") as Config["storage"];
 
             const encryption = JSON.parse(fs.readFileSync(options.encryptionJson).toString());
-            await download(remotePath, localPath, encryption, CONFIG.storage.access);
+            await download(remotePath, localPath, encryption, storageConfig.access);
         });
 
     // Add global options

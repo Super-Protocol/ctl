@@ -16,7 +16,7 @@ export const processSubCommands = (program: Command, process: (command: Command)
 
 export const commaSeparatedList = (value: string) => {
     return value.split(",").map((item) => item.trim());
-}
+};
 
 export const validateFields = (fields: string[], allowedFields: string[]) => {
     fields.forEach((field) => {

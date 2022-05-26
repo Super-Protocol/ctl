@@ -1,14 +1,14 @@
 import { getSdk, Sdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
 
-export type Params = {
+export type FetchProviderParams = {
     backendUrl: string;
     limit: number;
     cursor?: string;
     id?: string;
 };
 
-export default async (params: Params) => {
+export default async (params: FetchProviderParams) => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
 
     const { result } = await sdk.Providers({
