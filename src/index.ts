@@ -13,6 +13,8 @@ import ordersCancel from "./commands/ordersCancel";
 import ordersReplenishDeposit from "./commands/ordersReplenishDeposit";
 import Printer from "./printer";
 import { commaSeparatedList, processSubCommands, validateFields } from "./utils";
+import generateSolutionKey from "./commands/solutionsGenerateKey";
+import prepareSolution from "./commands/solutionsPrepare";
 
 async function main() {
     const program = new Command();
@@ -21,6 +23,7 @@ async function main() {
     const providersCommand = program.command("providers");
     const ordersCommand = program.command("orders");
     const filesCommand = program.command("files");
+    const solutionsCommand = program.command("solutions");
 
     const providersListFields = ["id", "name", "description", "authority_account", "action_account", "modified_date"],
         providersListDefaultFields = ["id", "name"];
@@ -139,6 +142,42 @@ async function main() {
 
             const encryption = JSON.parse(fs.readFileSync(options.encryptionJson).toString());
             await download(remotePath, localPath, encryption, storageConfig.access);
+        });
+
+    solutionsCommand
+        .command("generate-key")
+        .description("Generates a solution key to the <outputPath>")
+        .argument("outputPath", "Path to a solution key file for saving")
+        .action(async (outputPath: string, options: any) => {
+            await generateSolutionKey({ outputPath });
+        });
+
+        solutionsCommand
+        .command("prepare")
+        .description("Prepares a solution in <solutionPath>, sign it with <solutionKeyPath>")
+        .argument("solutionPath", "Path to a file for uploading")
+        .argument("solutionKeyPath", "Path to a solution key")
+        .option("--pack-solution <packSolution>", "Pack solution folder into tar gz", "")
+        .option("--base-image-path <pathToContainerImage>", "A container image file", "")
+        .option("--base-image-resource <containerImageResource>", "A container image resource name", "")
+        .option("--hash-algo <solutionHashAlgo>", "Hash calculation algorithm for solution", "sha256")
+        .option("--sgx-thread-num <threadNum>", "A number of enclave threads", "")
+        .option("--sgx-enclave-size <enclaveSize>", "Whole enclave size (#M or #G), must be some of power of 2", "")
+        .option("--sgx-loader-internal-size <internalSize>", "Size of the internal enclave structs (#M or #G)", "")
+        .option("--sgx-stack-size <stackSize>", "Size of the enclave thread stack (#K, #M or #G)", "")
+        .action(async (solutionPath: string, solutionKeyPath: string, options: any) => {
+            await prepareSolution({
+                solutionHashAlgo: options.hashAlgo,
+                solutionPath,
+                solutionOutputPath: options.packSolution,
+                keyPath: solutionKeyPath,
+                baseImagePath: options.baseImagePath,
+                baseImageResource: options.baseImageResource,
+                loaderPalInternalMemSize: options.sgxLoaderInternalSize,
+                sgxEnclaveSize: options.sgxEnclaveSize,
+                sgxThreadNum: options.sgxThreadNum,
+                sysStackSize: options.sgxStackSize,
+            });
         });
 
     // Add global options

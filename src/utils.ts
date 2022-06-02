@@ -1,7 +1,8 @@
+import { promisify } from "util";
+import { exec as execCallback } from "child_process";
 import { Command } from "commander";
-import path from "path";
-import Printer from "./printer";
-import fs from "fs";
+
+export const exec = promisify(execCallback);
 
 export const processSubCommands = (program: Command, process: (command: Command) => void) => {
     const processRecursive = (cmd: Command) => {
@@ -37,3 +38,25 @@ export const SilentError = (error: Error) => ({
     error,
     isSilent: true,
 });
+
+export const assertCommand = async (command: string, assertMessage: string) => {
+    try {
+        await exec(command);
+    } catch (error: any) {
+        if (error.code === 127 && error.stderr.indexOf(": not found")) {
+            throw new Error(assertMessage);
+        }
+    }
+};
+
+export const assertNumber = (value: string | undefined, assertMessage: string) => {
+    if (value && !value.match(/^[\d]+$/)) {
+        throw new Error(assertMessage);
+    }
+};
+
+export const assertSize = (value: string | undefined, assertMessage: string) => {
+    if (value && !value.match(/^[\d]+[KMG]$/)) {
+        throw new Error(assertMessage);
+    }
+};
