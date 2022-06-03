@@ -11,50 +11,20 @@ query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                     address
                     authority
                     consumer
+                    orderHoldDeposit
+                    depositSpent
                     parentOrder {
-                        offerName
-                        orderAddress
+                        address
                     }
                     offerInfo {
-                        allowedAccounts
-                        allowedArgs
-                        argsPublicKey
-                        cancelable
-                        description
-                        disabledAfter
-                        group
-                        hash
-                        holdSum
-                        inputFormat
-                        linkage
-                        maxDurationTimeMinutes
                         name
-                        offerType
-                        outputFormat
-                        properties
-                        restrictions {
-                            offers
-                            types
-                        }
-                        resultUrl
+                        description
+                        cancelable
                     }
                     offerType
                     orderInfo {
-                        args {
-                            inputOffers
-                            selectedOffers
-                            slots
-                        }
-                        encryptedArgs
-                        encryptedRequirements
                         offer
-                        resultPublicKey
                         status
-                    }
-                    orderResult {
-                        encryptedError
-                        encryptedResult
-                        orderPrice
                     }
                     origins {
                         createdBy
@@ -63,15 +33,29 @@ query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                         modifiedDate
                     }
                     teeOfferInfo {
-                        argsPublicKey
-                        description
-                        minTimeMinutes
                         name
-                        properties
-                        slots
-                        tcb
-                        teeType
-                        tlb
+                        description
+                    }
+                    subOrders {
+                        address
+                        depositSpent
+                        teeOfferInfo {
+                            name
+                            description
+                        }
+                        offerInfo {
+                            name
+                            description
+                            cancelable
+                        }
+                        offerType
+                        orderInfo {
+                            offer
+                            status
+                        }
+                        origins {
+                            modifiedDate
+                        }
                     }
                 }
             }
@@ -95,6 +79,78 @@ query OrdersSelect($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                 cursor
                 node {
                     address
+                }
+            }
+            pageInfo {
+                endCursor
+                hasNextPage
+                hasPreviousPage
+                startCursor
+            }
+        }
+    }
+}
+
+query Order($id: String!) {
+    order(address: $id) {
+        address
+        consumer
+        origins {
+            createdBy
+            createdDate
+            modifiedBy
+            modifiedDate
+        }
+        offerType
+        orderInfo {
+            status
+            offer
+        }
+        teeOfferInfo {
+            name
+            description
+        }
+        orderResult {
+            encryptedError
+            encryptedResult
+        }
+    }
+}
+
+query SubOrders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
+    result: orders(pagination: $pagination, filter: $filter) {
+        pageData {
+            ...PageDataDtoFragment
+        }
+        page {
+            edges {
+                cursor
+                node {
+                    _id
+                    address
+                    authority
+                    consumer
+                    offerInfo {
+                        name
+                        offerType
+                        cancelable
+                        description
+                    }
+                    offerType
+                    orderInfo {
+                        offer
+                        status
+                    }
+                    origins {
+                        createdBy
+                        createdDate
+                        modifiedBy
+                        modifiedDate
+                    }
+                    teeOfferInfo {
+                        name
+                        description
+                    }
                 }
             }
             pageInfo {

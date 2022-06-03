@@ -8,12 +8,7 @@ import Printer from "../printer";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
 import path from "path";
 
-export default async (
-    localPath: string,
-    remotePath: string,
-    encryption: Encryption,
-    storageAccess: StorageAccess
-) => {
+export default async (localPath: string, remotePath: string, encryption: Encryption, storageAccess: StorageAccess) => {
     if (!isCommandSupported()) return;
 
     localPath = localPath.replace(/\/$/, "");

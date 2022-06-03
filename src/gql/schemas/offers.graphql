@@ -75,6 +75,7 @@ query OffersSelect($pagination: ConnectionArgs!, $filter: OfferFilter) {
                     address
                     offerInfo {
                         name
+                        description
                     }
                 }
                 cursor

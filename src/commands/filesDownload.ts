@@ -4,7 +4,7 @@ import { StorageAccess } from "@super-protocol/sp-sdk-js";
 import download from "../services/downloadFile";
 import decryptFile from "../services/decryptFile";
 import Printer from "../printer";
-import {isCommandSupported} from "../services/uplinkSetupHelper";
+import { isCommandSupported } from "../services/uplinkSetupHelper";
 
 export default async (
     remotePath: string,

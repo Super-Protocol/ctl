@@ -1,6 +1,7 @@
 import { MultiBar, SingleBar } from "cli-progress";
 import { printTable } from "console-table-printer";
 import colors from "colors";
+import { snakeToCamel } from "./utils";
 
 class Printer {
     private static multibar = new MultiBar({
@@ -21,6 +22,12 @@ class Printer {
 
     static table(rows: { [key: string]: unknown }[]) {
         printTable(rows);
+    }
+
+    static printObject(object: { [key: string]: unknown }) {
+        Object.keys(object).forEach((key) => {
+            Printer.print(`${key}: ${object[key]}`);
+        });
     }
 
     static progress(title: string, total: number, current: number) {

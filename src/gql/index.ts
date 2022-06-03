@@ -15,73 +15,33 @@ export type Scalars = {
     Float: number;
 };
 
-export type BallotInfo = {
-    __typename?: "BallotInfo";
-    closeDate: Scalars["Float"];
-    depositAmount: Scalars["Float"];
-    execDate: Scalars["Float"];
-    issuer: Scalars["String"];
-    no: Scalars["Float"];
-    openDate: Scalars["Float"];
-    quorum: Scalars["Float"];
-    /**
-     * description of values:
-     *
-     *     NoQuorum = '0',
-     *
-     *     MajorityDecision = '1',
-     *
-     */
-    reason: Scalars["String"];
-    request: ModifyRequest;
-    /**
-     * description of values:
-     *
-     *     InProgress = '0',
-     *
-     *     Applied = '1',
-     *
-     *     Rejected = '2',
-     *
-     */
-    state: Scalars["String"];
-    totalHoldedVotes: Scalars["Float"];
-    voters?: Maybe<Array<VoterInfo>>;
-    yes: Scalars["Float"];
+export type BaseOrder = {
+    __typename?: "BaseOrder";
+    /** system identifier */
+    _id: Scalars["String"];
+    /** contract address */
+    address: Scalars["String"];
+    authority?: Maybe<Scalars["String"]>;
+    consumer: Scalars["String"];
+    depositSpent?: Maybe<Scalars["String"]>;
+    offerInfo?: Maybe<OfferInfo>;
+    offerType: TOfferType;
+    orderHoldDeposit?: Maybe<Scalars["Float"]>;
+    orderInfo: OrderInfo;
+    orderResult: OrderResult;
+    origins?: Maybe<Origins>;
+    teeOfferInfo?: Maybe<TeeOfferInfo>;
 };
 
-export type BallotInfoInput = {
-    closeDate: Scalars["Float"];
-    depositAmount: Scalars["Float"];
-    execDate: Scalars["Float"];
-    issuer: Scalars["String"];
-    no: Scalars["Float"];
-    openDate: Scalars["Float"];
-    quorum: Scalars["Float"];
-    /**
-     * description of values:
-     *
-     *     NoQuorum = '0',
-     *
-     *     MajorityDecision = '1',
-     *
-     */
-    reason: Scalars["String"];
-    request: ModifyRequestInput;
-    /**
-     * description of values:
-     *
-     *     InProgress = '0',
-     *
-     *     Applied = '1',
-     *
-     *     Rejected = '2',
-     *
-     */
-    state: Scalars["String"];
-    totalHoldedVotes: Scalars["Float"];
-    voters?: InputMaybe<Array<VoterInfoInput>>;
-    yes: Scalars["Float"];
+export type BaseOrderInputType = {
+    consumer: Scalars["String"];
+    depositSpent?: InputMaybe<Scalars["String"]>;
+    offerInfo?: InputMaybe<OfferInfoInput>;
+    offerType: TOfferType;
+    orderHoldDeposit?: InputMaybe<Scalars["Float"]>;
+    orderInfo: OrderInfoInput;
+    orderResult: OrderResultInput;
+    teeOfferInfo?: InputMaybe<TeeOfferInfoInput>;
 };
 
 export type Config = {
@@ -242,12 +202,6 @@ export type ListTeeOffersResponse = {
     pageData?: Maybe<PageDataDto>;
 };
 
-export type ListVotingResponse = {
-    __typename?: "ListVotingResponse";
-    page: VotingConnection;
-    pageData?: Maybe<PageDataDto>;
-};
-
 export type LockInfo = {
     __typename?: "LockInfo";
     amount: Scalars["Float"];
@@ -305,177 +259,14 @@ export type LockingPageInfo = {
     startCursor?: Maybe<Scalars["String"]>;
 };
 
-export type ModifyRequest = {
-    __typename?: "ModifyRequest";
-    /**
-     * description of values:
-     *
-     *     Orders = "0",
-     *
-     *     ProviderRegistry = "1",
-     *
-     *     Staking = "2",
-     *
-     *     Superpro = "3",
-     *
-     *     TeeOffersFactory = "4",
-     *
-     *     Token = "5",
-     *
-     *     ValueOffersFactory = "6",
-     *
-     *     Voting = "7",
-     *
-     *     Consensus = "8",
-     *
-     *     Suspicious = "9",
-     *
-     *     LastBlocks = "10",
-     *
-     *      Epochs = "11"
-     *
-     */
-    contractName: Scalars["String"];
-    newContractAddress?: Maybe<Scalars["String"]>;
-    newParamValue?: Maybe<Scalars["Float"]>;
-    /**
-     * description of values:
-     *
-     *   OrderMinimumDeposit = "0",
-     *
-     *   ProfitWithdrawDelayDays = "1",
-     *
-     *   MinSecDeposit = "2",
-     *
-     *   StakingPercentPerDay = "3",
-     *
-     *   StopDelayDays = "4",
-     *
-     *   TeeOfferSecDeposit = "5",
-     *
-     *   OfferSecDeposit = "6",
-     *
-     *   TeeRewardPerEpoch = "7",
-     *
-     *   VotingDeposit = "8",
-     *
-     *   VotingDurationDays = "9",
-     *
-     *   VotingExecutionTimeoutDays = "10",
-     *
-     *   VotingHoldDays = "11",
-     *
-     *   VotingMinimumTurnout = "12",
-     *
-     *   L1 = "13",
-     *
-     *   L2 = "14",
-     *
-     *   Threshold = "15",
-     *
-     *   EpochDurationSeconds = "16"
-     *
-     */
-    paramName: Scalars["String"];
-    /**
-     * description of values:
-     *
-     *     NewContractAddress = "0",
-     *
-     *     NewParamValue = "1"
-     *
-     */
-    requestType: Scalars["String"];
-};
-
-export type ModifyRequestInput = {
-    /**
-     * description of values:
-     *
-     *     Orders = "0",
-     *
-     *     ProviderRegistry = "1",
-     *
-     *     Staking = "2",
-     *
-     *     Superpro = "3",
-     *
-     *     TeeOffersFactory = "4",
-     *
-     *     Token = "5",
-     *
-     *     ValueOffersFactory = "6",
-     *
-     *     Voting = "7",
-     *
-     *     Consensus = "8",
-     *
-     *     Suspicious = "9",
-     *
-     *     LastBlocks = "10",
-     *
-     *      Epochs = "11"
-     *
-     */
-    contractName: Scalars["String"];
-    newContractAddress?: InputMaybe<Scalars["String"]>;
-    newParamValue?: InputMaybe<Scalars["Float"]>;
-    /**
-     * description of values:
-     *
-     *   OrderMinimumDeposit = "0",
-     *
-     *   ProfitWithdrawDelayDays = "1",
-     *
-     *   MinSecDeposit = "2",
-     *
-     *   StakingPercentPerDay = "3",
-     *
-     *   StopDelayDays = "4",
-     *
-     *   TeeOfferSecDeposit = "5",
-     *
-     *   OfferSecDeposit = "6",
-     *
-     *   TeeRewardPerEpoch = "7",
-     *
-     *   VotingDeposit = "8",
-     *
-     *   VotingDurationDays = "9",
-     *
-     *   VotingExecutionTimeoutDays = "10",
-     *
-     *   VotingHoldDays = "11",
-     *
-     *   VotingMinimumTurnout = "12",
-     *
-     *   L1 = "13",
-     *
-     *   L2 = "14",
-     *
-     *   Threshold = "15",
-     *
-     *   EpochDurationSeconds = "16"
-     *
-     */
-    paramName: Scalars["String"];
-    /**
-     * description of values:
-     *
-     *     NewContractAddress = "0",
-     *
-     *     NewParamValue = "1"
-     *
-     */
-    requestType: Scalars["String"];
-};
-
 export type Mutation = {
     __typename?: "Mutation";
     createProvider: Provider;
     removeConfig: Config;
     removeOffer: TeeOffer;
     removeProvider: Provider;
+    /** Transfers specific amount of SP tokens to specific address */
+    transfer: Scalars["String"];
     updateConfig: Config;
     updateOffer: TeeOffer;
     updateProvider: Provider;
@@ -495,6 +286,10 @@ export type MutationRemoveOfferArgs = {
 
 export type MutationRemoveProviderArgs = {
     _id: Scalars["String"];
+};
+
+export type MutationTransferArgs = {
+    transfer: TransferInputType;
 };
 
 export type MutationUpdateConfigArgs = {
@@ -519,6 +314,7 @@ export type Offer = {
     offerInfo: OfferInfo;
     origins?: Maybe<Origins>;
     providerInfo: ProviderInformation;
+    stats?: Maybe<OfferStats>;
 };
 
 export type OfferConnection = {
@@ -634,6 +430,7 @@ export type OfferInfoInput = {
 export type OfferInputType = {
     offerInfo: OfferInfoInput;
     providerInfo: ProviderInformationInput;
+    stats?: InputMaybe<OfferStatsInput>;
 };
 
 export type OfferPageInfo = {
@@ -655,6 +452,15 @@ export type OfferRestrictionsInput = {
     types?: InputMaybe<Array<TOfferType>>;
 };
 
+export type OfferStats = {
+    __typename?: "OfferStats";
+    ordersInQueue: Scalars["Float"];
+};
+
+export type OfferStatsInput = {
+    ordersInQueue: Scalars["Float"];
+};
+
 export type Order = {
     __typename?: "Order";
     /** system identifier */
@@ -663,12 +469,15 @@ export type Order = {
     address: Scalars["String"];
     authority?: Maybe<Scalars["String"]>;
     consumer: Scalars["String"];
+    depositSpent?: Maybe<Scalars["String"]>;
     offerInfo?: Maybe<OfferInfo>;
     offerType: TOfferType;
+    orderHoldDeposit?: Maybe<Scalars["Float"]>;
     orderInfo: OrderInfo;
     orderResult: OrderResult;
     origins?: Maybe<Origins>;
-    parentOrder?: Maybe<ParentOrderInfo>;
+    parentOrder?: Maybe<ParentOrder>;
+    subOrders?: Maybe<Array<BaseOrder>>;
     teeOfferInfo?: Maybe<TeeOfferInfo>;
 };
 
@@ -764,11 +573,14 @@ export type OrderInfoInput = {
 
 export type OrderInputType = {
     consumer: Scalars["String"];
+    depositSpent?: InputMaybe<Scalars["String"]>;
     offerInfo?: InputMaybe<OfferInfoInput>;
     offerType: TOfferType;
+    orderHoldDeposit?: InputMaybe<Scalars["Float"]>;
     orderInfo: OrderInfoInput;
     orderResult: OrderResultInput;
-    parentOrder?: InputMaybe<ParentOrderInfoInput>;
+    parentOrder?: InputMaybe<ParentOrderInputType>;
+    subOrders?: InputMaybe<Array<BaseOrderInputType>>;
     teeOfferInfo?: InputMaybe<TeeOfferInfoInput>;
 };
 
@@ -796,8 +608,12 @@ export type OrderResultInput = {
 export type OrdersFilter = {
     /** filter by contract address */
     address?: InputMaybe<Scalars["String"]>;
+    /** filter by orderInfo -> consumer */
+    consumer?: InputMaybe<Scalars["String"]>;
     /** filter by orderInfo -> args -> inputOffers */
     inputOffers?: InputMaybe<Array<Scalars["String"]>>;
+    /** filter by parentOrder->orderAddress */
+    parentOrder?: InputMaybe<Scalars["String"]>;
     /** filter by orderInfo -> args -> selectedOffers */
     selectedOffers?: InputMaybe<Array<Scalars["String"]>>;
     /** filter by orderInfo -> status */
@@ -829,15 +645,35 @@ export type PageDataDto = {
     offset: Scalars["Float"];
 };
 
-export type ParentOrderInfo = {
-    __typename?: "ParentOrderInfo";
-    offerName: Scalars["String"];
-    orderAddress: Scalars["String"];
+export type ParentOrder = {
+    __typename?: "ParentOrder";
+    /** system identifier */
+    _id: Scalars["String"];
+    /** contract address */
+    address: Scalars["String"];
+    authority?: Maybe<Scalars["String"]>;
+    consumer: Scalars["String"];
+    depositSpent?: Maybe<Scalars["String"]>;
+    offerInfo?: Maybe<OfferInfo>;
+    offerType: TOfferType;
+    orderHoldDeposit?: Maybe<Scalars["Float"]>;
+    orderInfo: OrderInfo;
+    orderResult: OrderResult;
+    origins?: Maybe<Origins>;
+    parentOrder?: Maybe<Scalars["String"]>;
+    teeOfferInfo?: Maybe<TeeOfferInfo>;
 };
 
-export type ParentOrderInfoInput = {
-    offerName: Scalars["String"];
-    orderAddress: Scalars["String"];
+export type ParentOrderInputType = {
+    consumer: Scalars["String"];
+    depositSpent?: InputMaybe<Scalars["String"]>;
+    offerInfo?: InputMaybe<OfferInfoInput>;
+    offerType: TOfferType;
+    orderHoldDeposit?: InputMaybe<Scalars["Float"]>;
+    orderInfo: OrderInfoInput;
+    orderResult: OrderResultInput;
+    parentOrder?: InputMaybe<Scalars["String"]>;
+    teeOfferInfo?: InputMaybe<TeeOfferInfoInput>;
 };
 
 export type Provider = {
@@ -923,13 +759,13 @@ export type ProviderPageInfo = {
 
 export type Query = {
     __typename?: "Query";
+    balanceOf: Scalars["String"];
     config: Config;
     configs: ListConfigResponse;
     erc20: Erc20;
     listErc20: ListErc20Response;
     listLocking: ListLockingResponse;
     listStaking: ListStakingResponse;
-    listVoting: ListVotingResponse;
     locking: Locking;
     offer: Offer;
     offers: ListOffersResponse;
@@ -940,7 +776,10 @@ export type Query = {
     staking: Staking;
     teeOffer: TeeOffer;
     teeOffers: ListTeeOffersResponse;
-    voting: Voting;
+};
+
+export type QueryBalanceOfArgs = {
+    address: Scalars["String"];
 };
 
 export type QueryConfigArgs = {
@@ -971,11 +810,6 @@ export type QueryListStakingArgs = {
     pagination: ConnectionArgs;
 };
 
-export type QueryListVotingArgs = {
-    filter?: InputMaybe<VotingFilter>;
-    pagination: ConnectionArgs;
-};
-
 export type QueryLockingArgs = {
     _id: Scalars["String"];
 };
@@ -990,7 +824,7 @@ export type QueryOffersArgs = {
 };
 
 export type QueryOrderArgs = {
-    _id: Scalars["String"];
+    address: Scalars["String"];
 };
 
 export type QueryOrdersArgs = {
@@ -1018,10 +852,6 @@ export type QueryTeeOfferArgs = {
 export type QueryTeeOffersArgs = {
     filter?: InputMaybe<TeeOfferFilter>;
     pagination: ConnectionArgs;
-};
-
-export type QueryVotingArgs = {
-    _id: Scalars["String"];
 };
 
 export type StakeInfo = {
@@ -1079,6 +909,17 @@ export type StakingPageInfo = {
     hasNextPage: Scalars["Boolean"];
     hasPreviousPage: Scalars["Boolean"];
     startCursor?: Maybe<Scalars["String"]>;
+};
+
+export type Stats = {
+    __typename?: "Stats";
+    freeCores: Scalars["Float"];
+    ordersInQueue: Scalars["Float"];
+};
+
+export type StatsInput = {
+    freeCores: Scalars["Float"];
+    ordersInQueue: Scalars["Float"];
 };
 
 export type Subscription = {
@@ -1140,6 +981,7 @@ export type TeeOffer = {
     origins?: Maybe<Origins>;
     providerAddress: Scalars["String"];
     providerInfo: ProviderInformation;
+    stats?: Maybe<Stats>;
     teeOfferInfo: TeeOfferInfo;
 };
 
@@ -1193,6 +1035,7 @@ export type TeeOfferInputType = {
     disabledAfter: Scalars["Float"];
     providerAddress: Scalars["String"];
     providerInfo: ProviderInformationInput;
+    stats?: InputMaybe<StatsInput>;
     teeOfferInfo: TeeOfferInfoInput;
 };
 
@@ -1202,6 +1045,26 @@ export type TeeOfferPageInfo = {
     hasNextPage: Scalars["Boolean"];
     hasPreviousPage: Scalars["Boolean"];
     startCursor?: Maybe<Scalars["String"]>;
+};
+
+export type TransactionOptions = {
+    __typename?: "TransactionOptions";
+    from: Scalars["String"];
+    gas: Scalars["Float"];
+    gasPrice: Scalars["String"];
+    web3: Web3;
+};
+
+export type TransactionOptionsInputType = {
+    from: Scalars["String"];
+    gas: Scalars["Float"];
+    gasPrice: Scalars["String"];
+    web3: Web3InputType;
+};
+
+export type TransferInputType = {
+    to: Scalars["String"];
+    transactionOptions?: InputMaybe<TransactionOptionsInputType>;
 };
 
 export type UpdateConfigInput = {
@@ -1294,57 +1157,17 @@ export type ValueObjectType = {
     votingMinimumTurnout?: InputMaybe<Scalars["Float"]>;
 };
 
-export type VoterInfo = {
-    __typename?: "VoterInfo";
-    voter: Scalars["String"];
-    yes: Scalars["Boolean"];
+export type Web3 = {
+    __typename?: "Web3";
+    defaultAccount?: Maybe<Scalars["String"]>;
+    defaultBlock?: Maybe<Scalars["String"]>;
+    version?: Maybe<Scalars["String"]>;
 };
 
-export type VoterInfoInput = {
-    voter: Scalars["String"];
-    yes: Scalars["Boolean"];
-};
-
-export type Voting = {
-    __typename?: "Voting";
-    /** system identifier */
-    _id: Scalars["String"];
-    /** ballot address */
-    ballotAddress: Scalars["String"];
-    ballotInfo: BallotInfo;
-};
-
-export type VotingConnection = {
-    __typename?: "VotingConnection";
-    edges?: Maybe<Array<VotingEdge>>;
-    pageInfo?: Maybe<VotingPageInfo>;
-};
-
-export type VotingEdge = {
-    __typename?: "VotingEdge";
-    cursor?: Maybe<Scalars["String"]>;
-    node?: Maybe<Voting>;
-};
-
-export type VotingFilter = {
-    /** filter by ballot address */
-    ballotAddress?: InputMaybe<Scalars["String"]>;
-};
-
-export type VotingInputType = {
-    /** system identifier */
-    _id: Scalars["String"];
-    /** ballot address */
-    ballotAddress: Scalars["String"];
-    ballotInfo: BallotInfoInput;
-};
-
-export type VotingPageInfo = {
-    __typename?: "VotingPageInfo";
-    endCursor?: Maybe<Scalars["String"]>;
-    hasNextPage: Scalars["Boolean"];
-    hasPreviousPage: Scalars["Boolean"];
-    startCursor?: Maybe<Scalars["String"]>;
+export type Web3InputType = {
+    defaultAccount?: InputMaybe<Scalars["String"]>;
+    defaultBlock?: InputMaybe<Scalars["String"]>;
+    version?: InputMaybe<Scalars["String"]>;
 };
 
 export type PageDataDtoFragmentFragment = { __typename?: "PageDataDto"; count: number; limit: number; offset: number };
@@ -1360,6 +1183,12 @@ export type EventSubscription = {
         subscriptionSource: SubscriptionSource;
     };
 };
+
+export type TransferMutationVariables = Exact<{
+    transfer: TransferInputType;
+}>;
+
+export type TransferMutation = { __typename?: "Mutation"; transfer: string };
 
 export type OffersQueryVariables = Exact<{
     pagination: ConnectionArgs;
@@ -1459,7 +1288,7 @@ export type OffersSelectQuery = {
                 node?: {
                     __typename?: "Offer";
                     address: string;
-                    offerInfo: { __typename?: "OfferInfo"; name: string };
+                    offerInfo: { __typename?: "OfferInfo"; name: string; description: string };
                 } | null;
             }> | null;
         };
@@ -1513,53 +1342,17 @@ export type OrdersQuery = {
                     address: string;
                     authority?: string | null;
                     consumer: string;
+                    orderHoldDeposit?: number | null;
+                    depositSpent?: string | null;
                     offerType: TOfferType;
-                    parentOrder?: { __typename?: "ParentOrderInfo"; offerName: string; orderAddress: string } | null;
+                    parentOrder?: { __typename?: "ParentOrder"; address: string } | null;
                     offerInfo?: {
                         __typename?: "OfferInfo";
-                        allowedAccounts?: Array<string> | null;
-                        allowedArgs?: string | null;
-                        argsPublicKey: string;
-                        cancelable: boolean;
-                        description: string;
-                        disabledAfter: number;
-                        group: string;
-                        hash: string;
-                        holdSum: number;
-                        inputFormat: string;
-                        linkage: string;
-                        maxDurationTimeMinutes: number;
                         name: string;
-                        offerType: string;
-                        outputFormat: string;
-                        properties: string;
-                        resultUrl: string;
-                        restrictions?: {
-                            __typename?: "OfferRestrictions";
-                            offers?: Array<string> | null;
-                            types?: Array<TOfferType> | null;
-                        } | null;
+                        description: string;
+                        cancelable: boolean;
                     } | null;
-                    orderInfo: {
-                        __typename?: "OrderInfo";
-                        encryptedArgs: string;
-                        encryptedRequirements: string;
-                        offer: string;
-                        resultPublicKey: string;
-                        status: string;
-                        args: {
-                            __typename?: "OrderArgs";
-                            inputOffers?: Array<string> | null;
-                            selectedOffers?: Array<string> | null;
-                            slots?: number | null;
-                        };
-                    };
-                    orderResult: {
-                        __typename?: "OrderResult";
-                        encryptedError?: string | null;
-                        encryptedResult?: string | null;
-                        orderPrice?: number | null;
-                    };
+                    orderInfo: { __typename?: "OrderInfo"; offer: string; status: string };
                     origins?: {
                         __typename?: "Origins";
                         createdBy: string;
@@ -1567,18 +1360,22 @@ export type OrdersQuery = {
                         modifiedBy: string;
                         modifiedDate: number;
                     } | null;
-                    teeOfferInfo?: {
-                        __typename?: "TeeOfferInfo";
-                        argsPublicKey: string;
-                        description: string;
-                        minTimeMinutes: number;
-                        name: string;
-                        properties: string;
-                        slots: number;
-                        tcb: string;
-                        teeType: string;
-                        tlb: string;
-                    } | null;
+                    teeOfferInfo?: { __typename?: "TeeOfferInfo"; name: string; description: string } | null;
+                    subOrders?: Array<{
+                        __typename?: "BaseOrder";
+                        address: string;
+                        depositSpent?: string | null;
+                        offerType: TOfferType;
+                        teeOfferInfo?: { __typename?: "TeeOfferInfo"; name: string; description: string } | null;
+                        offerInfo?: {
+                            __typename?: "OfferInfo";
+                            name: string;
+                            description: string;
+                            cancelable: boolean;
+                        } | null;
+                        orderInfo: { __typename?: "OrderInfo"; offer: string; status: string };
+                        origins?: { __typename?: "Origins"; modifiedDate: number } | null;
+                    }> | null;
                 } | null;
             }> | null;
             pageInfo?: {
@@ -1608,6 +1405,81 @@ export type OrdersSelectQuery = {
                 __typename?: "OrderEdge";
                 cursor?: string | null;
                 node?: { __typename?: "Order"; address: string } | null;
+            }> | null;
+            pageInfo?: {
+                __typename?: "OrderPageInfo";
+                endCursor?: string | null;
+                hasNextPage: boolean;
+                hasPreviousPage: boolean;
+                startCursor?: string | null;
+            } | null;
+        };
+    };
+};
+
+export type OrderQueryVariables = Exact<{
+    id: Scalars["String"];
+}>;
+
+export type OrderQuery = {
+    __typename?: "Query";
+    order: {
+        __typename?: "Order";
+        address: string;
+        consumer: string;
+        offerType: TOfferType;
+        origins?: {
+            __typename?: "Origins";
+            createdBy: string;
+            createdDate: number;
+            modifiedBy: string;
+            modifiedDate: number;
+        } | null;
+        orderInfo: { __typename?: "OrderInfo"; status: string; offer: string };
+        teeOfferInfo?: { __typename?: "TeeOfferInfo"; name: string; description: string } | null;
+        orderResult: { __typename?: "OrderResult"; encryptedError?: string | null; encryptedResult?: string | null };
+    };
+};
+
+export type SubOrdersQueryVariables = Exact<{
+    pagination: ConnectionArgs;
+    filter?: InputMaybe<OrdersFilter>;
+}>;
+
+export type SubOrdersQuery = {
+    __typename?: "Query";
+    result: {
+        __typename?: "ListOrdersResponse";
+        pageData?: { __typename?: "PageDataDto"; count: number; limit: number; offset: number } | null;
+        page: {
+            __typename?: "OrderConnection";
+            edges?: Array<{
+                __typename?: "OrderEdge";
+                cursor?: string | null;
+                node?: {
+                    __typename?: "Order";
+                    _id: string;
+                    address: string;
+                    authority?: string | null;
+                    consumer: string;
+                    offerType: TOfferType;
+                    offerInfo?: {
+                        __typename?: "OfferInfo";
+                        name: string;
+                        offerType: string;
+                        cancelable: boolean;
+                        description: string;
+                    } | null;
+                    orderInfo: { __typename?: "OrderInfo"; offer: string; status: string };
+                    origins?: {
+                        __typename?: "Origins";
+                        createdBy: string;
+                        createdDate: number;
+                        modifiedBy: string;
+                        modifiedDate: number;
+                    } | null;
+                    teeOfferInfo?: { __typename?: "TeeOfferInfo"; name: string; description: string } | null;
+                } | null;
             }> | null;
             pageInfo?: {
                 __typename?: "OrderPageInfo";
@@ -1708,6 +1580,7 @@ export type TeeOffersQuery = {
                         name: string;
                         tokenReceiver: string;
                     };
+                    stats?: { __typename?: "Stats"; freeCores: number; ordersInQueue: number } | null;
                     teeOfferInfo: {
                         __typename?: "TeeOfferInfo";
                         argsPublicKey: string;
@@ -1733,6 +1606,38 @@ export type TeeOffersQuery = {
     };
 };
 
+export type TeeOffersSelectQueryVariables = Exact<{
+    pagination: ConnectionArgs;
+    filter?: InputMaybe<TeeOfferFilter>;
+}>;
+
+export type TeeOffersSelectQuery = {
+    __typename?: "Query";
+    result: {
+        __typename?: "ListTeeOffersResponse";
+        pageData?: { __typename?: "PageDataDto"; count: number; limit: number; offset: number } | null;
+        page: {
+            __typename?: "TeeOfferConnection";
+            pageInfo?: {
+                __typename?: "TeeOfferPageInfo";
+                endCursor?: string | null;
+                hasNextPage: boolean;
+                hasPreviousPage: boolean;
+                startCursor?: string | null;
+            } | null;
+            edges?: Array<{
+                __typename?: "TeeOfferEdge";
+                cursor?: string | null;
+                node?: {
+                    __typename?: "TeeOffer";
+                    address: string;
+                    teeOfferInfo: { __typename?: "TeeOfferInfo"; name: string; description: string };
+                } | null;
+            }> | null;
+        };
+    };
+};
+
 export const PageDataDtoFragmentFragmentDoc = gql`
     fragment PageDataDtoFragment on PageDataDto {
         count
@@ -1747,6 +1652,11 @@ export const EventDocument = gql`
             type
             subscriptionSource
         }
+    }
+`;
+export const TransferDocument = gql`
+    mutation Transfer($transfer: TransferInputType!) {
+        transfer(transfer: $transfer)
     }
 `;
 export const OffersDocument = gql`
@@ -1829,6 +1739,7 @@ export const OffersSelectDocument = gql`
                         address
                         offerInfo {
                             name
+                            description
                         }
                     }
                     cursor
@@ -1870,50 +1781,20 @@ export const OrdersDocument = gql`
                         address
                         authority
                         consumer
+                        orderHoldDeposit
+                        depositSpent
                         parentOrder {
-                            offerName
-                            orderAddress
+                            address
                         }
                         offerInfo {
-                            allowedAccounts
-                            allowedArgs
-                            argsPublicKey
-                            cancelable
-                            description
-                            disabledAfter
-                            group
-                            hash
-                            holdSum
-                            inputFormat
-                            linkage
-                            maxDurationTimeMinutes
                             name
-                            offerType
-                            outputFormat
-                            properties
-                            restrictions {
-                                offers
-                                types
-                            }
-                            resultUrl
+                            description
+                            cancelable
                         }
                         offerType
                         orderInfo {
-                            args {
-                                inputOffers
-                                selectedOffers
-                                slots
-                            }
-                            encryptedArgs
-                            encryptedRequirements
                             offer
-                            resultPublicKey
                             status
-                        }
-                        orderResult {
-                            encryptedError
-                            encryptedResult
-                            orderPrice
                         }
                         origins {
                             createdBy
@@ -1922,15 +1803,29 @@ export const OrdersDocument = gql`
                             modifiedDate
                         }
                         teeOfferInfo {
-                            argsPublicKey
-                            description
-                            minTimeMinutes
                             name
-                            properties
-                            slots
-                            tcb
-                            teeType
-                            tlb
+                            description
+                        }
+                        subOrders {
+                            address
+                            depositSpent
+                            teeOfferInfo {
+                                name
+                                description
+                            }
+                            offerInfo {
+                                name
+                                description
+                                cancelable
+                            }
+                            offerType
+                            orderInfo {
+                                offer
+                                status
+                            }
+                            origins {
+                                modifiedDate
+                            }
                         }
                     }
                 }
@@ -1956,6 +1851,81 @@ export const OrdersSelectDocument = gql`
                     cursor
                     node {
                         address
+                    }
+                }
+                pageInfo {
+                    endCursor
+                    hasNextPage
+                    hasPreviousPage
+                    startCursor
+                }
+            }
+        }
+    }
+    ${PageDataDtoFragmentFragmentDoc}
+`;
+export const OrderDocument = gql`
+    query Order($id: String!) {
+        order(address: $id) {
+            address
+            consumer
+            origins {
+                createdBy
+                createdDate
+                modifiedBy
+                modifiedDate
+            }
+            offerType
+            orderInfo {
+                status
+                offer
+            }
+            teeOfferInfo {
+                name
+                description
+            }
+            orderResult {
+                encryptedError
+                encryptedResult
+            }
+        }
+    }
+`;
+export const SubOrdersDocument = gql`
+    query SubOrders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
+        result: orders(pagination: $pagination, filter: $filter) {
+            pageData {
+                ...PageDataDtoFragment
+            }
+            page {
+                edges {
+                    cursor
+                    node {
+                        _id
+                        address
+                        authority
+                        consumer
+                        offerInfo {
+                            name
+                            offerType
+                            cancelable
+                            description
+                        }
+                        offerType
+                        orderInfo {
+                            offer
+                            status
+                        }
+                        origins {
+                            createdBy
+                            createdDate
+                            modifiedBy
+                            modifiedDate
+                        }
+                        teeOfferInfo {
+                            name
+                            description
+                        }
                     }
                 }
                 pageInfo {
@@ -2039,6 +2009,10 @@ export const TeeOffersDocument = gql`
                             name
                             tokenReceiver
                         }
+                        stats {
+                            freeCores
+                            ordersInQueue
+                        }
                         teeOfferInfo {
                             argsPublicKey
                             description
@@ -2057,6 +2031,34 @@ export const TeeOffersDocument = gql`
                     hasNextPage
                     hasPreviousPage
                     startCursor
+                }
+            }
+        }
+    }
+    ${PageDataDtoFragmentFragmentDoc}
+`;
+export const TeeOffersSelectDocument = gql`
+    query TeeOffersSelect($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
+        result: teeOffers(pagination: $pagination, filter: $filter) {
+            pageData {
+                ...PageDataDtoFragment
+            }
+            page {
+                pageInfo {
+                    endCursor
+                    hasNextPage
+                    hasPreviousPage
+                    startCursor
+                }
+                edges {
+                    node {
+                        address
+                        teeOfferInfo {
+                            name
+                            description
+                        }
+                    }
+                    cursor
                 }
             }
         }
@@ -2086,6 +2088,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
                     }),
                 "Event",
                 "subscription"
+            );
+        },
+        Transfer(
+            variables: TransferMutationVariables,
+            requestHeaders?: Dom.RequestInit["headers"]
+        ): Promise<TransferMutation> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<TransferMutation>(TransferDocument, variables, {
+                        ...requestHeaders,
+                        ...wrappedRequestHeaders,
+                    }),
+                "Transfer",
+                "mutation"
             );
         },
         Offers(variables: OffersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<OffersQuery> {
@@ -2152,6 +2168,31 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
                 "query"
             );
         },
+        Order(variables: OrderQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<OrderQuery> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<OrderQuery>(OrderDocument, variables, {
+                        ...requestHeaders,
+                        ...wrappedRequestHeaders,
+                    }),
+                "Order",
+                "query"
+            );
+        },
+        SubOrders(
+            variables: SubOrdersQueryVariables,
+            requestHeaders?: Dom.RequestInit["headers"]
+        ): Promise<SubOrdersQuery> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<SubOrdersQuery>(SubOrdersDocument, variables, {
+                        ...requestHeaders,
+                        ...wrappedRequestHeaders,
+                    }),
+                "SubOrders",
+                "query"
+            );
+        },
         Providers(
             variables: ProvidersQueryVariables,
             requestHeaders?: Dom.RequestInit["headers"]
@@ -2177,6 +2218,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
                         ...wrappedRequestHeaders,
                     }),
                 "TeeOffers",
+                "query"
+            );
+        },
+        TeeOffersSelect(
+            variables: TeeOffersSelectQueryVariables,
+            requestHeaders?: Dom.RequestInit["headers"]
+        ): Promise<TeeOffersSelectQuery> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<TeeOffersSelectQuery>(TeeOffersSelectDocument, variables, {
+                        ...requestHeaders,
+                        ...wrappedRequestHeaders,
+                    }),
+                "TeeOffersSelect",
                 "query"
             );
         },

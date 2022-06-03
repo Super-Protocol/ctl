@@ -1,6 +1,6 @@
 import fetchProviders from "../services/fetchProviders";
 import Printer from "../printer";
-import { snakeToCamel } from "../utils";
+import { prepareObjectToPrint } from "../utils";
 
 export type ProviderListParams = {
     backendUrl: string;
@@ -16,14 +16,7 @@ export default async (params: ProviderListParams) => {
         cursor: params.cursor,
     });
 
-    const rows = providers.list.map((item) => {
-        const row: { [key: string]: any } = {};
-        params.fields.forEach((key) => {
-            // @ts-ignore keep only requested fields
-            row[key] = item[snakeToCamel(key)];
-        });
-        return row;
-    });
+    const rows = providers.list.map((item) => prepareObjectToPrint(item, params.fields));
 
     Printer.table(rows);
     Printer.print("Last pagination cursor: " + providers.cursor);

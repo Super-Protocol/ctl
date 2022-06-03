@@ -9,6 +9,8 @@ import download from "./commands/filesDownload";
 import upload from "./commands/filesUpload";
 import providersList from "./commands/providersList";
 import providersGet from "./commands/providersGet";
+import ordersList from "./commands/ordersList";
+import ordersGet from "./commands/ordersGet";
 import ordersCancel from "./commands/ordersCancel";
 import ordersReplenishDeposit from "./commands/ordersReplenishDeposit";
 import Printer from "./printer";
@@ -112,6 +114,113 @@ async function main() {
                 actionAccountKey: blockchainKeys.actionAccountKey,
                 address,
                 amount: +amount,
+            });
+        });
+
+    const ordersListFields = [
+            "id",
+            "offer_name",
+            "offer_description",
+            "type",
+            "status",
+            "offer_id",
+            "consumer_address",
+            "parent_order_id",
+            "total_deposit",
+            "unspent_deposit",
+            "cancelebel",
+            "sub_orders_count",
+            "modified_date",
+        ],
+        ordersListDefaultFields = ["id", "offer_name", "status"];
+    ordersCommand
+        .command("list")
+        .description("Fetches list of orders")
+        .addOption(
+            new Option("--fields <fields>", `Orders fields to fetch (available fields: ${ordersListFields.join(", ")})`)
+                .argParser(commaSeparatedList)
+                .default(ordersListDefaultFields, ordersListDefaultFields.join(","))
+        )
+        .option("--limit <number>", "Limit of records", "10")
+        .option("--cursor <cursorString>", "Cursor for pagination")
+        .action(async (options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+
+            validateFields(options.fields, ordersListFields);
+
+            await ordersList({
+                fields: options.fields,
+                backendUrl: backendAccess.url,
+                limit: +options.limit,
+                cursor: options.cursor,
+            });
+        });
+
+    const ordersGetFields = [
+            "id",
+            "offer_name",
+            "offer_description",
+            "type",
+            "status",
+            "offer_id",
+            "consumer_address",
+            "parent_order_id",
+            "total_deposit",
+            "unspent_deposit",
+            "cancelebel",
+            "modified_date",
+        ],
+        ordersGetDefaultFields = [
+            "offer_name",
+            "offer_description",
+            "type",
+            "status",
+            "total_deposit",
+            "unspent_deposit",
+            "modified_date",
+        ],
+        subOrdersGetFields = [
+            "id",
+            "offer_name",
+            "offer_description",
+            "type",
+            "status",
+            "cancelebel",
+            "actual_cost",
+            "modified_date",
+        ],
+        subOrdersGetDefaultFields = ["id", "offer_name", "offer_description", "type", "status", "modified_date"];
+    ordersCommand
+        .command("get")
+        .description("Fetch fields of order with <id>")
+        .argument("id", "ID to fetch the order")
+        .addOption(
+            new Option("--fields <fields>", `Order fields to fetch (available fields: ${ordersGetFields.join(", ")})`)
+                .argParser(commaSeparatedList)
+                .default(ordersGetDefaultFields, ordersGetDefaultFields.join(","))
+        )
+        .option("--suborders", "Show suborders", false)
+        .addOption(
+            new Option(
+                "--suborders-fields <fields>",
+                `Sub orders fields to fetch (available fields: ${subOrdersGetFields.join(", ")})`
+            )
+                .argParser(commaSeparatedList)
+                .default(subOrdersGetDefaultFields, subOrdersGetDefaultFields.join(","))
+        )
+        .action(async (id: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+
+            validateFields(options.fields, ordersGetFields);
+            if (options.suborders) validateFields(options.subordersFields, subOrdersGetFields);
+
+            await ordersGet({
+                fields: options.fields,
+                subOrdersFields: options.suborders ? options.subordersFields : [],
+                backendUrl: backendAccess.url,
+                id,
             });
         });
 

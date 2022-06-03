@@ -25,6 +25,10 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                         name
                         tokenReceiver
                     }
+                    stats {
+                        freeCores
+                        ordersInQueue
+                    }
                     teeOfferInfo {
                         argsPublicKey
                         description
@@ -43,6 +47,32 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                 hasNextPage
                 hasPreviousPage
                 startCursor
+            }
+        }
+    }
+}
+
+query TeeOffersSelect($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
+    result: teeOffers(pagination: $pagination, filter: $filter) {
+        pageData {
+            ...PageDataDtoFragment
+        }
+        page {
+            pageInfo {
+                endCursor
+                hasNextPage
+                hasPreviousPage
+                startCursor
+            }
+            edges {
+                node {
+                    address
+                    teeOfferInfo {
+                        name
+                        description
+                    }
+                }
+                cursor
             }
         }
     }

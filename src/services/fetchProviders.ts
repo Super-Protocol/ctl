@@ -1,5 +1,6 @@
-import { getSdk, Sdk } from "../gql";
+import { getSdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
+import { formatDate } from "../utils";
 
 export type FetchProviderParams = {
     backendUrl: string;
@@ -27,7 +28,7 @@ export default async (params: FetchProviderParams) => {
                 description: item.node?.providerInfo.description,
                 authorityAccount: item.node?.authority,
                 actionAccount: item.node?.providerInfo.actionAccount,
-                modifiedDate: item.node?.origins?.modifiedDate,
+                modifiedDate: formatDate(item.node?.origins?.modifiedDate),
             })) || [],
         cursor: result.page.pageInfo!.endCursor,
     };

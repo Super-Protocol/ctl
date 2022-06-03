@@ -73,7 +73,6 @@ class ConfigLoader {
         this.rawConfig = JSON.parse(fs.readFileSync(configPath).toString());
     }
 
-
     loadSection(sectionName: keyof Config) {
         if (this.validatedConfig[sectionName]) return this.validatedConfig[sectionName];
 

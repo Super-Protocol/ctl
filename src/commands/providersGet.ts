@@ -1,6 +1,6 @@
 import fetchProviders from "../services/fetchProviders";
 import Printer from "../printer";
-import { snakeToCamel } from "../utils";
+import { prepareObjectToPrint } from "../utils";
 
 export type ProvidersGetParams = {
     backendUrl: string;
@@ -15,10 +15,11 @@ export default async (params: ProvidersGetParams) => {
         id: params.id,
     });
 
-    const provider = providers.list[0];
+    if (!providers.list.length) {
+        Printer.print(`Provider ${params.id} not found`);
+        return;
+    }
 
-    params.fields.forEach((key) => {
-        // @ts-ignore
-        Printer.print(`${key}: ${provider[snakeToCamel(key)]}`);
-    });
+    const provider = prepareObjectToPrint(providers.list[0], params.fields);
+    Printer.printObject(provider);
 };

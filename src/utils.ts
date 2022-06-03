@@ -27,12 +27,25 @@ export const validateFields = (fields: string[], allowedFields: string[]) => {
 };
 
 export const snakeToCamel = (str: string) =>
-    str.toLowerCase().replace(/([-_][a-z])/g, group =>
-        group
-            .toUpperCase()
-            .replace('-', '')
-            .replace('_', '')
-    );
+    str.toLowerCase().replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace("-", "").replace("_", ""));
+
+export const prepareObjectToPrint = (object: { [key: string]: any }, fields: string[]) => {
+    const newObject: { [key: string]: any } = {};
+    fields.forEach((key) => {
+        newObject[key] = object[snakeToCamel(key)];
+    });
+    return newObject;
+};
+
+export const getObjectKey = (value: any, object: { [key: string]: any }) => {
+    const result = Object.entries(object).find(([k, v]) => v === value);
+    return result ? result[0] : "none";
+};
+
+export const formatDate = (date: string | number | Date | undefined) => {
+    if (!date) return undefined;
+    return new Date(date).toString();
+};
 
 export const SilentError = (error: Error) => ({
     error,
