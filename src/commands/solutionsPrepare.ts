@@ -11,6 +11,7 @@ export type PrepareSolutionParams = {
     solutionHashAlgo: string;
     solutionPath: string;
     solutionOutputPath: string;
+    writeDefaultManifest: boolean;
     baseImagePath?: string;
     baseImageResource?: string;
     keyPath: string;
@@ -75,6 +76,7 @@ export default async (params: PrepareSolutionParams) => {
         keyPath: params.keyPath,
         manifest: toml.stringify(manifestObject),
         solutionPath: params.solutionPath,
+        writeDefaultManifest: params.writeDefaultManifest,
     });
 
     let solutionHash = "";

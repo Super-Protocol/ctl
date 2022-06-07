@@ -41,6 +41,7 @@ export const signManifest = async (opts: {
     manifest: string;
     keyPath: string;
     solutionPath: string;
+    writeDefaultManifest: boolean;
 }): Promise<{
     solutionMetadataPath: string;
     mrenclave: string;
@@ -87,19 +88,29 @@ gramine-sgx-get-token --sig /entrypoint.sig --output /entrypoint.token
             throw new Error("Fail to parse MRENCLAVE and MRSIGNER");
         }
 
-        const solutionMetadataPath = join(
-            await realpath(opts.solutionPath),
-            ".solution-metadata",
-            "sgx-gramine",
-            "manifests",
-            "mrenclave",
-            mrenclave,
-        );
+        const writeManifest = async (mrenclave: string) => {
+            const solutionMetadataPath = join(
+                await realpath(opts.solutionPath),
+                ".solution-metadata",
+                "sgx-gramine",
+                "manifests",
+                "mrenclave",
+                mrenclave,
+            );
 
-        await mkdir(solutionMetadataPath, { recursive: true });
+            await mkdir(solutionMetadataPath, { recursive: true });
 
-        await copyFile(entrypointSgxPath, join(solutionMetadataPath, "entrypoint.manifest.sgx"));
-        await copyFile(entrypointSigPath, join(solutionMetadataPath, "entrypoint.sig"));
+            await copyFile(entrypointSgxPath, join(solutionMetadataPath, "entrypoint.manifest.sgx"));
+            await copyFile(entrypointSigPath, join(solutionMetadataPath, "entrypoint.sig"));
+
+            return solutionMetadataPath;
+        }
+
+        const solutionMetadataPath = await writeManifest(mrenclave);
+
+        if (opts.writeDefaultManifest) {
+            await writeManifest("_");
+        }
 
         return {
             solutionMetadataPath,

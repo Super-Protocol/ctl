@@ -269,6 +269,7 @@ async function main() {
         .option("--pack-solution <packSolution>", "Pack solution folder into tar gz", "")
         .option("--base-image-path <pathToContainerImage>", "A container image file", "")
         .option("--base-image-resource <containerImageResource>", "A container image resource name", "")
+        .option("--write-default-manifest", "Write a default manifest for solutions with empty sgxMrEnclave", false)
         .option("--hash-algo <solutionHashAlgo>", "Hash calculation algorithm for solution", "sha256")
         .option("--sgx-thread-num <threadNum>", "A number of enclave threads", "")
         .option("--sgx-enclave-size <enclaveSize>", "Whole enclave size (#M or #G), must be some of power of 2", "")
@@ -286,6 +287,7 @@ async function main() {
                 sgxEnclaveSize: options.sgxEnclaveSize,
                 sgxThreadNum: options.sgxThreadNum,
                 sysStackSize: options.sgxStackSize,
+                writeDefaultManifest: options.writeDefaultManifest,
             });
         });
 
