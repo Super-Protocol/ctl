@@ -1,6 +1,6 @@
 import fetchOrders from "../services/fetchOrders";
 import Printer from "../printer";
-import { prepareObjectToPrint, prepareObjectToPrint } from "../utils";
+import { prepareObjectToPrint } from "../utils";
 
 export type OrdersGetParams = {
     backendUrl: string;
@@ -23,7 +23,7 @@ export default async (params: OrdersGetParams) => {
 
     let subOrders: { [key: string]: any }[] = [];
     if (params.subOrdersFields.length) {
-        subOrders = orders.list[0].subOrders?.map((item) => filterObjectFields(item, params.subOrdersFields)) || [];
+        subOrders = orders.list[0].subOrders?.map((item) => prepareObjectToPrint(item, params.subOrdersFields)) || [];
     }
 
     const order = prepareObjectToPrint(orders.list[0], params.fields);
