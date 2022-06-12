@@ -1,4 +1,4 @@
-import fetchOrders from "../services/fetchOrders";
+import fetchOrdersService from "../services/fetchOrders";
 import Printer from "../printer";
 import { prepareObjectToPrint } from "../utils";
 
@@ -10,7 +10,7 @@ export type OrdersListParams = {
 };
 
 export default async (params: OrdersListParams) => {
-    const orders = await fetchOrders({
+    const orders = await fetchOrdersService({
         backendUrl: params.backendUrl,
         limit: params.limit,
         cursor: params.cursor,

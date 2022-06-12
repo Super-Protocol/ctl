@@ -1,5 +1,5 @@
 import { getStorageProvider, StorageAccess } from "@super-protocol/sp-sdk-js";
-import { troubleshootHelper, loadDependencies } from "./uplinkSetupHelper";
+import { loadDependencies, troubleshootHelper } from "./uplinkSetupHelper";
 import { StorageType } from "@super-protocol/sp-dto-js";
 
 export default async (

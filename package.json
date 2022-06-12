@@ -18,8 +18,8 @@
     "license": "MIT",
     "private": true,
     "dependencies": {
-        "@super-protocol/sp-dto-js": "^0.0.10",
-        "@super-protocol/sp-sdk-js": "^0.1.13",
+        "@super-protocol/sp-dto-js": "^0.0.13",
+        "@super-protocol/sp-sdk-js": "^0.2.47",
         "cli-progress": "^3.9.1",
         "colors": "^1.4.0",
         "commander": "^8.3.0",

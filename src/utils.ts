@@ -19,12 +19,18 @@ export const commaSeparatedList = (value: string) => {
     return value.split(",").map((item) => item.trim());
 };
 
+export const collectOptions = (value: string, previous: string[]) => {
+    return previous.concat([value]);
+};
+
 export const validateFields = (fields: string[], allowedFields: string[]) => {
     fields.forEach((field) => {
         if (!allowedFields.includes(field))
             throw Error(`Field "${field}" not supported\nSupported fields: ${allowedFields.join(", ")}`);
     });
 };
+
+export const generateExternalId = () => [...Array(16)].map(() => Math.floor(Math.random() * 16).toString(16)).join("");
 
 export const snakeToCamel = (str: string) =>
     str.toLowerCase().replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace("-", "").replace("_", ""));

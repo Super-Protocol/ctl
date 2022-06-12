@@ -11,7 +11,7 @@ export default async (
     folderPath: string,
     output?: string,
     progressListener?: (total: number, current: number) => void,
-    opts: { withoutUpFolder?: boolean; transform?: stream.Transform } = {},
+    opts: { withoutUpFolder?: boolean; transform?: stream.Transform } = {}
 ): Promise<string> => {
     output = output ?? path.join(path.dirname(folderPath), `${path.basename(folderPath)}.tgz`);
 
@@ -25,7 +25,7 @@ export default async (
                 gzip: true,
                 cwd: opts.withoutUpFolder ? folderPath : path.dirname(folderPath),
             },
-            [opts.withoutUpFolder ? "." : path.basename(folderPath)],
+            [opts.withoutUpFolder ? "." : path.basename(folderPath)]
         )
         .on("data", (chunk) => {
             bytesWritten += chunk.length;

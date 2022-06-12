@@ -1,29 +1,39 @@
 import { promises as fs } from "fs";
-import { Encryption } from "@super-protocol/sp-dto-js";
-import { StorageAccess } from "@super-protocol/sp-sdk-js";
-import download from "../services/downloadFile";
-import decryptFile from "../services/decryptFile";
+import downloadService from "../services/downloadFile";
+import decryptFileService from "../services/decryptFile";
 import Printer from "../printer";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
+import path from "path";
+import readResourceFileService from "../services/readResourceFile";
+import { ResourceType, StorageProviderResource } from "@super-protocol/sp-dto-js";
 
-export default async (
-    remotePath: string,
-    localPath: string,
-    encryption: Encryption,
-    storageAccess: StorageAccess
-): Promise<void> => {
+export type FilesDownloadParams = {
+    resourcePath: string;
+    localPath: string;
+};
+
+export default async (params: FilesDownloadParams): Promise<void> => {
     if (!isCommandSupported()) return;
 
-    localPath = localPath.replace(/\/$/, "");
+    const resourceFile = await readResourceFileService({
+        path: path.join(process.cwd(), params.resourcePath),
+    });
 
-    remotePath = `${remotePath}.encrypted`;
-    localPath = `${localPath}.encrypted`;
+    const resource = resourceFile.resource as StorageProviderResource;
+    if (resource.type !== ResourceType.StorageProvider)
+        throw Error(`Resource type ${resource.type} not supported, supported only StorageProvider type`);
 
-    await download(remotePath, localPath, storageAccess, (total: number, current: number) => {
+    const localPath = `${params.localPath.replace(/\/$/, "")}.encrypted`;
+    const storageAccess = {
+        storageType: resource.storageType,
+        credentials: resource.credentials,
+    };
+
+    await downloadService(resource.filepath, localPath, storageAccess, (total: number, current: number) => {
         Printer.progress("Downloading", total, current);
     });
 
-    await decryptFile(localPath, encryption, (total: number, current: number) => {
+    await decryptFileService(localPath, resourceFile.encryption, (total: number, current: number) => {
         Printer.progress("Decrypting", total, current);
     });
 

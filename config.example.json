@@ -14,16 +14,20 @@
         "solutionArgs": {}
     },
     "storage": {
-        "access": {
-            "storageType": "STORJ",
-            "credentials": {
-                "token": "YOUR_TOKEN_HERE",
-                "storageId": "YOUR_BUCKET_HERE"
-            }
+        "storageType": "STORJ",
+        "writeCredentials": {
+            "token": "YOUR_TOKEN_HERE",
+            "storageId": "YOUR_BUCKET_HERE"
         },
-        "encryption": {
-            "algo": "AES",
-            "key": "YOUR_KEY_HERE",
+        "readCredentials": {
+            "token": "YOUR_TOKEN_HERE",
+            "storageId": "YOUR_BUCKET_HERE"
+        }
+    },
+    "workflow": {
+        "resultEncryption": {
+            "algo": "ECIES",
+            "key": "YOUR_PUBLIC_KEY_HERE",
             "encoding": "base64"
         }
     }

@@ -5,7 +5,7 @@ export type InitBlockchainConnectorParams = {
     actionAccountKey: string;
 };
 
-export default async (params: InitBlockchainConnectorParams) => {
+export default async (params: InitBlockchainConnectorParams): Promise<string> => {
     await BlockchainConnector.init(params.blockchainConfig);
-    await BlockchainConnector.initActionAccount(params.actionAccountKey);
+    return BlockchainConnector.initActionAccount(params.actionAccountKey);
 };

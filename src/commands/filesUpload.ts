@@ -1,51 +1,86 @@
 import { promises as fs } from "fs";
-import encryptFile from "../services/encryptFile";
-import packFolder from "../services/packFolder";
-import upload from "../services/uploadFile";
-import { Encryption } from "@super-protocol/sp-dto-js";
-import { StorageAccess } from "@super-protocol/sp-sdk-js";
+import encryptFileService from "../services/encryptFile";
+import packFolderService from "../services/packFolder";
+import uploadService from "../services/uploadFile";
+import { ResourceType, StorageType } from "@super-protocol/sp-dto-js";
 import Printer from "../printer";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
 import path from "path";
+import { generateExternalId } from "../utils";
+import readJsonFileService from "../services/readJsonFile";
+import generateEncryptionService from "../services/generateEncryption";
 
-export default async (localPath: string, remotePath: string, encryption: Encryption, storageAccess: StorageAccess) => {
+export type FilesUploadParams = {
+    localPath: string;
+    outputPath: string;
+    metadataPath?: string;
+    storageType: StorageType;
+    writeCredentials: any;
+    readCredentials: any;
+};
+
+export default async (params: FilesUploadParams) => {
     if (!isCommandSupported()) return;
 
-    localPath = localPath.replace(/\/$/, "");
+    let metadata = {};
+    if (params.metadataPath) {
+        metadata = await readJsonFileService({ path: path.join(process.cwd(), params.metadataPath) });
+    }
+
+    const encryption = await generateEncryptionService();
+
+    let localPath = params.localPath.replace(/\/$/, "");
     let packedFilePath: string | undefined;
 
     let info = await fs.stat(localPath);
     if (info.isDirectory()) {
         let output = `${localPath}`;
-        localPath = await packFolder(localPath, output, (total: number, current: number) => {
+        localPath = await packFolderService(localPath, output, (total: number, current: number) => {
             Printer.progress("Packing", total, current);
         });
 
         packedFilePath = localPath;
     }
 
-    let encryptedFileData = await encryptFile(localPath, encryption, (total: number, current: number) => {
+    let encryptedFileData = await encryptFileService(localPath, encryption, (total: number, current: number) => {
         Printer.progress("Encrypting", total, current);
     });
-    remotePath = `${remotePath}.encrypted`;
+    const remotePath = `${generateExternalId()}.encrypted`;
 
     try {
-        await upload(
+        await uploadService(
             encryptedFileData.encryptedFilePath,
             remotePath,
-            storageAccess,
+            {
+                storageType: params.storageType,
+                credentials: params.writeCredentials,
+            },
             (total: number, current: number) => {
                 Printer.progress("Uploading", total, current);
             }
         );
         Printer.stopProgress();
 
-        const outputpath = path.join(process.cwd(), `encryption.json`);
-        await fs.writeFile(outputpath, JSON.stringify(encryptedFileData.encryption, null, 2));
-        Printer.print(`Encryption info was written into ${outputpath}\n`);
+        const result = {
+            ...metadata,
+            encryption: encryptedFileData.encryption,
+            resource: {
+                type: ResourceType.StorageProvider,
+                storageType: StorageType.StorJ,
+                filepath: remotePath,
+                credentials: params.writeCredentials,
+            },
+        };
+        const outputpath = path.join(process.cwd(), params.outputPath);
+        await fs.writeFile(outputpath, JSON.stringify(result, null, 2));
+        Printer.print(`Resource was written into ${outputpath}\n`);
     } finally {
         Printer.print("Deleting temp files..");
-        if (typeof packedFilePath != "undefined") await fs.unlink(packedFilePath);
+        try {
+            if (typeof packedFilePath != "undefined") await fs.unlink(packedFilePath);
+        } catch (e) {
+            Printer.error(`Error during deleting ${packedFilePath}`);
+        }
         await fs.unlink(encryptedFileData.encryptedFilePath);
         Printer.print("Done");
     }

@@ -27,7 +27,7 @@ export const extractManifest = async (opts: {
     }
 
     const { stdout } = await exec(
-        `docker run --rm -i --entrypoint /bin/sh "${dockerImage}" -exc "cat /entrypoint.manifest"`,
+        `docker run --rm -i --entrypoint /bin/sh "${dockerImage}" -exc "cat /entrypoint.manifest"`
     );
 
     return {
@@ -78,7 +78,7 @@ gramine-sgx-get-token --sig /entrypoint.sig --output /entrypoint.token
         await writeFile(entrypointSgxPath, "");
 
         const { stdout } = await exec(
-            `docker run --hostname localhost --rm -i --entrypoint /bin/sh -v "${keyPath}:/sign.key" -v "${scriptPath}:/script.sh" -v "${entrypointManifestPath}:/entrypoint.manifest" -v "${entrypointSgxPath}:/entrypoint.manifest.sgx" -v "${entrypointSigPath}:/entrypoint.sig" "${opts.dockerImage}" /script.sh`,
+            `docker run --hostname localhost --rm -i --entrypoint /bin/sh -v "${keyPath}:/sign.key" -v "${scriptPath}:/script.sh" -v "${entrypointManifestPath}:/entrypoint.manifest" -v "${entrypointSgxPath}:/entrypoint.manifest.sgx" -v "${entrypointSigPath}:/entrypoint.sig" "${opts.dockerImage}" /script.sh`
         );
 
         const mrenclave = (stdout.match(/mr_enclave:\s+([0-9a-fA-F]+)/)?.[1] || "").toLowerCase();

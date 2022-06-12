@@ -1,6 +1,6 @@
 import { writeFile } from "fs/promises";
 import Printer from "../printer";
-import generateSolutionKey from "../services/generateSolutionKey";
+import generateSolutionKeyService from "../services/generateSolutionKey";
 
 export type GenerateSolutionKeyParams = {
     outputPath: string;
@@ -9,7 +9,7 @@ export type GenerateSolutionKeyParams = {
 export default async (params: GenerateSolutionKeyParams) => {
     Printer.print("Generating solution key...");
 
-    const solutionKay = await generateSolutionKey();
+    const solutionKay = await generateSolutionKeyService();
 
     Printer.print("Writing solution key to " + params.outputPath);
 

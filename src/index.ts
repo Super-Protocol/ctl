@@ -13,8 +13,9 @@ import ordersList from "./commands/ordersList";
 import ordersGet from "./commands/ordersGet";
 import ordersCancel from "./commands/ordersCancel";
 import ordersReplenishDeposit from "./commands/ordersReplenishDeposit";
+import workflowsCreate from "./commands/workflowsCreate";
 import Printer from "./printer";
-import { commaSeparatedList, processSubCommands, validateFields } from "./utils";
+import { collectOptions, commaSeparatedList, processSubCommands, validateFields } from "./utils";
 import generateSolutionKey from "./commands/solutionsGenerateKey";
 import prepareSolution from "./commands/solutionsPrepare";
 
@@ -24,6 +25,7 @@ async function main() {
 
     const providersCommand = program.command("providers");
     const ordersCommand = program.command("orders");
+    const workflowsCommand = program.command("workflows");
     const filesCommand = program.command("files");
     const solutionsCommand = program.command("solutions");
 
@@ -85,8 +87,8 @@ async function main() {
 
     ordersCommand
         .command("cancel")
-        .description("Cancel order with <address>")
-        .argument("address", "Order address")
+        .description("Cancel order with <id>")
+        .argument("id", "Order id")
         .action(async (address: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -101,8 +103,8 @@ async function main() {
 
     ordersCommand
         .command("replenish-deposit")
-        .description("Replenish order deposit with <address> by <amount>")
-        .argument("address", "Order address")
+        .description("Replenish order deposit with <id> by <amount>")
+        .argument("id", "Order id")
         .argument("amount", "Amount of tokens to replenish")
         .action(async (address: string, amount: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
@@ -114,6 +116,45 @@ async function main() {
                 actionAccountKey: blockchainKeys.actionAccountKey,
                 address,
                 amount: +amount,
+            });
+        });
+
+    workflowsCommand
+        .command("create")
+        .description("Creates workflow orders")
+        .requiredOption("--tee <id>", "TEE offer id (required)")
+        .requiredOption("--storage <id>", "Output storage offer id (required)")
+        .requiredOption(
+            "--solution <id> --solution <filepath>",
+            "Solution offer id or resource file path (required, may be many)",
+            collectOptions,
+            []
+        )
+        .option(
+            "--data <id> --data <filepath>",
+            "Data offer id or resource file path (may be many)",
+            collectOptions,
+            []
+        )
+        .action(async (options: any) => {
+            if (!options.solution.length) {
+                Printer.error("error: required option '--solution <id> --solution <filepath>' not specified");
+                return;
+            }
+
+            const configLoader = new ConfigLoader(options.config);
+            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
+            const workflowConfig = configLoader.loadSection("workflow") as Config["workflow"];
+
+            await workflowsCreate({
+                blockchainConfig: blockchainAccess,
+                actionAccountKey: blockchainKeys.actionAccountKey,
+                tee: options.tee,
+                storage: options.storage,
+                solutions: options.solution,
+                data: options.data,
+                resultEncryption: workflowConfig.resultEncryption,
             });
         });
 
@@ -203,7 +244,7 @@ async function main() {
         .option("--suborders", "Show suborders", false)
         .addOption(
             new Option(
-                "--suborders-fields <fields>",
+                "--suborders_fields <fields>",
                 `Sub orders fields to fetch (available fields: ${subOrdersGetFields.join(", ")})`
             )
                 .argParser(commaSeparatedList)
@@ -229,28 +270,37 @@ async function main() {
         .description(
             "Uploads a file or a directory specified by the <localPath> argument to the <remotePath> on the remote storage"
         )
-        .argument("localPath", "Path to a file for uploading")
-        .argument("remotePath", "A place where it should be saved on a remote storage")
-        .action(async (localPath: string, remotePath: string, options: any) => {
+        .argument("localPath", "Path to a file or folder for uploading")
+        .option(
+            "--output <path>",
+            "Path to save output resource file (download credentials, encryption and metadata)",
+            "./resource.json"
+        )
+        .option("--metadata <path>", "Path to a metadata file to add fields into output resource")
+        .action(async (localPath: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const storageConfig = configLoader.loadSection("storage") as Config["storage"];
 
-            localPath = localPath.replace(/\/$/, "");
-            await upload(localPath, remotePath, storageConfig.encryption, storageConfig.access);
+            await upload({
+                localPath,
+                storageType: storageConfig.storageType,
+                writeCredentials: storageConfig.writeCredentials,
+                readCredentials: storageConfig.readCredentials,
+                outputPath: options.output,
+                metadataPath: options.metadata,
+            });
         });
 
     filesCommand
         .command("download")
         .description("Downloads and decrypts file from remote storage from the <remotePath> to the <localPath>")
-        .argument("remotePath", "A path to file inside remote storage")
-        .argument("localPath", "Path to a file for uploading")
-        .option("--encryption-json <encryptionJson>", "A file with encryption info", "./encryption.json")
-        .action(async (remotePath: string, localPath: string, options: any) => {
-            const configLoader = new ConfigLoader(options.config);
-            const storageConfig = configLoader.loadSection("storage") as Config["storage"];
-
-            const encryption = JSON.parse(fs.readFileSync(options.encryptionJson).toString());
-            await download(remotePath, localPath, encryption, storageConfig.access);
+        .argument("resourcePath", "A path to resource file (generated by upload command)")
+        .argument("localPath", "Path to a file to save")
+        .action(async (resourcePath: string, localPath: string) => {
+            await download({
+                resourcePath,
+                localPath,
+            });
         });
 
     solutionsCommand
@@ -261,7 +311,7 @@ async function main() {
             await generateSolutionKey({ outputPath });
         });
 
-        solutionsCommand
+    solutionsCommand
         .command("prepare")
         .description("Prepares a solution in <solutionPath>, sign it with <solutionKeyPath>")
         .argument("solutionPath", "Path to a file for uploading")

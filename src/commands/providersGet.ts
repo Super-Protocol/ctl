@@ -1,4 +1,4 @@
-import fetchProviders from "../services/fetchProviders";
+import fetchProvidersService from "../services/fetchProviders";
 import Printer from "../printer";
 import { prepareObjectToPrint } from "../utils";
 
@@ -9,7 +9,7 @@ export type ProvidersGetParams = {
 };
 
 export default async (params: ProvidersGetParams) => {
-    const providers = await fetchProviders({
+    const providers = await fetchProvidersService({
         backendUrl: params.backendUrl,
         limit: 1,
         id: params.id,

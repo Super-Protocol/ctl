@@ -4,7 +4,7 @@ import { mkdir } from "fs/promises";
 import toml from "@iarna/toml";
 import Printer from "../printer";
 import { extractManifest, signManifest } from "../services/prepareSolution";
-import packFolder from "../services/packFolder";
+import packFolderService from "../services/packFolder";
 import { assertNumber, assertSize } from "../utils";
 
 export type PrepareSolutionParams = {
@@ -82,7 +82,7 @@ export default async (params: PrepareSolutionParams) => {
     let solutionHash = "";
     let { solutionHashAlgo } = params;
 
-    solutionHashAlgo = solutionHashAlgo || 'sha-256';
+    solutionHashAlgo = solutionHashAlgo || "sha-256";
 
     if (params.solutionOutputPath) {
         Printer.print("Pack solution folder...");
@@ -98,7 +98,7 @@ export default async (params: PrepareSolutionParams) => {
 
         const hashStream = createHash(solutionHashAlgo);
 
-        await packFolder(
+        await packFolderService(
             params.solutionPath,
             params.solutionOutputPath,
             (total: number, current: number) => {
@@ -111,19 +111,19 @@ export default async (params: PrepareSolutionParams) => {
                         hashStream.write(chunk);
 
                         done(null, chunk);
-                    }
-                })
-            },
+                    },
+                }),
+            }
         );
 
         Printer.stopProgress();
 
-        solutionHash = hashStream.digest().toString('hex');
+        solutionHash = hashStream.digest().toString("hex");
     }
 
     Printer.print("Solution and manifest successfully created.");
     if (solutionHash) {
-        Printer.print(`Solution hash [${solutionHashAlgo}]: ${solutionHash}`)
+        Printer.print(`Solution hash [${solutionHashAlgo}]: ${solutionHash}`);
     }
     Printer.print("MRENCLAVE: " + result.mrenclave);
     Printer.print("MRSIGNER: " + result.mrsigner);

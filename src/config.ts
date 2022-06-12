@@ -1,5 +1,5 @@
 import { CryptoAlgorithm, Encoding, Encryption, StorageType } from "@super-protocol/sp-dto-js";
-import { StorageAccess, Config as BlockchainConfig } from "@super-protocol/sp-sdk-js";
+import { Config as BlockchainConfig } from "@super-protocol/sp-sdk-js";
 import fs from "fs";
 import path from "path";
 import process from "process";
@@ -22,11 +22,12 @@ const ConfigValidators = {
         solutionArgs: z.any(),
     }),
     storage: z.object({
-        access: z.object({
-            storageType: z.nativeEnum(StorageType),
-            credentials: z.any(),
-        }),
-        encryption: z.object({
+        storageType: z.nativeEnum(StorageType),
+        writeCredentials: z.any(),
+        readCredentials: z.any(),
+    }),
+    workflow: z.object({
+        resultEncryption: z.object({
             algo: z.nativeEnum(CryptoAlgorithm),
             encoding: z.nativeEnum(Encoding),
             key: z.string(),
@@ -47,8 +48,13 @@ export type Config = {
         solutionArgs: any;
     };
     storage: {
-        access: StorageAccess;
-        encryption: Encryption;
+        storageType: StorageType;
+        writeCredentials: any;
+        readCredentials: any;
+        fileEncryption: Encryption;
+    };
+    workflow: {
+        resultEncryption: Encryption;
     };
 };
 
