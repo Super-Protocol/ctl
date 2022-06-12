@@ -20,7 +20,7 @@ export default async (params: OrdersGetParams) => {
         Printer.print(`Order ${params.id} not found`);
         return;
     }
-  
+
     const order = prepareObjectToPrint(orders.list[0], params.fields);
     Printer.printObject(order);
 

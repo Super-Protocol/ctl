@@ -25,6 +25,9 @@ query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                     orderInfo {
                         offer
                         status
+                        args {
+                            slots
+                        }
                     }
                     origins {
                         createdBy

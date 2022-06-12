@@ -23,14 +23,11 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         argsPublicKey
                         cancelable
                         description
-                        disabledAfter
                         hash
                         holdSum
-                        inputFormat
                         linkage
                         maxDurationTimeMinutes
                         name
-                        outputFormat
                         properties
                         resultUrl
                         restrictions {

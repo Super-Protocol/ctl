@@ -18,6 +18,8 @@ import Printer from "./printer";
 import { collectOptions, commaSeparatedList, processSubCommands, validateFields } from "./utils";
 import generateSolutionKey from "./commands/solutionsGenerateKey";
 import prepareSolution from "./commands/solutionsPrepare";
+import offersListTee from "./commands/offersListTee";
+import offersListValue from "./commands/offersListValue";
 
 async function main() {
     const program = new Command();
@@ -28,6 +30,8 @@ async function main() {
     const workflowsCommand = program.command("workflows");
     const filesCommand = program.command("files");
     const solutionsCommand = program.command("solutions");
+    const offersCommand = program.command("offers");
+    const offersListCommand = offersCommand.command("list");
 
     const providersListFields = ["id", "name", "description", "authority_account", "action_account", "modified_date"],
         providersListDefaultFields = ["id", "name"];
@@ -262,6 +266,85 @@ async function main() {
                 subOrdersFields: options.suborders ? options.subordersFields : [],
                 backendUrl: backendAccess.url,
                 id,
+            });
+        });
+
+    const offersListTeeFields = [
+            "id",
+            "name",
+            "description",
+            "provider_id",
+            "provider_name",
+            "total_cores",
+            "free_cores",
+            "orders_in_queue",
+            "cancelebel",
+            "modified_date",
+        ],
+        offersListTeeDefaultFields = ["id", "name"];
+    offersListCommand
+        .command("tee")
+        .description("Fetches list of offers")
+        .addOption(
+            new Option(
+                "--fields <fields>",
+                `Orders fields to fetch (available fields: ${offersListTeeFields.join(", ")})`
+            )
+                .argParser(commaSeparatedList)
+                .default(offersListTeeDefaultFields, offersListTeeDefaultFields.join(","))
+        )
+        .option("--limit <number>", "Limit of records", "10")
+        .option("--cursor <cursorString>", "Cursor for pagination")
+        .action(async (options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+
+            validateFields(options.fields, offersListTeeFields);
+
+            await offersListTee({
+                fields: options.fields,
+                backendUrl: backendAccess.url,
+                limit: +options.limit,
+                cursor: options.cursor,
+            });
+        });
+
+    const offersListValueFields = [
+            "id",
+            "name",
+            "description",
+            "type",
+            "provider_id",
+            "provider_name",
+            "hold_sum",
+            "cancelebel",
+            "modified_date",
+        ],
+        offersListValueDefaultFields = ["id", "name", "type"];
+    offersListCommand
+        .command("value")
+        .description("Fetches list of offers")
+        .addOption(
+            new Option(
+                "--fields <fields>",
+                `Orders fields to fetch (available fields: ${offersListValueFields.join(", ")})`
+            )
+                .argParser(commaSeparatedList)
+                .default(offersListValueDefaultFields, offersListValueDefaultFields.join(","))
+        )
+        .option("--limit <number>", "Limit of records", "10")
+        .option("--cursor <cursorString>", "Cursor for pagination")
+        .action(async (options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+
+            validateFields(options.fields, offersListValueFields);
+
+            await offersListValue({
+                fields: options.fields,
+                backendUrl: backendAccess.url,
+                limit: +options.limit,
+                cursor: options.cursor,
             });
         });
 

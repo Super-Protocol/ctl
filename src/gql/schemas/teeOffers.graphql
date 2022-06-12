@@ -40,6 +40,10 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                         teeType
                         tlb
                     }
+                    stats {
+                        ordersInQueue
+                        freeCores
+                    }
                 }
             }
             pageInfo {

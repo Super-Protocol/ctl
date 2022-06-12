@@ -1,6 +1,7 @@
 import { promisify } from "util";
 import { exec as execCallback } from "child_process";
 import { Command } from "commander";
+import { DateTime } from "luxon";
 
 export const exec = promisify(execCallback);
 
@@ -50,7 +51,7 @@ export const getObjectKey = (value: any, object: { [key: string]: any }) => {
 
 export const formatDate = (date: string | number | Date | undefined) => {
     if (!date) return undefined;
-    return new Date(date).toString();
+    return DateTime.fromJSDate(new Date(date)).toFormat("ff");
 };
 
 export const SilentError = (error: Error) => ({
