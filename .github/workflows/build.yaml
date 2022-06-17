@@ -33,7 +33,7 @@ jobs:
             - name: Build binary for macOS
               if: ${{ runner.os == 'macOS' }}
               run: >
-                  npm run build:macos
+                  npm run build:mac
                   && mv ./dist/spctl ./dist/spctl-macos-x64
             - name: Build binary for Windows
               if: ${{ runner.os == 'Windows' }}
