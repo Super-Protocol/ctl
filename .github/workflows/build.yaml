@@ -21,7 +21,7 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@v2.5.1
               with:
-                  node-version: 17.4.0
+                  node-version: 16.15.0
                   architecture: x64
                   registry-url: https://npm.pkg.github.com/
                   scope: super-protocol
