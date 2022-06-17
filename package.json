@@ -10,7 +10,7 @@
         "build:prepare": "$PWD/pre-build.sh && tsc",
         "build:linux": "npm run build:linux:fix && npm run build:prepare && pkg --target linux-x64 .",
         "build:win": "npm run build:prepare && pkg --target win-x64 .",
-        "build:macos": "npm run build:prepare  && pkg --target macos-x64 .",
+        "build:mac": "npm run build:prepare  && pkg --target macos-x64 .",
         "build:linux:fix": "cp ./linux_builder/binding-fix.gyp ./node_modules/uplink-nodejs/binding.gyp && cd ./node_modules/uplink-nodejs && npm install && cd ../../",
         "format": "prettier --tab-width 4 --print-width 120 --write ./src/**/* ./src/*",
         "generate:gql": "graphql-codegen --config gql-codegen.yml"
