@@ -59,6 +59,12 @@ export const SilentError = (error: Error) => ({
     isSilent: true,
 });
 
+export const ErrorWithCustomMessage = (message: string, error: Error) => ({
+    error,
+    message,
+    hasCustomMessage: true,
+});
+
 export const assertCommand = async (command: string, assertMessage: string) => {
     try {
         await exec(command);

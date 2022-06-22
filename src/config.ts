@@ -33,6 +33,9 @@ const ConfigValidators = {
             key: z.string(),
         }),
     }),
+    orderResult: z.object({
+        resultDecryptionKey: z.string(),
+    }),
 };
 
 export type Config = {
@@ -55,6 +58,9 @@ export type Config = {
     };
     workflow: {
         resultEncryption: Encryption;
+    };
+    orderResult: {
+        resultDecryptionKey: string;
     };
 };
 

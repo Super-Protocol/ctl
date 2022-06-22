@@ -1,4 +1,5 @@
 import { promises as fs, existsSync } from "fs";
+import { ErrorWithCustomMessage } from "../utils";
 
 export type ReadJsonFileParams = {
     path: string;
@@ -13,7 +14,7 @@ const readResourceFile = async (params: ReadJsonFileParams) => {
     try {
         return JSON.parse(jsonString);
     } catch (e) {
-        throw Error(`Invalid JSON format of file ${params.path}`);
+        throw ErrorWithCustomMessage(`Invalid JSON format of file ${params.path}`, e as Error);
     }
 };
 

@@ -11,6 +11,7 @@ import {
     StorageType,
 } from "@super-protocol/sp-dto-js";
 import readJsonFile from "./readJsonFile";
+import { ErrorWithCustomMessage } from "../utils";
 
 export type ReadResourceFileParams = {
     path: string;
@@ -65,7 +66,7 @@ const readResourceFile = async (params: ReadResourceFileParams): Promise<Resourc
     try {
         await ResourceFileValidator.parseAsync(resourceFile);
     } catch (e) {
-        throw Error(`Invalid Resource format of file ${params.path}`);
+        throw ErrorWithCustomMessage(`Invalid Resource format of file ${params.path}`, e as Error);
     }
 
     return resourceFile;

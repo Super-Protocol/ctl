@@ -101,7 +101,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         }),
         resultPublicKey: params.resultEncryption,
         holdDeposit,
-        consumerAddress,
+        consumerAddress: consumerAddress!,
     });
 
     Printer.print(`Workflow has been created successfully, root TEE order id: ${teeOrderAddress}`);

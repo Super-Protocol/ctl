@@ -18,6 +18,7 @@ import Printer from "./printer";
 import { collectOptions, commaSeparatedList, processSubCommands, validateFields } from "./utils";
 import generateSolutionKey from "./commands/solutionsGenerateKey";
 import prepareSolution from "./commands/solutionsPrepare";
+import ordersDownloadResult from "./commands/ordersDownloadResult";
 import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
 
@@ -269,6 +270,24 @@ async function main() {
             });
         });
 
+    ordersCommand
+        .command("download-result")
+        .description("Downloading result of order with <id>")
+        .argument("id", "ID of order to fetch result")
+        .option("--save-to <path>", "Path to save decrypted result", "./result.txt")
+        .action(async (orderId: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const orderResultConfig = configLoader.loadSection("orderResult") as Config["orderResult"];
+
+            await ordersDownloadResult({
+                blockchainConfig: blockchainAccess,
+                orderId,
+                localPath: options.saveTo,
+                resultDecryptionKey: orderResultConfig.resultDecryptionKey,
+            });
+        });
+
     const offersListTeeFields = [
             "id",
             "name",
@@ -438,8 +457,10 @@ main()
     })
     .catch((error) => {
         const isSilent = error.isSilent;
-        if (isSilent) error = error.error;
-        else Printer.error("Error happened during execution");
+        const message = error.message;
+
+        if (isSilent || error.hasCustomMessage) error = error.error;
+        if (!isSilent) Printer.error("Error happened during execution");
 
         const errorLogPath = path.join(process.cwd(), "error.log");
         const errorDetails = JSON.stringify(error, null, 2);
@@ -450,7 +471,7 @@ main()
 
         if (!isSilent) {
             Printer.error(`Error log was written at ${errorLogPath}`);
-            if (error.message) Printer.error(error.message);
+            if (message) Printer.error(message);
             process.exit(1);
         } else {
             process.exit(0);

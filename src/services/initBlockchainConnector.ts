@@ -2,10 +2,12 @@ import BlockchainConnector, { Config as BlockchainConfig } from "@super-protocol
 
 export type InitBlockchainConnectorParams = {
     blockchainConfig: BlockchainConfig;
-    actionAccountKey: string;
+    actionAccountKey?: string;
 };
 
-export default async (params: InitBlockchainConnectorParams): Promise<string> => {
+export default async (params: InitBlockchainConnectorParams): Promise<string | void> => {
     await BlockchainConnector.init(params.blockchainConfig);
-    return BlockchainConnector.initActionAccount(params.actionAccountKey);
+    if (params.actionAccountKey) {
+        return BlockchainConnector.initActionAccount(params.actionAccountKey);
+    }
 };
