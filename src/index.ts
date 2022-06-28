@@ -19,6 +19,8 @@ import { collectOptions, commaSeparatedList, processSubCommands, validateFields 
 import generateSolutionKey from "./commands/solutionsGenerateKey";
 import prepareSolution from "./commands/solutionsPrepare";
 import ordersDownloadResult from "./commands/ordersDownloadResult";
+import tokensRequest from "./commands/tokensRequest";
+import tokensBalance from "./commands/tokensBalance";
 import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
 
@@ -31,6 +33,7 @@ async function main() {
     const workflowsCommand = program.command("workflows");
     const filesCommand = program.command("files");
     const solutionsCommand = program.command("solutions");
+    const tokensCommand = program.command("tokens");
     const offersCommand = program.command("offers");
     const offersListCommand = offersCommand.command("list");
 
@@ -285,6 +288,46 @@ async function main() {
                 orderId,
                 localPath: options.saveTo,
                 resultDecryptionKey: orderResultConfig.resultDecryptionKey,
+            });
+        });
+
+    tokensCommand
+        .command("request")
+        .description("Request tokens on action account")
+        .option("--matic", "Request polygon mumbai matic tokens", false)
+        .option("--tee", "Request SuperProtocol TEE rokens", false)
+        .action(async (options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchainKeysConfig = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
+
+            let backendUrl;
+            if (options.tee) {
+                const backendConfig = configLoader.loadSection("backend") as Config["backend"];
+                backendUrl = backendConfig.url;
+            }
+
+            await tokensRequest({
+                backendUrl,
+                actionAccountPrivateKey: blockchainKeysConfig.actionAccountKey,
+                requestMatic: options.matic,
+            });
+        });
+
+    tokensCommand
+        .command("balance")
+        .description("Fetch tokens balance for action account")
+        .option("--matic", "Fetch polygon mumbai matic balance", false)
+        .option("--tee", "Fetch SuperProtocol TEE balance", false)
+        .action(async (options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchainKeysConfig = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
+            const blockchainConfig = configLoader.loadSection("blockchain") as Config["blockchain"];
+
+            await tokensBalance({
+                blockchainConfig,
+                actionAccountPrivateKey: blockchainKeysConfig.actionAccountKey,
+                balanceMatic: options.matic,
+                balanceTee: options.tee,
             });
         });
 

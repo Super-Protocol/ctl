@@ -68,6 +68,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     Printer.print("Result decrypted, downloading result file...");
     const resource: Resource = decrypted.resource!;
     const localPath = `${params.localPath.replace(/\/$/, "")}.encrypted`;
+
     switch (resource.type) {
         case ResourceType.Url:
             await downloadFileByUrl({

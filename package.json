@@ -27,6 +27,7 @@
         "commander": "^8.3.0",
         "console-table-printer": "^2.11.0",
         "dotenv": "^10.0.0",
+        "ethers": "^5.6.8",
         "fstream": "^1.0.12",
         "get-folder-size": "^2.0.0",
         "graphql": "^16.4.0",
