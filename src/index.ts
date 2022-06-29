@@ -317,8 +317,6 @@ async function main() {
     tokensCommand
         .command("balance")
         .description("Fetch tokens balance for action account")
-        .option("--matic", "Fetch polygon mumbai matic balance", false)
-        .option("--tee", "Fetch SuperProtocol TEE balance", false)
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainKeysConfig = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
@@ -327,8 +325,6 @@ async function main() {
             await tokensBalance({
                 blockchainConfig,
                 actionAccountPrivateKey: blockchainKeysConfig.actionAccountKey,
-                balanceMatic: options.matic,
-                balanceTee: options.tee,
             });
         });
 
