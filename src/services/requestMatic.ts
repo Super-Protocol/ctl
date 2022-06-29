@@ -25,6 +25,6 @@ export default async (params: RequestMaticParams) => {
         let message = "Error during matic tokens request";
         if (e.response.data.duration)
             message += `\n Too many requests, try again in ${e.response.data.duration / 1000} seconds`;
-        throw ErrorWithCustomMessage(message, e as Error);
+        throw ErrorWithCustomMessage(message, (e.response?.data || e) as Error);
     }
 };

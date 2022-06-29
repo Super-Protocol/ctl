@@ -264,11 +264,11 @@ async function main() {
             const backendAccess = configLoader.loadSection("backend") as Config["backend"];
 
             validateFields(options.fields, ordersGetFields);
-            if (options.suborders) validateFields(options.subordersFields, subOrdersGetFields);
+            if (options.suborders) validateFields(options.suborders_fields, subOrdersGetFields);
 
             await ordersGet({
                 fields: options.fields,
-                subOrdersFields: options.suborders ? options.subordersFields : [],
+                subOrdersFields: options.suborders ? options.suborders_fields : [],
                 backendUrl: backendAccess.url,
                 id,
             });
@@ -278,7 +278,7 @@ async function main() {
         .command("download-result")
         .description("Downloading result of order with <id>")
         .argument("id", "ID of order to fetch result")
-        .option("--save-to <path>", "Path to save decrypted result", "./result.txt")
+        .option("--save-to <path>", "Path to save decrypted result", "./result.gz")
         .action(async (orderId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];

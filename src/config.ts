@@ -11,7 +11,7 @@ const ConfigValidators = {
         url: z.string(),
     }),
     blockchain: z.object({
-        url: z.string(),
+        blockchainUrl: z.string(),
         contractAddress: z.string(),
     }),
     blockchainKeys: z.object({
