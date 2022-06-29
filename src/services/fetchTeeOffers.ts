@@ -16,6 +16,8 @@ export default async (params: FetchTeeOffersParams) => {
         pagination: {
             first: params.limit,
             after: params.cursor,
+            sortDir: "DESC",
+            sortBy: "origins.createdDate",
         },
         filter: { address: params.id },
     });

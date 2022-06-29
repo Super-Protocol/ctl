@@ -16,6 +16,8 @@ export default async (params: FetchProviderParams) => {
         pagination: {
             first: params.limit,
             after: params.cursor,
+            sortDir: "DESC",
+            sortBy: "origins.createdDate",
         },
         filter: { address: params.id },
     });
