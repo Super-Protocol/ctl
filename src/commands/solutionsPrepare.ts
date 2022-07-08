@@ -6,8 +6,12 @@ import Printer from "../printer";
 import { extractManifest, signManifest } from "../services/prepareSolution";
 import packFolderService from "../services/packFolder";
 import { assertNumber, assertSize } from "../utils";
+import { Encoding, HashAlgorithm } from "@super-protocol/sp-dto-js";
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export type PrepareSolutionParams = {
+    metadataPath: string;
     solutionHashAlgo: string;
     solutionPath: string;
     solutionOutputPath: string;
@@ -82,7 +86,7 @@ export default async (params: PrepareSolutionParams) => {
     let solutionHash = "";
     let { solutionHashAlgo } = params;
 
-    solutionHashAlgo = solutionHashAlgo || "sha-256";
+    solutionHashAlgo = solutionHashAlgo || HashAlgorithm.SHA256;
 
     if (params.solutionOutputPath) {
         Printer.print("Pack solution folder...");
@@ -127,4 +131,20 @@ export default async (params: PrepareSolutionParams) => {
     }
     Printer.print("MRENCLAVE: " + result.mrenclave);
     Printer.print("MRSIGNER: " + result.mrsigner);
+
+    Printer.print("Saving metadata to the file...");
+    const metadataPath = path.join(process.cwd(), params.metadataPath);
+    const metadata = {
+        linkage: {
+            encoding: Encoding.base64,
+            mrenclave: Buffer.from(result.mrenclave, 'hex').toString(Encoding.base64),
+        },
+        hash: {
+            encoding: Encoding.base64,
+            hashAlgo: solutionHashAlgo,
+            hash: Buffer.from(solutionHash, 'hex').toString(Encoding.base64),
+        },
+    };
+    await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+    Printer.print(`Metadata has been saved to ${metadataPath}`);
 };

@@ -1,3 +1,5 @@
+import {HashAlgorithm} from "@super-protocol/sp-dto-js";
+
 const packageJson = require("../package.json");
 
 import { Command, Option } from "commander";
@@ -468,17 +470,19 @@ async function main() {
         .description("Prepares a solution in <solutionPath>, sign it with <solutionKeyPath>")
         .argument("solutionPath", "Path to a file for uploading")
         .argument("solutionKeyPath", "Path to a solution key")
+        .option("--metadata <pathToSave>", "Path to save metadata (hash and MrEnclave)", "./metadata.json")
         .option("--pack-solution <packSolution>", "Pack solution folder into tar gz", "")
         .option("--base-image-path <pathToContainerImage>", "A container image file", "")
         .option("--base-image-resource <containerImageResource>", "A container image resource name", "")
         .option("--write-default-manifest", "Write a default manifest for solutions with empty sgxMrEnclave", false)
-        .option("--hash-algo <solutionHashAlgo>", "Hash calculation algorithm for solution", "sha256")
+        .option("--hash-algo <solutionHashAlgo>", "Hash calculation algorithm for solution", HashAlgorithm.SHA256)
         .option("--sgx-thread-num <threadNum>", "A number of enclave threads", "")
         .option("--sgx-enclave-size <enclaveSize>", "Whole enclave size (#M or #G), must be some of power of 2", "")
         .option("--sgx-loader-internal-size <internalSize>", "Size of the internal enclave structs (#M or #G)", "")
         .option("--sgx-stack-size <stackSize>", "Size of the enclave thread stack (#K, #M or #G)", "")
         .action(async (solutionPath: string, solutionKeyPath: string, options: any) => {
             await prepareSolution({
+                metadataPath: options.metadata,
                 solutionHashAlgo: options.hashAlgo,
                 solutionPath,
                 solutionOutputPath: options.packSolution,
