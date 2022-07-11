@@ -1,6 +1,5 @@
 import { getStorageProvider, StorageAccess } from "@super-protocol/sp-sdk-js";
-import { loadDependencies, troubleshootHelper } from "./uplinkSetupHelper";
-import { StorageType } from "@super-protocol/sp-dto-js";
+import * as fs from "fs";
 
 export default async (
     localPath: string,
@@ -8,12 +7,13 @@ export default async (
     storageAccess: StorageAccess,
     progressListener?: (total: number, current: number) => void
 ) => {
-    if (storageAccess.storageType === StorageType.StorJ) loadDependencies();
     const storageProvider = getStorageProvider(storageAccess);
-    try {
-        await storageProvider.uploadFile(localPath, remotePath, progressListener);
-    } catch (e) {
-        if (storageAccess.storageType === StorageType.StorJ) await troubleshootHelper(e as Error);
-        else throw e;
-    }
+    await storageProvider.uploadFile(
+        fs.createReadStream(localPath),
+        remotePath,
+        (
+            await fs.promises.stat(localPath)
+        ).size,
+        progressListener
+    );
 };

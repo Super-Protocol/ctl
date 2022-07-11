@@ -1,4 +1,4 @@
-FROM node:17-buster as builder
+FROM node:16-buster as builder
 
 ARG NPM_TOKEN=""
 RUN apt-get install g++ make python3

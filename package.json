@@ -7,11 +7,10 @@
     "bin": "build/index.js",
     "scripts": {
         "dev": "ts-node ./src/index.ts",
-        "build:prepare": "$PWD/pre-build.sh && tsc",
-        "build:linux": "npm run build:linux:fix && npm run build:prepare && pkg --target linux-x64 .",
+        "build:prepare": "tsc",
+        "build:linux": "npm run build:prepare && pkg --target linux-x64 .",
         "build:win": "npm run build:prepare && pkg --target win-x64 .",
         "build:mac": "npm run build:prepare  && pkg --target macos-x64 .",
-        "build:linux:fix": "cp ./linux_builder/binding-fix.gyp ./node_modules/uplink-nodejs/binding.gyp && cd ./node_modules/uplink-nodejs && npm install && cd ../../",
         "format": "prettier --tab-width 4 --print-width 120 --write ./src/**/* ./src/*",
         "generate:gql": "graphql-codegen --config gql-codegen.yml"
     },
@@ -20,7 +19,7 @@
     "dependencies": {
         "@iarna/toml": "^2.2.5",
         "@super-protocol/sp-dto-js": "^0.0.13",
-        "@super-protocol/sp-sdk-js": "^0.2.47",
+        "@super-protocol/sp-sdk-js": "^0.3.3",
         "axios": "^0.27.2",
         "cli-progress": "^3.9.1",
         "colors": "^1.4.0",
@@ -53,9 +52,8 @@
     "pkg": {
         "outputPath": "dist",
         "assets": [
-            "libs/*",
             "config.example.json",
-            "node_modules/uplink-nodejs/build/Release/uplink.node"
+            "node_modules/@super-protocol/uplink-nodejs/build/Release/uplink.node"
         ]
     }
 }

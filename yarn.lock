@@ -1401,13 +1401,14 @@
   resolved "https://npm.pkg.github.com/download/@super-protocol/sp-dto-js/0.0.13/e9032a72c15ac531fb2b5a4974cfd956a1f51e3370b6d3410169ae33ed444c80#5cd94a57e3089db17584cd9018f6036c0c39015a"
   integrity sha512-8csTVB1ObPdhYRXfHAiY5ZGvMV8bgCv9SnAi8CGd2kBhegl9wrF4BKzbZgVuM5CJVy0p0iqdCAMC6RsvaHT8iw==
 
-"@super-protocol/sp-sdk-js@^0.2.47":
-  version "0.2.53"
-  resolved "https://npm.pkg.github.com/download/@super-protocol/sp-sdk-js/0.2.53/c49e004e782dd1d8c6a57a121ec1cf98d59ca7761d34153581b1816dae814b6c#1f415adfca909ffbbf9d3d2336615d4248b6e287"
-  integrity sha512-i6sC5cbh+txxv0zbRx+sP7/G86txu5eUUdpFgl//up+vrWvKXxoBR8SjzFkJ5sXLG4Ubx/icrunB6g797bJLcQ==
+"@super-protocol/sp-sdk-js@^0.3.3":
+  version "0.3.3"
+  resolved "https://npm.pkg.github.com/download/@super-protocol/sp-sdk-js/0.3.3/e599cce401f645922a442fa4dc695c7766cd0750b48b36748b3157a629686f50#0520836cd6141819addeebc9d1be640e55181706"
+  integrity sha512-8PDC6dtWbuY7dkl8XnUpTuQAp8ZI6SMUS35i6HCADDb+ZeUVk4A5FKo8UrjN1w2OP9RomwttaxcUjgsFOshrYw==
   dependencies:
     "@super-protocol/sp-dto-js" "0.0.13"
     "@super-protocol/tee-lib" "^0.1.2"
+    "@super-protocol/uplink-nodejs" "1.2.12"
     eccrypto "^1.1.6"
     ethers "^5.5.3"
     hybrid-crypto-js "^0.2.4"
@@ -1415,7 +1416,6 @@
     node-gzip "^1.1.2"
     pino "^7.2.0"
     protobufjs "^6.11.2"
-    uplink-nodejs "^1.2.6"
     web3 "^1.6.1"
 
 "@super-protocol/tee-lib@^0.1.2":
@@ -1426,6 +1426,16 @@
     "@msgpack/msgpack" "^2.7.1"
     buffer "^6.0.3"
     gzip-js "^0.3.2"
+
+"@super-protocol/uplink-nodejs@1.2.12":
+  version "1.2.12"
+  resolved "https://npm.pkg.github.com/download/@super-protocol/uplink-nodejs/1.2.12/a458b6605b9addf720a012b7b0930c2504c51b06082b7533209924bae096cf19#c1bb67ff366135d04c7621e74950dc1455ca5487"
+  integrity sha512-vA+KZbAKV8QKDbzZPdeVyiMFJzdhDtR+8Iw4VsS2zoPf4zrMNjfBhmQqGXc3VhrMJIrvRS57ThKWqfqs1vwDbg==
+  dependencies:
+    "@types/bindings" "^1.3.0"
+    "@types/node" "^14.14.10"
+    bindings "^1.5.0"
+    node-gyp "^7.0.0"
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"
@@ -2761,29 +2771,10 @@ dir-glob@^3.0.1:
   dependencies:
     path-type "^4.0.0"
 
-docsify@^4.11.4:
-  version "4.12.2"
-  resolved "https://registry.yarnpkg.com/docsify/-/docsify-4.12.2.tgz#749115d2ff7d358780ea865e01f4a0162423d67f"
-  integrity sha512-hpRez5upcvkYigT2zD8P5kH5t9HpSWL8yn/ZU/g04/WfAfxVNW6CPUVOOF1EsQUDxTRuyNTFOb6uUv+tPij3tg==
-  dependencies:
-    dompurify "^2.3.1"
-    marked "^1.2.9"
-    medium-zoom "^1.0.6"
-    opencollective-postinstall "^2.0.2"
-    prismjs "^1.23.0"
-    strip-indent "^3.0.0"
-    tinydate "^1.3.0"
-    tweezer.js "^1.4.0"
-
 dom-walk@^0.1.0:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/dom-walk/-/dom-walk-0.1.2.tgz#0c548bef048f4d1f2a97249002236060daa3fd84"
   integrity sha512-6QvTW9mrGeIegrFXdtQi9pk7O/nSK6lSdXW2eqUspN5LWD7UTji2Fqw5V2YLjBpHEoU9Xl/eUWNpDeZvoyOv2w==
-
-dompurify@^2.3.1:
-  version "2.3.8"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.8.tgz#224fe9ae57d7ebd9a1ae1ac18c1c1ca3f532226f"
-  integrity sha512-eVhaWoVibIzqdGYjwsBWodIQIaXFSB+cKDf4cfxLMsK0xiud6SE+/WCVx/Xw/UwQsa4cS3T2eITcdtmTg2UKcw==
 
 dot-case@^3.0.4:
   version "3.0.4"
@@ -4667,11 +4658,6 @@ map-cache@^0.2.0:
   resolved "https://registry.yarnpkg.com/map-cache/-/map-cache-0.2.2.tgz#c32abd0bd6525d9b051645bb4f26ac5dc98a0dbf"
   integrity sha512-8y/eV9QQZCiyn1SprXSrCmqJN0yNRATe+PO8ztwqrvrbdRLA3eYJF0yaR0YayLWkMbsQSKWS9N2gPcGEc4UsZg==
 
-marked@^1.2.9:
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/marked/-/marked-1.2.9.tgz#53786f8b05d4c01a2a5a76b7d1ec9943d29d72dc"
-  integrity sha512-H8lIX2SvyitGX+TRdtS06m1jHMijKN/XjfH6Ooii9fvxMlh8QdqBfBDkGUpMWH2kQNrtixjzYUa3SH8ROTgRRw==
-
 md5.js@^1.3.4:
   version "1.3.5"
   resolved "https://registry.yarnpkg.com/md5.js/-/md5.js-1.3.5.tgz#b5d07b8e3216e3e27cd728d72f70d1e6a342005f"
@@ -4685,11 +4671,6 @@ media-typer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
   integrity sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==
-
-medium-zoom@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/medium-zoom/-/medium-zoom-1.0.6.tgz#9247f21ca9313d8bbe9420aca153a410df08d027"
-  integrity sha512-UdiUWfvz9fZMg1pzf4dcuqA0W079o0mpqbTnOz5ip4VGYX96QjmbM+OgOU/0uOzAytxC0Ny4z+VcYQnhdifimg==
 
 merge-descriptors@1.0.1:
   version "1.0.1"
@@ -4770,11 +4751,6 @@ min-document@^2.19.0:
   integrity sha512-9Wy1B3m3f66bPPmU5hdA4DR4PB2OfDU/+GS3yAB7IQozE3tqXaVv2zOjgla7MEGSRv95+ILmOuvhLkOK6wJtCQ==
   dependencies:
     dom-walk "^0.1.0"
-
-min-indent@^1.0.0:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/min-indent/-/min-indent-1.0.1.tgz#a63f681673b30571fbe8bc25686ae746eefa9869"
-  integrity sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==
 
 minimalistic-assert@^1.0.0, minimalistic-assert@^1.0.1:
   version "1.0.1"
@@ -5157,11 +5133,6 @@ onetime@^5.1.0:
   dependencies:
     mimic-fn "^2.1.0"
 
-opencollective-postinstall@^2.0.2:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/opencollective-postinstall/-/opencollective-postinstall-2.0.3.tgz#7a0fff978f6dbfa4d006238fbac98ed4198c3259"
-  integrity sha512-8AV/sCtuzUeTo8gQK5qDZzARrulB3egtLzFgteqB2tcT4Mw7B8Kt7JcDHmltjz6FOAHsvTevk70gZEbhM4ZS9Q==
-
 optionator@^0.8.1:
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.3.tgz#84fa1d036fe9d3c7e21d99884b601167ec8fb495"
@@ -5498,11 +5469,6 @@ prettier@^2.5.1:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.6.2.tgz#e26d71a18a74c3d0f0597f55f01fb6c06c206032"
   integrity sha512-PkUpF+qoXTqhOeWL9fu7As8LXsIUZ1WYaJiY/a7McAQzxjk82OF0tibkFXVCDImZtWxbvojFjerkiLb0/q8mew==
-
-prismjs@^1.23.0:
-  version "1.28.0"
-  resolved "https://registry.yarnpkg.com/prismjs/-/prismjs-1.28.0.tgz#0d8f561fa0f7cf6ebca901747828b149147044b6"
-  integrity sha512-8aaXdYvl1F7iC7Xm1spqSaY/OJBpYW3v+KJ+F17iYxvdc8sfjW194COK5wVhMZX45tGteiBQgdvD/nhxcRwylw==
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
@@ -6265,13 +6231,6 @@ strip-hex-prefix@1.0.0:
   dependencies:
     is-hex-prefixed "1.0.0"
 
-strip-indent@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/strip-indent/-/strip-indent-3.0.0.tgz#c32e1cee940b6b3432c771bc2c54bcce73cd3001"
-  integrity sha512-laJTa3Jb+VQpaC6DseHhF7dXVqHTfJPCRDaEbid/drOhgitgYku/letMUqOXFoWV0zIIUbjpdH2t+tYj4bQMRQ==
-  dependencies:
-    min-indent "^1.0.0"
-
 strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
@@ -6406,11 +6365,6 @@ tiny-each-async@2.0.3:
   resolved "https://registry.yarnpkg.com/tiny-each-async/-/tiny-each-async-2.0.3.tgz#8ebbbfd6d6295f1370003fbb37162afe5a0a51d1"
   integrity sha512-5ROII7nElnAirvFn8g7H7MtpfV1daMcyfTGQwsn/x2VtyV+VPiO5CjReCJtWLvoKTDEDmZocf3cNPraiMnBXLA==
 
-tinydate@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/tinydate/-/tinydate-1.3.0.tgz#e6ca8e5a22b51bb4ea1c3a2a4fd1352dbd4c57fb"
-  integrity sha512-7cR8rLy2QhYHpsBDBVYnnWXm8uRTr38RoZakFSW7Bs7PzfMPNZthuMLkwqZv7MTu8lhQ91cOFYS5a7iFj2oR3w==
-
 title-case@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/title-case/-/title-case-3.0.3.tgz#bc689b46f02e411f1d1e1d081f7c3deca0489982"
@@ -6523,11 +6477,6 @@ tweetnacl@^0.14.3, tweetnacl@~0.14.0:
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-0.14.5.tgz#5ae68177f192d4456269d108afa93ff8743f4f64"
   integrity sha512-KXXFFdAbFXY4geFIwoyNK+f5Z1b7swfXABfL7HXCmoIWMKU3dmS26672A4EeQtDzLKy7SXmfBu51JolvEKwtGA==
 
-tweezer.js@^1.4.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/tweezer.js/-/tweezer.js-1.5.0.tgz#ca50ac5215022203fd3be4d28617e8e2305f5c0c"
-  integrity sha512-aSiJz7rGWNAQq7hjMK9ZYDuEawXupcCWgl3woQQSoDP2Oh8O4srWb/uO1PzzHIsrPEOqrjJ2sUb9FERfzuBabQ==
-
 type-check@~0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/type-check/-/type-check-0.3.2.tgz#5884cab512cf1d355e3fb784f30804b2b520db72"
@@ -6621,17 +6570,6 @@ unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/unpipe/-/unpipe-1.0.0.tgz#b2bf4ee8514aae6165b4817829d21b2ef49904ec"
   integrity sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==
-
-uplink-nodejs@^1.2.6:
-  version "1.2.6"
-  resolved "https://registry.yarnpkg.com/uplink-nodejs/-/uplink-nodejs-1.2.6.tgz#e479012f382bb157e3b711f9673c6c1c6d4deb82"
-  integrity sha512-OUhU7jVsLNzSV1HZvTbEd9CVFwIDcdoVqWvRnmkLSZKohzd7g4BIZbU7EhyFR9g18pNXL712FMjTi7plQulBDA==
-  dependencies:
-    "@types/bindings" "^1.3.0"
-    "@types/node" "^14.14.10"
-    bindings "^1.5.0"
-    docsify "^4.11.4"
-    node-gyp "^7.0.0"
 
 upper-case-first@^2.0.2:
   version "2.0.2"
