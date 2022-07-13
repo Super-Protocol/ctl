@@ -79,7 +79,7 @@ export default async (params: FilesUploadParams) => {
         try {
             if (typeof packedFilePath != "undefined") await fs.unlink(packedFilePath);
         } catch (e) {
-            Printer.error(`Error during deleting ${packedFilePath}`);
+            Printer.error(`Error when deleting ${packedFilePath}`);
         }
         await fs.unlink(encryptedFileData.encryptedFilePath);
         Printer.print("Done");
