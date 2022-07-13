@@ -29,6 +29,6 @@ export default async (params: OrdersGetParams) => {
             orders.list[0].subOrders?.map((item) => prepareObjectToPrint(item, params.subOrdersFields)) || [];
 
         if (subOrders.length) Printer.table(subOrders);
-        else Printer.print(`There is no sub orders for order ${params.id}`);
+        else Printer.print(`There are no sub orders for order ${params.id}`);
     }
 };
