@@ -20,7 +20,7 @@ export default async (params: TokensBalanceParams) => {
     const balanceTee = await getTeeBalanceService({ address });
     Printer.print(`Balance of ${address} - ${balanceTee} TEE`);
 
-    Printer.print("Fetching polygon mumbai matic tokens balance...");
+    Printer.print("Fetching Polygon Mumbai MATIC tokens balance...");
     const balanceMatic = await getMumbaiBalanceService({ address });
     Printer.print(`Balance of ${address} - ${balanceMatic} MATIC`);
 };
