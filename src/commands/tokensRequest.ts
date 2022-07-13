@@ -11,24 +11,24 @@ export type TokensRequestParams = {
 
 export default async (params: TokensRequestParams) => {
     if (!params.backendUrl && !params.requestMatic) {
-        Printer.print("No tokens to request specified, please add flag --tee or --matic to request specific tokens");
+        Printer.print("No tokens specified for request, please add --tee or --matic flag to request specific tokens");
         return;
     }
 
     const address = new Wallet(params.actionAccountPrivateKey).address;
 
     if (params.backendUrl) {
-        Printer.print(`Requesting SuperProtocol TEE tokens on ${address}...`);
+        Printer.print(`Requesting SuperProtocol TEE tokens to ${address}...`);
         await requestTeeService({
             backendUrl: params.backendUrl,
             address,
         });
-        Printer.print(`SuperProtocol TEE tokens successfully requested on ${address}`);
+        Printer.print(`SuperProtocol TEE tokens successfully requested to ${address}`);
     }
 
     if (params.requestMatic) {
-        Printer.print(`Requesting polygon mumbai matic tokens on ${address}...`);
+        Printer.print(`Requesting Polygon Mumbai MATIC tokens to ${address}...`);
         await requestMaticService({ address });
-        Printer.print(`Polygon mumbai matic tokens successfully requested on ${address}`);
+        Printer.print(`Polygon Mumbai MATIC tokens successfully requested to ${address}`);
     }
 };
