@@ -22,7 +22,7 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
     const encryptedArgs = await Crypto.encrypt(params.argsToEncrypt, JSON.parse(offerInfo.argsPublicKey));
     const suspended = !!params.inputOffers.length;
 
-    Printer.print("Arguments is ready, creating root TEE order...");
+    Printer.print("Arguments are ready, creating root TEE order...");
     const id = generateExternalId();
     await SuperproToken.approve(OrdersFactory.address, params.holdDeposit, { from: params.consumerAddress });
     await OrdersFactory.createOrder(
@@ -86,19 +86,19 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
                     const subOrder = new Order(subOrders[index]);
                     await subOrder.cancelOrder({ from: params.consumerAddress });
                 } catch (error) {
-                    Printer.error(`Error during canceling created order ${subOrders[index]}, order not canceled`);
+                    Printer.error(`Error when canceling created order ${subOrders[index]}, order not canceled`);
                 }
             }
 
             try {
                 await teeOrder.cancelOrder({ from: params.consumerAddress });
             } catch (error) {
-                Printer.error(`Error during canceling created TEE order ${params.consumerAddress}, order not canceled`);
+                Printer.error(`Error when canceling created TEE order ${params.consumerAddress}, order not canceled`);
             }
 
-            Printer.error("Created orders has been canceled");
+            Printer.error("Created orders have been canceled");
         } catch (e) {
-            Printer.error("Error during canceling created orders, no orders canceled");
+            Printer.error("Error when canceling created orders, no orders canceled");
         }
         throw e;
     }
