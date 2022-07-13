@@ -80,7 +80,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         ),
     ]);
 
-    Printer.print("Input arguments has been generated, calc hold deposit...");
+    Printer.print("Input arguments have been generated, calculating hold deposit...");
     const holdDeposit = await calcWorkflowDepositService({
         tee: params.tee,
         storage: params.storage,
