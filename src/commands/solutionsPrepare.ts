@@ -62,7 +62,7 @@ export default async (params: PrepareSolutionParams) => {
     }
     if (params.sgxThreadNum) {
         if (parseInt(params.sgxThreadNum, 10) < 4) {
-            throw new Error("Too low value for threads number, minimal is 4");
+            throw new Error("Value too low for number of threads, minimum is 4");
         }
         setValue(manifestObject, params.sgxThreadNum, "sgx", "thread_num");
     }
