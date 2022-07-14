@@ -1,4 +1,5 @@
 import { Offer, ParamName, Superpro } from "@super-protocol/sp-sdk-js";
+import { BigNumber } from "ethers";
 
 export type CalcWorkflowDepositParams = {
     tee: string;
@@ -11,17 +12,17 @@ const calcWorkflowDeposit = async (params: CalcWorkflowDepositParams) => {
     const valueOffers = params.solutions.concat(params.data, [params.storage]);
     const orderMinDeposit = await Superpro.getParam(ParamName.OrderMinimumDeposit);
 
-    let offersDeposits = 0;
+    let offersDeposits = BigNumber.from(0);
     await Promise.all(
         valueOffers.map(async (address) => {
             const offer = new Offer(address);
             const { holdSum } = await offer.getInfo();
-            offersDeposits += holdSum;
+            offersDeposits.add(holdSum);
         })
     );
 
     // TODO: add calc for TEE offer
-    offersDeposits += orderMinDeposit;
+    offersDeposits.add(orderMinDeposit);
 
     return offersDeposits;
 };

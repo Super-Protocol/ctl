@@ -2,7 +2,7 @@ import { OrdersFactory, SuperproToken } from "@super-protocol/sp-sdk-js";
 
 export type OrderReplenishDepositParams = {
     address: string;
-    amount: number;
+    amount: string;
 };
 
 export default async (params: OrderReplenishDepositParams) => {

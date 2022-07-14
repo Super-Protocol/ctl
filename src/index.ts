@@ -126,7 +126,7 @@ async function main() {
                 blockchainConfig: blockchainAccess,
                 actionAccountKey: blockchainKeys.actionAccountKey,
                 address,
-                amount: +amount,
+                amount,
             });
         });
 

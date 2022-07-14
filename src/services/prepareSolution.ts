@@ -104,7 +104,7 @@ gramine-sgx-get-token --sig /entrypoint.sig --output /entrypoint.token
             await copyFile(entrypointSigPath, join(solutionMetadataPath, "entrypoint.sig"));
 
             return solutionMetadataPath;
-        }
+        };
 
         const solutionMetadataPath = await writeManifest(mrenclave);
 

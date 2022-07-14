@@ -8,7 +8,7 @@ export type OrderReplenishDepositParams = {
     blockchainConfig: BlockchainConfig;
     actionAccountKey: string;
     address: string;
-    amount: number;
+    amount: string;
 };
 
 export default async (params: OrderReplenishDepositParams) => {

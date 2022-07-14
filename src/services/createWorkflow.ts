@@ -9,7 +9,7 @@ export type CreateWorkflowParams = {
     inputOffers: string[];
     resultPublicKey: Encryption;
     argsToEncrypt: string;
-    holdDeposit: number;
+    holdDeposit: string;
     consumerAddress: string;
 };
 
@@ -103,5 +103,5 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
         throw e;
     }
 
-    return teeOrder.address;
+    return teeOrder.id;
 };
