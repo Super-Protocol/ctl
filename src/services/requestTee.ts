@@ -8,5 +8,5 @@ export type RequestTeeParams = {
 
 export default async (params: RequestTeeParams) => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
-    await sdk.Transfer({ transfer: { to: params.address } });
+    await sdk.TeeTransfer({ transfer: { to: params.address } });
 };

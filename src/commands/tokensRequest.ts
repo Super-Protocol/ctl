@@ -5,8 +5,9 @@ import Printer from "../printer";
 
 export type TokensRequestParams = {
     actionAccountPrivateKey: string;
-    backendUrl?: string;
+    backendUrl: string;
     requestMatic?: boolean;
+    requestTee?: boolean;
 };
 
 export default async (params: TokensRequestParams) => {
@@ -17,8 +18,8 @@ export default async (params: TokensRequestParams) => {
 
     const address = new Wallet(params.actionAccountPrivateKey).address;
 
-    if (params.backendUrl) {
-        Printer.print(`Requesting SuperProtocol TEE tokens to ${address}...`);
+    if (params.requestTee) {
+        Printer.print(`Requesting SuperProtocol TEE tokens on ${address}...`);
         await requestTeeService({
             backendUrl: params.backendUrl,
             address,
@@ -27,8 +28,11 @@ export default async (params: TokensRequestParams) => {
     }
 
     if (params.requestMatic) {
-        Printer.print(`Requesting Polygon Mumbai MATIC tokens to ${address}...`);
-        await requestMaticService({ address });
-        Printer.print(`Polygon Mumbai MATIC tokens successfully requested to ${address}`);
+        Printer.print(`Requesting Polygon Mumbai MATIC tokens on ${address}...`);
+        await requestMaticService({
+            backendUrl: params.backendUrl,
+            address,
+        });
+        Printer.print(`Polygon Mumbai MATIC tokens successfully requested on ${address}`);
     }
 };

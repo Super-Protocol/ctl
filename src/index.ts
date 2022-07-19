@@ -302,17 +302,13 @@ async function main() {
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainKeysConfig = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
-
-            let backendUrl;
-            if (options.tee) {
-                const backendConfig = configLoader.loadSection("backend") as Config["backend"];
-                backendUrl = backendConfig.url;
-            }
+            const backendConfig = configLoader.loadSection("backend") as Config["backend"];
 
             await tokensRequest({
-                backendUrl,
+                backendUrl: backendConfig.url,
                 actionAccountPrivateKey: blockchainKeysConfig.actionAccountKey,
                 requestMatic: options.matic,
+                requestTee: options.tee,
             });
         });
 

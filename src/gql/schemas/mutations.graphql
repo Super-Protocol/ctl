@@ -1,3 +1,7 @@
 mutation Transfer($transfer: TransferInputType!) {
     transfer(transfer: $transfer)
 }
+
+mutation TeeTransfer($transfer: TransferInputType!) {
+    teeTransfer(transfer: $transfer)
+}
