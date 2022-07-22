@@ -69,13 +69,13 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
                     linkage,
                     solution.resource,
                     solution.args,
-                    solution.encryption
+                    solution.encryption!,
                 )
             )
         ),
         await Promise.all(
             data.resourceFiles.map((data) =>
-                TIIGenerator.generateByOffer(params.tee, hashes, linkage, data.resource, data.args, data.encryption)
+                TIIGenerator.generateByOffer(params.tee, hashes, linkage, data.resource, data.args, data.encryption!)
             )
         ),
     ]);
