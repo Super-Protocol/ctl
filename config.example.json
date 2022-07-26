@@ -33,5 +33,6 @@
     },
     "orderResult": {
         "resultDecryptionKey": "YOUR_PRIVATE_KEY_HERE"
-    }
+    },
+    "accessToken": "YOUR_ACCESS_TOKEN"
 }

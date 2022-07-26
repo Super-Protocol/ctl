@@ -13,7 +13,7 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
             edges {
                 node {
                     _id
-                    address
+                    id
                     authority
                     offerInfo {
                         group
@@ -29,7 +29,7 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         maxDurationTimeMinutes
                         name
                         properties
-                        resultUrl
+                        resultResource
                         restrictions {
                             offers
                             types
@@ -69,7 +69,7 @@ query OffersSelect($pagination: ConnectionArgs!, $filter: OfferFilter) {
             }
             edges {
                 node {
-                    address
+                    id
                     offerInfo {
                         name
                         description
@@ -86,7 +86,7 @@ query OffersRestrictions($pagination: ConnectionArgs!, $filter: OfferFilter) {
         page {
             edges {
                 node {
-                    address
+                    id
                     offerInfo {
                         restrictions {
                             offers

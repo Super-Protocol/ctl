@@ -36,6 +36,7 @@ const ConfigValidators = {
     orderResult: z.object({
         resultDecryptionKey: z.string(),
     }),
+    accessToken: z.string(),
 };
 
 export type Config = {
@@ -62,6 +63,7 @@ export type Config = {
     orderResult: {
         resultDecryptionKey: string;
     };
+    accessToken: string;
 };
 
 class ConfigLoader {

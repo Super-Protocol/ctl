@@ -69,7 +69,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
                     linkage,
                     solution.resource,
                     solution.args,
-                    solution.encryption!,
+                    solution.encryption!
                 )
             )
         ),

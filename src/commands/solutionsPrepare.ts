@@ -7,8 +7,8 @@ import { extractManifest, signManifest } from "../services/prepareSolution";
 import packFolderService from "../services/packFolder";
 import { assertNumber, assertSize } from "../utils";
 import { Encoding, HashAlgorithm } from "@super-protocol/sp-dto-js";
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from "fs";
+import path from "path";
 
 export type PrepareSolutionParams = {
     metadataPath: string;
@@ -137,12 +137,12 @@ export default async (params: PrepareSolutionParams) => {
     const metadata = {
         linkage: {
             encoding: Encoding.base64,
-            mrenclave: Buffer.from(result.mrenclave, 'hex').toString(Encoding.base64),
+            mrenclave: Buffer.from(result.mrenclave, "hex").toString(Encoding.base64),
         },
         hash: {
             encoding: Encoding.base64,
             hashAlgo: solutionHashAlgo,
-            hash: Buffer.from(solutionHash, 'hex').toString(Encoding.base64),
+            hash: Buffer.from(solutionHash, "hex").toString(Encoding.base64),
         },
     };
     await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));

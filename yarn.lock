@@ -1386,10 +1386,10 @@
   resolved "https://npm.pkg.github.com/download/@super-protocol/sp-dto-js/0.0.13/e9032a72c15ac531fb2b5a4974cfd956a1f51e3370b6d3410169ae33ed444c80#5cd94a57e3089db17584cd9018f6036c0c39015a"
   integrity sha512-8csTVB1ObPdhYRXfHAiY5ZGvMV8bgCv9SnAi8CGd2kBhegl9wrF4BKzbZgVuM5CJVy0p0iqdCAMC6RsvaHT8iw==
 
-"@super-protocol/sp-sdk-js@^0.4.2":
-  version "0.4.2"
-  resolved "https://npm.pkg.github.com/download/@super-protocol/sp-sdk-js/0.4.2/e01b1602c86af049df80cf00e4e91a7864ae87dad2dd7984441fd7fff3a6df76#7032d43f3b19c7e94b78179eea3622773ab204c0"
-  integrity sha512-h9pjYntNlYttZRbCrtZBkPNPamiP+oqVFYjaqrkzkoj4GmxcQ1VK/JW5z9gb0Mau4YUyAXwwBHe9YvGUHtAvFQ==
+"@super-protocol/sp-sdk-js@^0.4.9":
+  version "0.4.9"
+  resolved "https://npm.pkg.github.com/download/@super-protocol/sp-sdk-js/0.4.9/b807b55e3d73e51315ef6ca9d6743027c9f925c715e61148b3397268a9b4927e#10b3c9e5699965cacedd9bcb6911c386953a7637"
+  integrity sha512-nJOpMAhdGO39bE8nM1A5tf3abwzK33iu44aM5Q18tzSpgEO1rx8Kx7TocFAOZ616eBjwK5ANVjrIlOc7ePCPWQ==
   dependencies:
     "@super-protocol/sp-dto-js" "0.0.13"
     "@super-protocol/tee-lib" "^0.1.2"

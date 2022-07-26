@@ -1,12 +1,16 @@
 import { getSdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
+import getGqlHeaders from "./gqlHeaders";
 
 export type RequestTeeParams = {
     backendUrl: string;
+    accessToken: string;
     address: string;
 };
 
 export default async (params: RequestTeeParams) => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
-    await sdk.TeeTransfer({ transfer: { to: params.address } });
+    const headers = getGqlHeaders(params.accessToken);
+
+    await sdk.TeeTransfer({}, headers);
 };

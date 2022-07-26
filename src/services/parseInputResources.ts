@@ -1,7 +1,7 @@
 import path from "path";
 import process from "process";
-import readResourceFile, {ResourceFile} from "./readResourceFile";
-import {AESEncryption, Cipher, CryptoAlgorithm, Encoding} from "@super-protocol/sp-dto-js";
+import readResourceFile, { ResourceFile } from "./readResourceFile";
+import { AESEncryption, Cipher, CryptoAlgorithm, Encoding } from "@super-protocol/sp-dto-js";
 
 export type ParseInputResourcesParams = {
     options: string[];
@@ -33,7 +33,7 @@ export default async (params: ParseInputResourcesParams) => {
                     iv: "",
                     mac: "",
                     key: "",
-                } as AESEncryption
+                } as AESEncryption;
             }
 
             resourceFiles.push(resourceFile);

@@ -4,6 +4,7 @@ import { prepareObjectToPrint } from "../utils";
 
 export type OrdersListParams = {
     backendUrl: string;
+    accessToken: string;
     fields: string[];
     limit: number;
     cursor?: string;
@@ -12,6 +13,7 @@ export type OrdersListParams = {
 export default async (params: OrdersListParams) => {
     const orders = await fetchOrdersService({
         backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
         limit: params.limit,
         cursor: params.cursor,
     });

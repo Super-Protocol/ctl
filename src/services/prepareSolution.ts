@@ -95,7 +95,7 @@ gramine-sgx-get-token --sig /entrypoint.sig --output /entrypoint.token
                 "sgx-gramine",
                 "manifests",
                 "mrenclave",
-                mrenclave,
+                mrenclave
             );
 
             await mkdir(solutionMetadataPath, { recursive: true });

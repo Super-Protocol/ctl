@@ -1,4 +1,4 @@
-import {HashAlgorithm} from "@super-protocol/sp-dto-js";
+import { HashAlgorithm } from "@super-protocol/sp-dto-js";
 
 const packageJson = require("../package.json");
 
@@ -58,12 +58,14 @@ async function main() {
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
 
             validateFields(options.fields, providersGetFields);
 
             await providersList({
                 fields: options.fields,
                 backendUrl: backendAccess.url,
+                accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
             });
@@ -86,12 +88,14 @@ async function main() {
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
 
             validateFields(options.fields, providersGetFields);
 
             await providersGet({
                 fields: options.fields,
                 backendUrl: backendAccess.url,
+                accessToken,
                 id,
             });
         });
@@ -198,12 +202,14 @@ async function main() {
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
 
             validateFields(options.fields, ordersListFields);
 
             await ordersList({
                 fields: options.fields,
                 backendUrl: backendAccess.url,
+                accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
             });
@@ -264,6 +270,7 @@ async function main() {
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
 
             validateFields(options.fields, ordersGetFields);
             if (options.suborders) validateFields(options.suborders_fields, subOrdersGetFields);
@@ -272,6 +279,7 @@ async function main() {
                 fields: options.fields,
                 subOrdersFields: options.suborders ? options.suborders_fields : [],
                 backendUrl: backendAccess.url,
+                accessToken,
                 id,
             });
         });
@@ -303,9 +311,11 @@ async function main() {
             const configLoader = new ConfigLoader(options.config);
             const blockchainKeysConfig = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
             const backendConfig = configLoader.loadSection("backend") as Config["backend"];
+            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
 
             await tokensRequest({
                 backendUrl: backendConfig.url,
+                accessToken,
                 actionAccountPrivateKey: blockchainKeysConfig.actionAccountKey,
                 requestMatic: options.matic,
                 requestTee: options.tee,
@@ -355,12 +365,14 @@ async function main() {
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
 
             validateFields(options.fields, offersListTeeFields);
 
             await offersListTee({
                 fields: options.fields,
                 backendUrl: backendAccess.url,
+                accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
             });
@@ -394,12 +406,14 @@ async function main() {
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
 
             validateFields(options.fields, offersListValueFields);
 
             await offersListValue({
                 fields: options.fields,
                 backendUrl: backendAccess.url,
+                accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
             });
@@ -473,7 +487,11 @@ async function main() {
         .option("--write-default-manifest", "Write a default manifest for solutions with empty sgxMrEnclave", false)
         .option("--hash-algo <solutionHashAlgo>", "Hash calculation algorithm for solution", HashAlgorithm.SHA256)
         .option("--sgx-thread-num <threadNum>", "A number of enclave threads", "")
-        .option("--sgx-enclave-size <enclaveSize>", "Entire enclave size (#M or #G), must be some value to the power of 2", "")
+        .option(
+            "--sgx-enclave-size <enclaveSize>",
+            "Entire enclave size (#M or #G), must be some value to the power of 2",
+            ""
+        )
         .option("--sgx-loader-internal-size <internalSize>", "Size of the internal enclave structs (#M or #G)", "")
         .option("--sgx-stack-size <stackSize>", "Size of the enclave thread stack (#K, #M or #G)", "")
         .action(async (solutionPath: string, solutionKeyPath: string, options: any) => {

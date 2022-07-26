@@ -8,13 +8,13 @@ query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                 cursor
                 node {
                     _id
-                    address
+                    id
                     authority
                     consumer
                     orderHoldDeposit
                     depositSpent
                     parentOrder {
-                        address
+                        id
                     }
                     offerInfo {
                         name
@@ -40,7 +40,7 @@ query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                         description
                     }
                     subOrders {
-                        address
+                        id
                         depositSpent
                         teeOfferInfo {
                             name
@@ -81,7 +81,7 @@ query OrdersSelect($pagination: ConnectionArgs!, $filter: OrdersFilter) {
             edges {
                 cursor
                 node {
-                    address
+                    id
                 }
             }
             pageInfo {
@@ -95,8 +95,8 @@ query OrdersSelect($pagination: ConnectionArgs!, $filter: OrdersFilter) {
 }
 
 query Order($id: String!) {
-    order(address: $id) {
-        address
+    order(id: $id) {
+        id
         consumer
         origins {
             createdBy
@@ -130,7 +130,7 @@ query SubOrders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                 cursor
                 node {
                     _id
-                    address
+                    id
                     authority
                     consumer
                     offerInfo {

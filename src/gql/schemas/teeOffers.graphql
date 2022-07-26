@@ -8,7 +8,7 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                 cursor
                 node {
                     _id
-                    address
+                    id
                     authority
                     disabledAfter
                     providerAddress
@@ -70,7 +70,7 @@ query TeeOffersSelect($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
             }
             edges {
                 node {
-                    address
+                    id
                     teeOfferInfo {
                         name
                         description

@@ -6,6 +6,7 @@ import Printer from "../printer";
 export type TokensRequestParams = {
     actionAccountPrivateKey: string;
     backendUrl: string;
+    accessToken: string;
     requestMatic?: boolean;
     requestTee?: boolean;
 };
@@ -22,6 +23,7 @@ export default async (params: TokensRequestParams) => {
         Printer.print(`Requesting SuperProtocol TEE tokens on ${address}...`);
         await requestTeeService({
             backendUrl: params.backendUrl,
+            accessToken: params.accessToken,
             address,
         });
         Printer.print(`SuperProtocol TEE tokens successfully requested to ${address}`);
@@ -31,6 +33,7 @@ export default async (params: TokensRequestParams) => {
         Printer.print(`Requesting Polygon Mumbai MATIC tokens on ${address}...`);
         await requestMaticService({
             backendUrl: params.backendUrl,
+            accessToken: params.accessToken,
             address,
         });
         Printer.print(`Polygon Mumbai MATIC tokens successfully requested on ${address}`);

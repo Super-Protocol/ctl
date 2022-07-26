@@ -2,9 +2,12 @@ import { getSdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
 import { OrderStatus } from "@super-protocol/sp-sdk-js";
 import { formatDate, getObjectKey } from "../utils";
+import { BigNumber } from "ethers";
+import getGqlHeaders from "./gqlHeaders";
 
 export type FetchOrdersParams = {
     backendUrl: string;
+    accessToken: string;
     limit: number;
     cursor?: string;
     id?: string;
@@ -12,36 +15,41 @@ export type FetchOrdersParams = {
 
 export default async (params: FetchOrdersParams) => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
+    const headers = getGqlHeaders(params.accessToken);
 
-    const { result } = await sdk.Orders({
-        pagination: {
-            first: params.limit,
-            after: params.cursor,
-            sortDir: "DESC",
-            sortBy: "origins.createdDate",
+    const { result } = await sdk.Orders(
+        {
+            pagination: {
+                first: params.limit,
+                after: params.cursor,
+                sortDir: "DESC",
+                sortBy: "origins.createdDate",
+            },
+            filter: { id: params.id },
         },
-        filter: { address: params.id },
-    });
+        headers
+    );
 
     return {
         list:
             result.page.edges?.map((item) => ({
-                id: item.node?.address,
+                id: item.node?.id,
                 offerName: item.node?.offerInfo?.name || item.node?.teeOfferInfo?.name,
                 offerDescription: item.node?.offerInfo?.description || item.node?.teeOfferInfo?.description,
                 type: item.node?.offerType,
                 status: getObjectKey(item.node?.orderInfo.status, OrderStatus),
                 offerId: item.node?.orderInfo.offer,
                 consumerAddress: item.node?.consumer,
-                parentOrderId: item.node?.parentOrder?.address,
+                parentOrderId: item.node?.parentOrder?.id,
                 totalDeposit: item.node?.orderHoldDeposit,
-                unspentDeposit:
-                    (item.node?.orderHoldDeposit || NaN) - (item.node?.depositSpent ? +item.node?.depositSpent : 0),
+                unspentDeposit: BigNumber.from(item.node?.orderHoldDeposit)
+                    .sub(item.node?.depositSpent ?? 0)
+                    .toString(),
                 cancelebel: item.node?.offerInfo?.cancelable || false,
                 modifiedDate: formatDate(item.node?.origins?.modifiedDate),
                 subOrdersCount: item.node?.subOrders?.length,
                 subOrders: item.node?.subOrders?.map((subItem) => ({
-                    id: subItem.address,
+                    id: subItem.id,
                     type: subItem.offerType,
                     status: getObjectKey(subItem.orderInfo.status, OrderStatus),
                     offerName: subItem.offerInfo?.name || subItem.teeOfferInfo?.name,

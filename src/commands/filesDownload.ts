@@ -24,7 +24,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
         throw Error(`Resource type ${resource.type} not supported, supported only StorageProvider type`);
 
     let localPath = params.localPath.replace(/\/$/, "");
-    if (resourceFile.encryption) localPath += '.encrypted';
+    if (resourceFile.encryption) localPath += ".encrypted";
 
     const storageAccess = {
         storageType: resource.storageType,

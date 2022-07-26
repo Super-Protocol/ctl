@@ -39,11 +39,13 @@ const ResourceFileValidator = z.object({
                 credentials: z.any(),
             })
         ),
-    encryption: z.object({
-        algo: z.nativeEnum(CryptoAlgorithm),
-        encoding: z.nativeEnum(Encoding),
-        key: z.string(),
-    }).optional(),
+    encryption: z
+        .object({
+            algo: z.nativeEnum(CryptoAlgorithm),
+            encoding: z.nativeEnum(Encoding),
+            key: z.string(),
+        })
+        .optional(),
     linkage: z
         .object({
             encoding: z.nativeEnum(Encoding),

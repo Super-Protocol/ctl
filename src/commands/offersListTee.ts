@@ -4,6 +4,7 @@ import { prepareObjectToPrint } from "../utils";
 
 export type OffersListTeeParams = {
     backendUrl: string;
+    accessToken: string;
     fields: string[];
     limit: number;
     cursor?: string;
@@ -12,6 +13,7 @@ export type OffersListTeeParams = {
 export default async (params: OffersListTeeParams) => {
     const offers = await fetchTeeOffersService({
         backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
         limit: params.limit,
         cursor: params.cursor,
     });
