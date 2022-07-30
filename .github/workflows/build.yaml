@@ -6,8 +6,6 @@ on:
 jobs:
     build:
         runs-on: ${{ matrix.os }}
-        env:
-            GITHUB_PAT: ${{ secrets.NPM_TOKEN_GH }}
         strategy:
             matrix:
                 os: [ubuntu-latest, macos-latest]
@@ -23,13 +21,9 @@ jobs:
               with:
                   node-version: 16.15.0
                   architecture: x64
-                  registry-url: https://npm.pkg.github.com/
                   scope: super-protocol
-                  always-auth: true
             - name: Install dependencies
               run: yarn --frozen-lock --ignore-scripts
-              env:
-                NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_GH }}
             - name: Build binary for macOS
               if: ${{ runner.os == 'macOS' }}
               run: >
