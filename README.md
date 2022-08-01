@@ -2,18 +2,13 @@
 A tool for publishing values in a secure and reliable way.
 
 ## Setup
-1. Login to private npm registry using your GitHub login and personal token (see [Authenticating to GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-to-github-packages))
-
-   ```
-   npm login --scope=@super-protocol --registry=https://npm.pkg.github.com
-   ```
 1. Follow instructions to setup Decentralized Cloud Storage providers: [StorJ](https://github.com/storj-thirdparty/uplink-nodejs)
-1. Install dependencies:
+2. Install dependencies:
 
     ```
     yarn
     ```
-1. Run help in dev mode to see available commands:
+3. Run help in dev mode to see available commands:
 
     ```
     yarn dev help
@@ -24,7 +19,7 @@ A tool for publishing values in a secure and reliable way.
 ### Linux
 #### Build in docker (recommended):
 ```
-cd linux_builder && ./build.sh "<your github persolal access token>" && cd ..
+cd linux_builder && ./build.sh && cd ..
 ```
 Can be run on any os with Docker support.</br>
 Result will be saved at `./dist/spctl-linux`
