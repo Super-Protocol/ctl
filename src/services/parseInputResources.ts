@@ -12,11 +12,11 @@ const idRegexp = /^\d+$/;
 
 export default async (params: ParseInputResourcesParams) => {
     const resourceFiles: ResourceFile[] = [],
-        addresses: string[] = [];
+        ids: string[] = [];
     await Promise.all(
         params.options.map(async (param, index) => {
             if (idRegexp.test(param)) {
-                addresses.push(param);
+                ids.push(param);
                 return;
             }
 
@@ -42,6 +42,6 @@ export default async (params: ParseInputResourcesParams) => {
 
     return {
         resourceFiles,
-        addresses,
+        ids,
     };
 };

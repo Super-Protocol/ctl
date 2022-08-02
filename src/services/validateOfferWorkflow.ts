@@ -2,7 +2,7 @@ import { Offer, OfferType } from "@super-protocol/sdk-js";
 import { ResourceFile } from "./readResourceFile";
 
 export type ValidateOfferWorkflowParams = {
-    offerAddress: string;
+    offerId: string;
     tee: string;
     solutions: string[];
     data?: string[];
@@ -11,12 +11,12 @@ export type ValidateOfferWorkflowParams = {
 };
 
 export default async (params: ValidateOfferWorkflowParams) => {
-    const offer = new Offer(params.offerAddress);
+    const offer = new Offer(params.offerId);
 
     await Promise.all([
         (async () => {
             if (!(await offer.isRestrictionsPermitThatOffer(params.tee))) {
-                throw Error(`Offer ${params.offerAddress} permissions settings doesn't permit TEE offer ${params.tee}`);
+                throw Error(`Offer ${params.offerId} permissions settings doesn't permit TEE offer ${params.tee}`);
             }
         })(),
         (async () => {
@@ -28,51 +28,49 @@ export default async (params: ValidateOfferWorkflowParams) => {
 
                     if (type === OfferType.Solution && params.solutionArgs.length) {
                         throw Error(
-                            `Offer ${params.offerAddress} permissions settings doesn't permit custom solution arguments`
+                            `Offer ${params.offerId} permissions settings doesn't permit custom solution arguments`
                         );
                     }
                     if (type === OfferType.Data && params.dataArgs.length) {
                         throw Error(
-                            `Offer ${params.offerAddress} permissions settings doesn't permit custom data arguments`
+                            `Offer ${params.offerId} permissions settings doesn't permit custom data arguments`
                         );
                     }
                 })
             );
         })(),
         Promise.all(
-            params.solutions.map(async (solutionAddress) => {
-                if (!(await offer.isRestrictionsPermitThatOffer(solutionAddress))) {
+            params.solutions.map(async (solutionId) => {
+                if (!(await offer.isRestrictionsPermitThatOffer(solutionId))) {
                     throw Error(
-                        `Offer ${params.offerAddress} permissions settings doesn't permit solution offer ${solutionAddress}`
+                        `Offer ${params.offerId} permissions settings doesn't permit solution offer ${solutionId}`
                     );
                 }
             })
         ),
         params.data &&
             Promise.all(
-                params.data.map(async (dataAddress) => {
-                    if (!(await offer.isRestrictionsPermitThatOffer(dataAddress))) {
-                        throw Error(
-                            `Offer ${params.offerAddress} permissions settings doesn't permit data offer ${dataAddress}`
-                        );
+                params.data.map(async (dataId) => {
+                    if (!(await offer.isRestrictionsPermitThatOffer(dataId))) {
+                        throw Error(`Offer ${params.offerId} permissions settings doesn't permit data offer ${dataId}`);
                     }
                 })
             ),
         (async () => {
-            const otherSolutions = params.solutions.filter((solution) => solution !== params.offerAddress);
+            const otherSolutions = params.solutions.filter((solution) => solution !== params.offerId);
             if (
                 (await offer.isRestrictedByOfferType(OfferType.Solution)) &&
                 !otherSolutions.length &&
                 !params.solutionArgs.length
             ) {
-                throw Error(`Offer ${params.offerAddress} permissions settings requires solution`);
+                throw Error(`Offer ${params.offerId} permissions settings requires solution`);
             }
         })(),
         (async () => {
             if (!params.data) return;
-            const otherData = params.data.filter((data) => data !== params.offerAddress);
+            const otherData = params.data.filter((data) => data !== params.offerId);
             if ((await offer.isRestrictedByOfferType(OfferType.Data)) && !otherData.length && !params.dataArgs.length) {
-                throw Error(`Offer ${params.offerAddress} permissions settings requires data`);
+                throw Error(`Offer ${params.offerId} permissions settings requires data`);
             }
         })(),
     ]);

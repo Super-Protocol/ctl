@@ -7,7 +7,7 @@ import checkOrderService from "../services/checkOrder";
 export type OrderCancelParams = {
     blockchainConfig: BlockchainConfig;
     actionAccountKey: string;
-    address: string;
+    id: string;
 };
 
 export default async (params: OrderCancelParams) => {
@@ -18,9 +18,9 @@ export default async (params: OrderCancelParams) => {
     });
 
     Printer.print("Connected successfully, checking if order exists...");
-    await checkOrderService({ address: params.address });
+    await checkOrderService({ id: params.id });
 
     Printer.print("Order found, canceling order...");
-    await cancelOrderService({ address: params.address });
-    Printer.print(`Order ${params.address} has been successfully canceled`);
+    await cancelOrderService({ id: params.id });
+    Printer.print(`Order ${params.id} has been successfully canceled`);
 };

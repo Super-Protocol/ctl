@@ -14,8 +14,8 @@ const calcWorkflowDeposit = async (params: CalcWorkflowDepositParams) => {
 
     let offersDeposits = BigNumber.from(0);
     await Promise.all(
-        valueOffers.map(async (address) => {
-            const offer = new Offer(address);
+        valueOffers.map(async (id) => {
+            const offer = new Offer(id);
             const { holdSum } = await offer.getInfo();
             offersDeposits.add(holdSum);
         })

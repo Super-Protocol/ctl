@@ -35,21 +35,19 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 
     Printer.print("Connected successfully, validating workflow configuration...");
     await Promise.all(
-        [...solutions.addresses, ...data.addresses].map((solutionsAddress) =>
+        [...solutions.ids, ...data.ids].map((solutionId) =>
             validateOfferWorkflowService({
-                offerAddress: solutionsAddress,
+                offerId: solutionId,
                 tee: params.tee,
-                solutions: solutions.addresses,
-                data: data.addresses,
+                solutions: solutions.ids,
+                data: data.ids,
                 solutionArgs: solutions.resourceFiles,
                 dataArgs: data.resourceFiles,
             })
         )
     );
 
-    let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(
-        solutions.addresses.concat(data.addresses)
-    );
+    let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(solutions.ids.concat(data.ids));
 
     [...solutions.resourceFiles, ...data.resourceFiles].forEach((resource) => {
         if (resource.hash) hashes.push(resource.hash);
@@ -84,17 +82,17 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     const holdDeposit = await calcWorkflowDepositService({
         tee: params.tee,
         storage: params.storage,
-        solutions: solutions.addresses,
-        data: data.addresses,
+        solutions: solutions.ids,
+        data: data.ids,
     });
 
     Printer.print(
         `Hold deposit has been calculated, creating workflow orders with ${holdDeposit} tokens of deposit ...`
     );
-    const teeOrderAddress = await createWorkflowService({
+    const teeOrderId = await createWorkflowService({
         teeOffer: params.tee,
         storageOffer: params.storage,
-        inputOffers: solutions.addresses.concat(data.addresses),
+        inputOffers: solutions.ids.concat(data.ids),
         argsToEncrypt: JSON.stringify({
             data: dataTIIs,
             solution: solutionTIIs,
@@ -104,7 +102,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         consumerAddress: consumerAddress!,
     });
 
-    Printer.print(`Workflow has been created successfully, root TEE order id: ${teeOrderAddress}`);
+    Printer.print(`Workflow has been created successfully, root TEE order id: ${teeOrderId}`);
 };
 
 export default workflowCreate;

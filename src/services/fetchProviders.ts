@@ -8,7 +8,7 @@ export type FetchProviderParams = {
     limit: number;
     accessToken: string;
     cursor?: string;
-    id?: string;
+    address?: string;
 };
 
 export default async (params: FetchProviderParams) => {
@@ -23,7 +23,7 @@ export default async (params: FetchProviderParams) => {
                 sortDir: "DESC",
                 sortBy: "origins.createdDate",
             },
-            filter: { address: params.id },
+            filter: { address: params.address },
         },
         headers
     );
@@ -31,7 +31,7 @@ export default async (params: FetchProviderParams) => {
     return {
         list:
             result.page.edges?.map((item) => ({
-                id: item.node?.address,
+                address: item.node?.address,
                 name: item.node?.providerInfo.name,
                 description: item.node?.providerInfo.description,
                 authorityAccount: item.node?.authority,

@@ -1,4 +1,5 @@
 import { SuperproToken } from "@super-protocol/sdk-js";
+import { ethers } from "ethers";
 
 export type GetTeeBalanceParams = {
     address: string;
@@ -6,7 +7,7 @@ export type GetTeeBalanceParams = {
 
 const getTeeBalance = async (params: GetTeeBalanceParams) => {
     const wei = await SuperproToken.balanceOf(params.address);
-    return +wei / 1000000000000000000;
+    return ethers.utils.formatEther(wei);
 };
 
 export default getTeeBalance;

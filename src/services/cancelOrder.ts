@@ -1,10 +1,10 @@
 import { Order } from "@super-protocol/sdk-js";
 
 export type CancelOrderParams = {
-    address: string;
+    id: string;
 };
 
 export default async (params: CancelOrderParams) => {
-    const order = new Order(params.address);
+    const order = new Order(params.id);
     await order.cancelOrder();
 };

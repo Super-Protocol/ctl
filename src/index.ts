@@ -40,8 +40,8 @@ async function main() {
     const offersCommand = program.command("offers");
     const offersListCommand = offersCommand.command("list");
 
-    const providersListFields = ["id", "name", "description", "authority_account", "action_account", "modified_date"],
-        providersListDefaultFields = ["id", "name"];
+    const providersListFields = ["address", "name", "description", "authority_account", "action_account", "modified_date"],
+        providersListDefaultFields = ["address", "name"];
     providersCommand
         .command("list")
         .description("Fetches list of providers")
@@ -71,12 +71,12 @@ async function main() {
             });
         });
 
-    const providersGetFields = ["id", "name", "description", "authority_account", "action_account", "modified_date"],
+    const providersGetFields = ["address", "name", "description", "authority_account", "action_account", "modified_date"],
         providersGetDefaultFields = ["name", "description", "authority_account", "action_account"];
     providersCommand
         .command("get")
-        .description("Fetch fields of provider with <id>")
-        .argument("id", "ID to fetch the provider")
+        .description("Fetch fields of provider with <address>")
+        .argument("address", "Address to fetch the provider")
         .addOption(
             new Option(
                 "--fields <fields>",
@@ -85,7 +85,7 @@ async function main() {
                 .argParser(commaSeparatedList)
                 .default(providersGetDefaultFields, providersGetDefaultFields.join(","))
         )
-        .action(async (id: string, options: any) => {
+        .action(async (address: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const backendAccess = configLoader.loadSection("backend") as Config["backend"];
             const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
@@ -96,7 +96,7 @@ async function main() {
                 fields: options.fields,
                 backendUrl: backendAccess.url,
                 accessToken,
-                id,
+                address,
             });
         });
 
@@ -104,7 +104,7 @@ async function main() {
         .command("cancel")
         .description("Cancel order with <id>")
         .argument("id", "Order id")
-        .action(async (address: string, options: any) => {
+        .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
             const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
@@ -112,7 +112,7 @@ async function main() {
             await ordersCancel({
                 blockchainConfig: blockchainAccess,
                 actionAccountKey: blockchainKeys.actionAccountKey,
-                address,
+                id,
             });
         });
 
@@ -121,7 +121,7 @@ async function main() {
         .description("Replenish order deposit with <id> by <amount>")
         .argument("id", "Order id")
         .argument("amount", "Amount of tokens to replenish")
-        .action(async (address: string, amount: string, options: any) => {
+        .action(async (id: string, amount: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
             const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
@@ -129,7 +129,7 @@ async function main() {
             await ordersReplenishDeposit({
                 blockchainConfig: blockchainAccess,
                 actionAccountKey: blockchainKeys.actionAccountKey,
-                address,
+                id,
                 amount,
             });
         });

@@ -6,7 +6,7 @@ export type ProvidersGetParams = {
     backendUrl: string;
     accessToken: string;
     fields: string[];
-    id: string;
+    address: string;
 };
 
 export default async (params: ProvidersGetParams) => {
@@ -14,11 +14,11 @@ export default async (params: ProvidersGetParams) => {
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
         limit: 1,
-        id: params.id,
+        address: params.address,
     });
 
     if (!providers.list.length) {
-        Printer.print(`Provider ${params.id} not found`);
+        Printer.print(`Provider ${params.address} not found`);
         return;
     }
 

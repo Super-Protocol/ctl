@@ -24,7 +24,6 @@ export default async (params: TokensRequestParams) => {
         await requestTeeService({
             backendUrl: params.backendUrl,
             accessToken: params.accessToken,
-            address,
         });
         Printer.print(`SuperProtocol TEE tokens successfully requested to ${address}`);
     }
@@ -34,7 +33,6 @@ export default async (params: TokensRequestParams) => {
         await requestMaticService({
             backendUrl: params.backendUrl,
             accessToken: params.accessToken,
-            address,
         });
         Printer.print(`Polygon Mumbai MATIC tokens successfully requested on ${address}`);
     }

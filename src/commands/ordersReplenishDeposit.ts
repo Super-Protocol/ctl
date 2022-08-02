@@ -7,7 +7,7 @@ import checkOrderService from "../services/checkOrder";
 export type OrderReplenishDepositParams = {
     blockchainConfig: BlockchainConfig;
     actionAccountKey: string;
-    address: string;
+    id: string;
     amount: string;
 };
 
@@ -19,12 +19,12 @@ export default async (params: OrderReplenishDepositParams) => {
     });
 
     Printer.print("Connected successfully, checking if order exists...");
-    await checkOrderService({ address: params.address });
+    await checkOrderService({ id: params.id });
 
     Printer.print("Order found, replenishing order deposit...");
     await orderReplenishDepositService({
-        address: params.address,
+        id: params.id,
         amount: params.amount,
     });
-    Printer.print(`Deposit for order ${params.address} has been replenished successfully by ${params.amount} tokens`);
+    Printer.print(`Deposit for order ${params.id} has been replenished successfully by ${params.amount} tokens`);
 };

@@ -5,7 +5,6 @@ import getGqlHeaders from "./gqlHeaders";
 export type RequestTeeParams = {
     backendUrl: string;
     accessToken: string;
-    address: string;
 };
 
 export default async (params: RequestTeeParams) => {
