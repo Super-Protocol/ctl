@@ -1,5 +1,5 @@
-import { Crypto, Order, OrdersFactory, OrderStatus, SuperproToken, TeeOffer } from "@super-protocol/sp-sdk-js";
-import { Encryption } from "@super-protocol/sp-dto-js";
+import { Crypto, Order, OrdersFactory, OrderStatus, SuperproToken, TeeOffer } from "@super-protocol/sdk-js";
+import { Encryption } from "@super-protocol/dto-js";
 import Printer from "../printer";
 import { generateExternalId } from "../utils";
 

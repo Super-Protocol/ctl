@@ -1,4 +1,4 @@
-import { HashAlgorithm } from "@super-protocol/sp-dto-js";
+import { HashAlgorithm } from "@super-protocol/dto-js";
 
 const packageJson = require("../package.json");
 

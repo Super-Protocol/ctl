@@ -1,5 +1,5 @@
-import { Crypto } from "@super-protocol/sp-sdk-js";
-import { Encryption } from "@super-protocol/sp-dto-js";
+import { Crypto } from "@super-protocol/sdk-js";
+import { Encryption } from "@super-protocol/dto-js";
 import fs from "fs";
 
 type Result = {

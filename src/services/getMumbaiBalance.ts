@@ -1,4 +1,4 @@
-import BlockchainConnector from "@super-protocol/sp-sdk-js";
+import BlockchainConnector from "@super-protocol/sdk-js";
 
 export type GetMumbaiBalanceParams = {
     address: string;

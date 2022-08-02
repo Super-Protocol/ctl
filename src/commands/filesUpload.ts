@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import encryptFileService from "../services/encryptFile";
 import packFolderService from "../services/packFolder";
 import uploadService from "../services/uploadFile";
-import { ResourceType, StorageType } from "@super-protocol/sp-dto-js";
+import { ResourceType, StorageType } from "@super-protocol/dto-js";
 import Printer from "../printer";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
 import path from "path";

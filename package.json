@@ -18,8 +18,8 @@
     "private": true,
     "dependencies": {
         "@iarna/toml": "^2.2.5",
-        "@super-protocol/sp-dto-js": "^0.0.13",
-        "@super-protocol/sp-sdk-js": "^0.4.9",
+        "@super-protocol/dto-js": "^0.0.13",
+        "@super-protocol/sdk-js": "^0.6.0",
         "axios": "^0.27.2",
         "cli-progress": "^3.9.1",
         "colors": "^1.4.0",

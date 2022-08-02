@@ -1373,17 +1373,17 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@super-protocol/sp-dto-js@0.0.13", "@super-protocol/sp-dto-js@^0.0.13":
+"@super-protocol/dto-js@0.0.13", "@super-protocol/dto-js@^0.0.13":
   version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@super-protocol/sp-dto-js/-/sp-dto-js-0.0.13.tgz#f8f8488ff608e3b3eb252efc0a58ea57e0957cf2"
-  integrity sha512-rnZs0OkA06yPtY+KmC3NepScgeWSBEr68o9Mysj5Fwis7AMw5aUuHEM9ONV98N++CMncl2bAnHPRKzn3x2eCZQ==
+  resolved "https://registry.yarnpkg.com/@super-protocol/dto-js/-/dto-js-0.0.13.tgz#476b0b223d8f722b9a770f7f8cf6ae59ae93219a"
+  integrity sha512-xwg3oHS3gGYXrhejFlBlr1EgSXh7ACH907pd4ItjTQ4uaxbURwyDHxSE7wCALV4OT2jNIrE+xRgORVeYPSeicQ==
 
-"@super-protocol/sp-sdk-js@^0.4.9":
-  version "0.4.10"
-  resolved "https://registry.yarnpkg.com/@super-protocol/sp-sdk-js/-/sp-sdk-js-0.4.10.tgz#d4ef5319c89d2cb2b9646b8c77679f3a5190cffb"
-  integrity sha512-3lpK9jqI47mAE2EvoKYnlTP0lrJNALntPJsC0LGH7r7HcVPrQO+YZFfD2JiHpcY1OMXe8ZHuuBJFA/uAv9SRHA==
+"@super-protocol/sdk-js@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@super-protocol/sdk-js/-/sdk-js-0.6.0.tgz#8b67506eef5951d9bf94c2ef3ef505d9db156ccf"
+  integrity sha512-h2pDl/HR2VL+GQPR7jwiUhKxdmi1olkcR5PdvIUd8nAAl8V4jIN2Hyk56Er78WehEOu4d2OzM+M932x6y2JseQ==
   dependencies:
-    "@super-protocol/sp-dto-js" "0.0.13"
+    "@super-protocol/dto-js" "0.0.13"
     "@super-protocol/tee-lib" "^0.1.2"
     "@super-protocol/uplink-nodejs" "1.2.12"
     eccrypto "^1.1.6"

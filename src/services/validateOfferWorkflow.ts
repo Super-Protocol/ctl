@@ -1,4 +1,4 @@
-import { Offer, OfferType } from "@super-protocol/sp-sdk-js";
+import { Offer, OfferType } from "@super-protocol/sdk-js";
 import { ResourceFile } from "./readResourceFile";
 
 export type ValidateOfferWorkflowParams = {

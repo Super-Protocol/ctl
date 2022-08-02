@@ -1,8 +1,8 @@
-import { Config as BlockchainConfig, TIIGenerator } from "@super-protocol/sp-sdk-js";
+import { Config as BlockchainConfig, TIIGenerator } from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import validateOfferWorkflowService from "../services/validateOfferWorkflow";
-import { Encryption } from "@super-protocol/sp-dto-js";
+import { Encryption } from "@super-protocol/dto-js";
 import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";

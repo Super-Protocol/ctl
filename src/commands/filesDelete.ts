@@ -2,7 +2,7 @@ import deleteFileService from "../services/deleteFile";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
 import path from "path";
 import readResourceFileService from "../services/readResourceFile";
-import { ResourceType, StorageProviderResource } from "@super-protocol/sp-dto-js";
+import { ResourceType, StorageProviderResource } from "@super-protocol/dto-js";
 import Printer from "../printer";
 
 export type FilesDeleteParams = {

@@ -1,4 +1,4 @@
-import { getStorageProvider, StorageAccess } from "@super-protocol/sp-sdk-js";
+import { getStorageProvider, StorageAccess } from "@super-protocol/sdk-js";
 import * as fs from "fs";
 
 export default async (

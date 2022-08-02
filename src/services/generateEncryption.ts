@@ -1,4 +1,4 @@
-import { CryptoAlgorithm, Encoding, Encryption } from "@super-protocol/sp-dto-js";
+import { CryptoAlgorithm, Encoding, Encryption } from "@super-protocol/dto-js";
 import * as crypto from "crypto";
 
 export default async (): Promise<Encryption> => {

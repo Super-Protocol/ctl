@@ -1,4 +1,4 @@
-import { Offer, ParamName, Superpro } from "@super-protocol/sp-sdk-js";
+import { Offer, ParamName, Superpro } from "@super-protocol/sdk-js";
 import { BigNumber } from "ethers";
 
 export type CalcWorkflowDepositParams = {

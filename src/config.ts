@@ -1,5 +1,5 @@
-import { CryptoAlgorithm, Encoding, Encryption, StorageType } from "@super-protocol/sp-dto-js";
-import { Config as BlockchainConfig } from "@super-protocol/sp-sdk-js";
+import { CryptoAlgorithm, Encoding, Encryption, StorageType } from "@super-protocol/dto-js";
+import { Config as BlockchainConfig } from "@super-protocol/sdk-js";
 import fs from "fs";
 import path from "path";
 import process from "process";

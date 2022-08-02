@@ -1,7 +1,7 @@
 import path from "path";
 import process from "process";
 import readResourceFile, { ResourceFile } from "./readResourceFile";
-import { AESEncryption, Cipher, CryptoAlgorithm, Encoding } from "@super-protocol/sp-dto-js";
+import { AESEncryption, Cipher, CryptoAlgorithm, Encoding } from "@super-protocol/dto-js";
 
 export type ParseInputResourcesParams = {
     options: string[];

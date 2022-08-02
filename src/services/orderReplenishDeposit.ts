@@ -1,4 +1,4 @@
-import { OrdersFactory, SuperproToken } from "@super-protocol/sp-sdk-js";
+import { OrdersFactory, SuperproToken } from "@super-protocol/sdk-js";
 
 export type OrderReplenishDepositParams = {
     address: string;

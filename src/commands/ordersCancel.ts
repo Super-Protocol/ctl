@@ -1,4 +1,4 @@
-import { Config as BlockchainConfig } from "@super-protocol/sp-sdk-js";
+import { Config as BlockchainConfig } from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import cancelOrderService from "../services/cancelOrder";

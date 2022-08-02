@@ -6,7 +6,7 @@ import Printer from "../printer";
 import { extractManifest, signManifest } from "../services/prepareSolution";
 import packFolderService from "../services/packFolder";
 import { assertNumber, assertSize } from "../utils";
-import { Encoding, HashAlgorithm } from "@super-protocol/sp-dto-js";
+import { Encoding, HashAlgorithm } from "@super-protocol/dto-js";
 import { promises as fs } from "fs";
 import path from "path";
 

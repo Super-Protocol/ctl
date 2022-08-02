@@ -1,5 +1,5 @@
-import { getStorageProvider, StorageAccess } from "@super-protocol/sp-sdk-js";
-import { StorageType } from "@super-protocol/sp-dto-js";
+import { getStorageProvider, StorageAccess } from "@super-protocol/sdk-js";
+import { StorageType } from "@super-protocol/dto-js";
 
 export type DeleteFileParams = {
     remotePath: string;
@@ -8,5 +8,5 @@ export type DeleteFileParams = {
 
 export default async (params: DeleteFileParams) => {
     const storageProvider = getStorageProvider(params.storageAccess);
-    await storageProvider.deleteFile(params.remotePath);
+    await storageProvider.deleteObject(params.remotePath);
 };

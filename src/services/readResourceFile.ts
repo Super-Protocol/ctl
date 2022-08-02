@@ -9,7 +9,7 @@ import {
     Resource,
     ResourceType,
     StorageType,
-} from "@super-protocol/sp-dto-js";
+} from "@super-protocol/dto-js";
 import readJsonFile from "./readJsonFile";
 import { ErrorWithCustomMessage } from "../utils";
 

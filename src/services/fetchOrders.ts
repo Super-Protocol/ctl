@@ -1,6 +1,6 @@
 import { getSdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
-import { OrderStatus } from "@super-protocol/sp-sdk-js";
+import { OrderStatus } from "@super-protocol/sdk-js";
 import { formatDate, getObjectKey } from "../utils";
 import { BigNumber } from "ethers";
 import getGqlHeaders from "./gqlHeaders";

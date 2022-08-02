@@ -1,4 +1,4 @@
-import { getStorageProvider, StorageAccess } from "@super-protocol/sp-sdk-js";
+import { getStorageProvider, StorageAccess } from "@super-protocol/sdk-js";
 import { pipeline } from "stream/promises";
 import * as fs from "fs";
 

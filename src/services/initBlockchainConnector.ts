@@ -1,4 +1,4 @@
-import BlockchainConnector, { Config as BlockchainConfig } from "@super-protocol/sp-sdk-js";
+import BlockchainConnector, { Config as BlockchainConfig } from "@super-protocol/sdk-js";
 
 export type InitBlockchainConnectorParams = {
     blockchainConfig: BlockchainConfig;

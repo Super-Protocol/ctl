@@ -1,4 +1,4 @@
-import { SuperproToken } from "@super-protocol/sp-sdk-js";
+import { SuperproToken } from "@super-protocol/sdk-js";
 
 export type GetTeeBalanceParams = {
     address: string;

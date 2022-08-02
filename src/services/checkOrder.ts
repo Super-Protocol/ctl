@@ -1,4 +1,4 @@
-import { Order } from "@super-protocol/sp-sdk-js";
+import { Order } from "@super-protocol/sdk-js";
 
 export type CheckOrderParams = {
     address: string;

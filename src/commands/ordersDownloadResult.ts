@@ -5,11 +5,11 @@ import Printer from "../printer";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
 import path from "path";
 import getOrderResult from "../services/getOrderResult";
-import { Encryption, Resource, ResourceType, StorageProviderResource, UrlResource } from "@super-protocol/sp-dto-js";
-import { Crypto } from "@super-protocol/sp-sdk-js";
+import { Encryption, Resource, ResourceType, StorageProviderResource, UrlResource } from "@super-protocol/dto-js";
+import { Crypto } from "@super-protocol/sdk-js";
 import downloadFileByUrl from "../services/downloadFileByUrl";
 import initBlockchainConnector from "../services/initBlockchainConnector";
-import { Config as BlockchainConfig } from "@super-protocol/sp-sdk-js/build/BlockchainConnector";
+import { Config as BlockchainConfig } from "@super-protocol/sdk-js/build/BlockchainConnector";
 
 export type FilesDownloadParams = {
     blockchainConfig: BlockchainConfig;
