@@ -37,19 +37,10 @@ yarn build:mac
 IMPORTANT: to make `upload` and `download` commands works correctly, requires to make this build on MacOS only</br>
 Result will be saved at `./dist/spctl`
 
-### Windows
-```
-yarn build:win
-```
-IMPORTANT: `upload` and `download` commands are not supported on Windows</br>
-Result will be saved at `./dist/spctl`
-
-
 ## Commands
 `yarn build` – compiles typescript with tcs.</br>
 `yarn build:linux` – builds a linux binary file ready for distribution</br>
 `yarn build:macos` – builds a macos binary file ready for distribution</br>
-`yarn build:win` – builds a windows binary file ready for distribution</br>
 `yarn dev [command]` – runs command in dev mode</br>
 `yarn prettier` – runs code auto formatting
 
