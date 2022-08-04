@@ -17,12 +17,12 @@ const calcWorkflowDeposit = async (params: CalcWorkflowDepositParams) => {
         valueOffers.map(async (id) => {
             const offer = new Offer(id);
             const { holdSum } = await offer.getInfo();
-            offersDeposits.add(holdSum);
+            offersDeposits = offersDeposits.add(holdSum);
         })
     );
 
     // TODO: add calc for TEE offer
-    offersDeposits.add(orderMinDeposit);
+    offersDeposits = offersDeposits.add(orderMinDeposit);
 
     return offersDeposits;
 };
