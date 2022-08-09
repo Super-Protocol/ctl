@@ -26,6 +26,7 @@ import tokensRequest from "./commands/tokensRequest";
 import tokensBalance from "./commands/tokensBalance";
 import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
+import offerDownloadResult from "./commands/offerDownloadResult";
 
 async function main() {
     const program = new Command();
@@ -418,6 +419,22 @@ async function main() {
                 accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
+            });
+        });
+
+    offersCommand
+        .command('download-result')
+        .description("Downloading result of offer with <id> (works only with offers that have pre published result)")
+        .argument("id", "ID of offer to fetch result")
+        .option("--save-to <path>", "Path to save result", "./result.gz")
+        .action(async (offerId: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
+
+            await offerDownloadResult({
+                blockchainConfig: blockchainAccess,
+                offerId,
+                localPath: options.saveTo,
             });
         });
 
