@@ -1,6 +1,6 @@
 import { getSdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
-import { formatDate } from "../utils";
+import {formatDate, weiToEther} from "../utils";
 import getGqlHeaders from "./gqlHeaders";
 
 export type FetchOffersParams = {
@@ -35,7 +35,7 @@ export default async (params: FetchOffersParams) => {
                 name: item.node?.offerInfo?.name,
                 description: item.node?.offerInfo?.description,
                 type: item.node?.offerInfo.offerType,
-                holdSum: item.node?.offerInfo.holdSum,
+                holdSum: weiToEther(item.node?.offerInfo.holdSum),
                 providerName: item.node?.providerInfo.name,
                 providerId: item.node?.origins?.createdBy,
                 cancelebel: item.node?.offerInfo?.cancelable,

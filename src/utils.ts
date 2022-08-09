@@ -2,6 +2,7 @@ import { promisify } from "util";
 import { exec as execCallback } from "child_process";
 import { Command } from "commander";
 import { DateTime } from "luxon";
+import { BigNumberish, ethers } from "ethers";
 
 export const exec = promisify(execCallback);
 
@@ -85,4 +86,14 @@ export const assertSize = (value: string | undefined, assertMessage: string) => 
     if (value && !value.match(/^[\d]+[KMG]$/)) {
         throw new Error(assertMessage);
     }
+};
+
+export const weiToEther = (wei?: BigNumberish|null, precision = 4) => {
+    if (!wei) return undefined;
+    let ether = ethers.utils.formatEther(wei);
+    return Number(ether.substring(0, ether.indexOf('.') + precision + 1)).toFixed(precision);
+};
+
+export const etherToWei = (ether: string) => {
+    return ethers.utils.parseEther(ether);
 };

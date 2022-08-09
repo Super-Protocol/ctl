@@ -151,6 +151,7 @@ async function main() {
             collectOptions,
             []
         )
+        .option("--deposit <TEE>", "Amount of deposit for workflow hold deposit in TEE tokens (if not provided, will use minimal calculated deposit)")
         .action(async (options: any) => {
             if (!options.solution.length) {
                 Printer.error("error: required option '--solution <id> --solution <filepath>' not specified");
@@ -170,6 +171,7 @@ async function main() {
                 solutions: options.solution,
                 data: options.data,
                 resultEncryption: workflowConfig.resultEncryption,
+                userDepositAmount: options.deposit,
             });
         });
 

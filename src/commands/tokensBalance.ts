@@ -4,6 +4,7 @@ import getTeeBalanceService from "../services/getTeeBalance";
 import Printer from "../printer";
 import { Config as BlockchainConfig } from "@super-protocol/sdk-js/build/BlockchainConnector";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
+import {weiToEther} from "../utils";
 
 export type TokensBalanceParams = {
     blockchainConfig: BlockchainConfig;
@@ -18,9 +19,9 @@ export default async (params: TokensBalanceParams) => {
 
     Printer.print("Fetching SuperProtocol TEE tokens balance...");
     const balanceTee = await getTeeBalanceService({ address });
-    Printer.print(`Balance of ${address} - ${balanceTee} TEE`);
+    Printer.print(`Balance of ${address} - ${weiToEther(balanceTee)} TEE`);
 
     Printer.print("Fetching Polygon Mumbai MATIC tokens balance...");
     const balanceMatic = await getMumbaiBalanceService({ address });
-    Printer.print(`Balance of ${address} - ${balanceMatic} MATIC`);
+    Printer.print(`Balance of ${address} - ${weiToEther(balanceMatic)} MATIC`);
 };

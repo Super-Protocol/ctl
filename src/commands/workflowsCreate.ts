@@ -6,6 +6,9 @@ import { Encryption } from "@super-protocol/dto-js";
 import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
+import { Wallet } from "ethers";
+import getTeeBalance from "../services/getTeeBalance";
+import { etherToWei, weiToEther } from "../utils";
 
 export type WorkflowCreateParams = {
     blockchainConfig: BlockchainConfig;
@@ -15,6 +18,7 @@ export type WorkflowCreateParams = {
     solutions: string[];
     data: string[];
     resultEncryption: Encryption;
+    userDepositAmount: string;
 };
 
 const workflowCreate = async (params: WorkflowCreateParams) => {
@@ -78,16 +82,31 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         ),
     ]);
 
-    Printer.print("Input arguments have been generated, calculating hold deposit...");
-    const holdDeposit = await calcWorkflowDepositService({
+    Printer.print("Input arguments have been generated, checking hold deposit...");
+    let holdDeposit = await calcWorkflowDepositService({
         tee: params.tee,
         storage: params.storage,
         solutions: solutions.ids,
         data: data.ids,
     });
 
+    if (params.userDepositAmount) {
+        const userDeposit = etherToWei(params.userDepositAmount);
+        if (userDeposit.lt(holdDeposit)) {
+            Printer.error(`Provided deposit less than minimal required deposit (${weiToEther(holdDeposit)} TEE)`);
+            return;
+        }
+        holdDeposit = userDeposit;
+
+        const balance = await getTeeBalance({ address: new Wallet(params.actionAccountKey).address });
+        if (balance.lt(holdDeposit)) {
+            Printer.error(`Balance of TEE tokens on your account (${weiToEther(balance)} TEE) less then workflow hold deposit (${weiToEther(holdDeposit)} TEE)`);
+            return;
+        }
+    }
+
     Printer.print(
-        `Hold deposit has been calculated, creating workflow orders with ${holdDeposit} tokens of deposit ...`
+        `Hold deposit has been checked, creating workflow orders with ${weiToEther(holdDeposit)} TEE of deposit ...`
     );
     const teeOrderId = await createWorkflowService({
         teeOffer: params.tee,

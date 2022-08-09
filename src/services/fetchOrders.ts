@@ -1,7 +1,7 @@
 import { getSdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
 import { OrderStatus } from "@super-protocol/sdk-js";
-import { formatDate, getObjectKey } from "../utils";
+import {formatDate, getObjectKey, weiToEther} from "../utils";
 import { BigNumber } from "ethers";
 import getGqlHeaders from "./gqlHeaders";
 
@@ -41,10 +41,11 @@ export default async (params: FetchOrdersParams) => {
                 offerId: item.node?.orderInfo.offer,
                 consumerAddress: item.node?.consumer,
                 parentOrderId: item.node?.parentOrder?.id,
-                totalDeposit: item.node?.orderHoldDeposit,
-                unspentDeposit: BigNumber.from(item.node?.orderHoldDeposit)
-                    .sub(item.node?.depositSpent ?? 0)
-                    .toString(),
+                totalDeposit: weiToEther(item.node?.orderHoldDeposit),
+                unspentDeposit: weiToEther(
+                    BigNumber.from(item.node?.orderHoldDeposit)
+                        .sub(item.node?.depositSpent ?? 0)
+                ),
                 cancelebel: item.node?.offerInfo?.cancelable || false,
                 modifiedDate: formatDate(item.node?.origins?.modifiedDate),
                 subOrdersCount: item.node?.subOrders?.length,
@@ -55,7 +56,7 @@ export default async (params: FetchOrdersParams) => {
                     offerName: subItem.offerInfo?.name || subItem.teeOfferInfo?.name,
                     offerDescription: subItem.offerInfo?.description || subItem.teeOfferInfo?.description,
                     cancelebel: subItem.offerInfo?.cancelable || false,
-                    actualCost: subItem.depositSpent,
+                    actualCost: weiToEther(subItem.depositSpent),
                     modifiedDate: formatDate(subItem.origins?.modifiedDate),
                 })),
             })) || [],
