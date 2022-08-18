@@ -351,7 +351,7 @@ async function main() {
             "cancelebel",
             "modified_date",
         ],
-        offersListTeeDefaultFields = ["id", "name"];
+        offersListTeeDefaultFields = ["id", "name", "orders_in_queue"];
     offersListCommand
         .command("tee")
         .description("Fetches list of offers")
