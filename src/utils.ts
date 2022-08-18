@@ -3,6 +3,8 @@ import { exec as execCallback } from "child_process";
 import { Command } from "commander";
 import { DateTime } from "luxon";
 import { BigNumberish, ethers } from "ethers";
+import { ErrorMessageOptions, generateErrorMessage } from "zod-error";
+import { ZodIssue } from "zod";
 
 export const exec = promisify(execCallback);
 
@@ -60,7 +62,7 @@ export const SilentError = (error: Error) => ({
     isSilent: true,
 });
 
-export const ErrorWithCustomMessage = (message: string, error: Error) => ({
+export const ErrorWithCustomMessage = (message: string, error: any) => ({
     error,
     message,
     hasCustomMessage: true,
@@ -96,4 +98,27 @@ export const weiToEther = (wei?: BigNumberish | null, precision = 4) => {
 
 export const etherToWei = (ether: string) => {
     return ethers.utils.parseEther(ether);
+};
+
+const options: ErrorMessageOptions = {
+    delimiter: {
+        component: " ",
+        error: "\n",
+    },
+    path: {
+        enabled: true,
+        type: "objectNotation",
+        transform: ({ label, value }) => `Field ${value}`,
+    },
+    code: {
+        enabled: false,
+    },
+    message: {
+        enabled: true,
+        transform: ({ label, value }) => `is ${value.charAt(0).toLowerCase() + value.slice(1)}`,
+    },
+};
+
+export const createZodErrorMessage = (error: ZodIssue[]) => {
+    return generateErrorMessage(error, options);
 };
