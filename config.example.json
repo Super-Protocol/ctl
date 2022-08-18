@@ -29,9 +29,7 @@
             "algo": "ECIES",
             "key": "YOUR_PUBLIC_KEY_HERE",
             "encoding": "base64"
-        }
-    },
-    "orderResult": {
+        },
         "resultDecryptionKey": "YOUR_PRIVATE_KEY_HERE"
     },
     "accessToken": "YOUR_ACCESS_TOKEN"

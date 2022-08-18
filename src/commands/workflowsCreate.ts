@@ -2,13 +2,14 @@ import { Config as BlockchainConfig, TIIGenerator } from "@super-protocol/sdk-js
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import validateOfferWorkflowService from "../services/validateOfferWorkflow";
-import { Encryption } from "@super-protocol/dto-js";
+import { CryptoAlgorithm, Encryption } from "@super-protocol/dto-js";
 import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
 import { Wallet } from "ethers";
 import getTeeBalance from "../services/getTeeBalance";
-import { etherToWei, weiToEther } from "../utils";
+import { ErrorWithCustomMessage, etherToWei, weiToEther } from "../utils";
+import checkKeysPairService from "../services/checkKeysPair";
 
 export type WorkflowCreateParams = {
     blockchainConfig: BlockchainConfig;
@@ -18,10 +19,23 @@ export type WorkflowCreateParams = {
     solutions: string[];
     data: string[];
     resultEncryption: Encryption;
+    resultDecryptionKey: string;
     userDepositAmount: string;
 };
 
 const workflowCreate = async (params: WorkflowCreateParams) => {
+    try {
+        if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
+            throw Error("TEE order supports ECIES result encryption only");
+
+        await checkKeysPairService({
+            encryption: params.resultEncryption,
+            decryptionKey: params.resultDecryptionKey,
+        });
+    } catch (error) {
+        throw ErrorWithCustomMessage("Invalid result encryption keys pair", error as Error);
+    }
+
     const solutions = await parseInputResourcesService({
         options: params.solutions,
         optionsName: "solution",
@@ -100,7 +114,11 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 
         const balance = await getTeeBalance({ address: new Wallet(params.actionAccountKey).address });
         if (balance.lt(holdDeposit)) {
-            Printer.error(`Balance of TEE tokens on your account (${weiToEther(balance)} TEE) less then workflow hold deposit (${weiToEther(holdDeposit)} TEE)`);
+            Printer.error(
+                `Balance of TEE tokens on your account (${weiToEther(
+                    balance
+                )} TEE) less then workflow hold deposit (${weiToEther(holdDeposit)} TEE)`
+            );
             return;
         }
     }

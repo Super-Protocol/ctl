@@ -1,7 +1,7 @@
 import { getSdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
 import { OrderStatus } from "@super-protocol/sdk-js";
-import {formatDate, getObjectKey, weiToEther} from "../utils";
+import { formatDate, getObjectKey, weiToEther } from "../utils";
 import { BigNumber } from "ethers";
 import getGqlHeaders from "./gqlHeaders";
 
@@ -43,8 +43,7 @@ export default async (params: FetchOrdersParams) => {
                 parentOrderId: item.node?.parentOrder?.id,
                 totalDeposit: weiToEther(item.node?.orderHoldDeposit),
                 unspentDeposit: weiToEther(
-                    BigNumber.from(item.node?.orderHoldDeposit)
-                        .sub(item.node?.depositSpent ?? 0)
+                    BigNumber.from(item.node?.orderHoldDeposit).sub(item.node?.depositSpent ?? 0)
                 ),
                 cancelebel: item.node?.offerInfo?.cancelable || false,
                 modifiedDate: formatDate(item.node?.origins?.modifiedDate),

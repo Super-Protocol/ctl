@@ -88,10 +88,10 @@ export const assertSize = (value: string | undefined, assertMessage: string) => 
     }
 };
 
-export const weiToEther = (wei?: BigNumberish|null, precision = 4) => {
+export const weiToEther = (wei?: BigNumberish | null, precision = 4) => {
     if (!wei) return undefined;
     let ether = ethers.utils.formatEther(wei);
-    return Number(ether.substring(0, ether.indexOf('.') + precision + 1)).toFixed(precision);
+    return Number(ether.substring(0, ether.indexOf(".") + precision + 1)).toFixed(precision);
 };
 
 export const etherToWei = (ether: string) => {

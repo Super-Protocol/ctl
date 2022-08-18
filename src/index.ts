@@ -41,7 +41,14 @@ async function main() {
     const offersCommand = program.command("offers");
     const offersListCommand = offersCommand.command("list");
 
-    const providersListFields = ["address", "name", "description", "authority_account", "action_account", "modified_date"],
+    const providersListFields = [
+            "address",
+            "name",
+            "description",
+            "authority_account",
+            "action_account",
+            "modified_date",
+        ],
         providersListDefaultFields = ["address", "name"];
     providersCommand
         .command("list")
@@ -72,7 +79,14 @@ async function main() {
             });
         });
 
-    const providersGetFields = ["address", "name", "description", "authority_account", "action_account", "modified_date"],
+    const providersGetFields = [
+            "address",
+            "name",
+            "description",
+            "authority_account",
+            "action_account",
+            "modified_date",
+        ],
         providersGetDefaultFields = ["name", "description", "authority_account", "action_account"];
     providersCommand
         .command("get")
@@ -152,7 +166,10 @@ async function main() {
             collectOptions,
             []
         )
-        .option("--deposit <TEE>", "Amount of deposit for workflow hold deposit in TEE tokens (if not provided, will use minimal calculated deposit)")
+        .option(
+            "--deposit <TEE>",
+            "Amount of deposit for workflow hold deposit in TEE tokens (if not provided, will use minimal calculated deposit)"
+        )
         .action(async (options: any) => {
             if (!options.solution.length) {
                 Printer.error("error: required option '--solution <id> --solution <filepath>' not specified");
@@ -172,6 +189,7 @@ async function main() {
                 solutions: options.solution,
                 data: options.data,
                 resultEncryption: workflowConfig.resultEncryption,
+                resultDecryptionKey: workflowConfig.resultDecryptionKey,
                 userDepositAmount: options.deposit,
             });
         });
@@ -295,13 +313,13 @@ async function main() {
         .action(async (orderId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
-            const orderResultConfig = configLoader.loadSection("orderResult") as Config["orderResult"];
+            const workflowConfig = configLoader.loadSection("workflow") as Config["workflow"];
 
             await ordersDownloadResult({
                 blockchainConfig: blockchainAccess,
                 orderId,
                 localPath: options.saveTo,
-                resultDecryptionKey: orderResultConfig.resultDecryptionKey,
+                resultDecryptionKey: workflowConfig.resultDecryptionKey,
             });
         });
 
@@ -423,7 +441,7 @@ async function main() {
         });
 
     offersCommand
-        .command('download-result')
+        .command("download-result")
         .description("Downloading result of offer with <id> (works only with offers that have pre published result)")
         .argument("id", "ID of offer to fetch result")
         .option("--save-to <path>", "Path to save result", "./result.gz")

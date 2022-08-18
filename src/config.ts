@@ -32,8 +32,6 @@ const ConfigValidators = {
             encoding: z.nativeEnum(Encoding),
             key: z.string(),
         }),
-    }),
-    orderResult: z.object({
         resultDecryptionKey: z.string(),
     }),
     accessToken: z.string(),
@@ -59,8 +57,6 @@ export type Config = {
     };
     workflow: {
         resultEncryption: Encryption;
-    };
-    orderResult: {
         resultDecryptionKey: string;
     };
     accessToken: string;

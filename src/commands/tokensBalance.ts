@@ -4,7 +4,7 @@ import getTeeBalanceService from "../services/getTeeBalance";
 import Printer from "../printer";
 import { Config as BlockchainConfig } from "@super-protocol/sdk-js/build/BlockchainConnector";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
-import {weiToEther} from "../utils";
+import { weiToEther } from "../utils";
 
 export type TokensBalanceParams = {
     blockchainConfig: BlockchainConfig;

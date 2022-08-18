@@ -1,6 +1,6 @@
 import { getSdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
-import {formatDate, weiToEther} from "../utils";
+import { formatDate, weiToEther } from "../utils";
 import getGqlHeaders from "./gqlHeaders";
 
 export type FetchOffersParams = {
