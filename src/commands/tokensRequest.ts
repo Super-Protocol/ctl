@@ -2,6 +2,7 @@ import { Wallet } from "ethers";
 import requestTeeService from "../services/requestTee";
 import requestMaticService from "../services/requestMatic";
 import Printer from "../printer";
+import { program } from "commander";
 
 export type TokensRequestParams = {
     actionAccountPrivateKey: string;
@@ -12,8 +13,9 @@ export type TokensRequestParams = {
 };
 
 export default async (params: TokensRequestParams) => {
-    if (!params.backendUrl && !params.requestMatic) {
+    if (!params.requestTee && !params.requestMatic) {
         Printer.print("No tokens specified for request, please add --tee or --matic flag to request specific tokens");
+        program.help();
         return;
     }
 
