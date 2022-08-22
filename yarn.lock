@@ -7035,7 +7035,19 @@ zlib@^1.0.5:
   resolved "https://registry.yarnpkg.com/zlib/-/zlib-1.0.5.tgz#6e7c972fc371c645a6afb03ab14769def114fcc0"
   integrity sha512-40fpE2II+Cd3k8HWTWONfeKE2jL+P42iWJ1zzps5W51qcTsOUKM5Q5m2PFb0CLxlmFAaUuUdJGc3OfZy947v0w==
 
+zod-error@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/zod-error/-/zod-error-1.0.3.tgz#b0cd45da3a72184ca5d3627497e92538b1d902b8"
+  integrity sha512-VPqQz78B4Y5tuvPGpMl+4ehsMvqEP8sEmuTYGssdjBCyRaK8biyoXpZCzL0mCgU1O0qkP3GUKEo8z4lFC/Kmhg==
+  dependencies:
+    zod "^3.17.3"
+
 zod@^3.11.6:
   version "3.17.10"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.17.10.tgz#8716a05e6869df6faaa878a44ffe3c79e615defb"
   integrity sha512-IHXnQYQuOOOL/XgHhgl8YjNxBHi3xX0mVcHmqsvJgcxKkEczPshoWdxqyFwsARpf41E0v9U95WUROqsHHxt0UQ==
+
+zod@^3.17.3:
+  version "3.18.0"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.18.0.tgz#2eed58b3cafb8d9a67aa2fee69279702f584f3bc"
+  integrity sha512-gwTm8RfUCe8l9rDwN5r2A17DkAa8Ez4Yl4yXqc5VqeGaXaJahzYYXbTwvhroZi0SNBqTwh/bKm2N0mpCzuw4bA==

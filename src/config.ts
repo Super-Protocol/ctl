@@ -3,8 +3,9 @@ import { Config as BlockchainConfig } from "@super-protocol/sdk-js";
 import fs from "fs";
 import path from "path";
 import process from "process";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import Printer from "./printer";
+import { createZodErrorMessage, ErrorWithCustomMessage } from "./utils";
 
 const ConfigValidators = {
     backend: z.object({
@@ -92,8 +93,13 @@ class ConfigLoader {
         if (!rawSection)
             throw Error(`${sectionName} not specified\nPlease configure ${sectionName} section in ${this.configPath}`);
 
-        // @ts-ignore validation result matches one of config keys
-        this.validatedConfig[sectionName] = validator.parse(rawSection);
+        try {
+            // @ts-ignore validation result matches one of config keys
+            this.validatedConfig[sectionName] = validator.parse(rawSection);
+        } catch (error) {
+            const errorMessage = createZodErrorMessage((error as ZodError).issues);
+            throw ErrorWithCustomMessage(`Invalid format of ${sectionName} config section:\n${errorMessage}`, error);
+        }
         return this.validatedConfig[sectionName];
     }
 }
