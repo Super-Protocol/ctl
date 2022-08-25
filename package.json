@@ -11,7 +11,8 @@
         "build:linux": "npm run build:prepare && pkg --target linux-x64 -o dist/spctl .",
         "build:mac": "npm run build:prepare  && pkg --target macos-x64 -o dist/spctl .",
         "format": "prettier --tab-width 4 --print-width 120 --write ./src/**/* ./src/*",
-        "generate:gql": "graphql-codegen --config gql-codegen.yml"
+        "generate:gql": "graphql-codegen --config gql-codegen.yml",
+        "test": "jest"
     },
     "license": "MIT",
     "private": true,
@@ -43,9 +44,12 @@
         "@graphql-codegen/typescript-operations": "^2.3.6",
         "@types/cli-progress": "^3.9.2",
         "@types/get-folder-size": "^2.0.0",
+        "@types/jest": "^28.1.7",
         "@types/luxon": "^2.3.2",
         "@types/tar": "^6.1.1",
+        "jest": "^28.1.3",
         "pkg": "^5.5.2",
+        "ts-jest": "^28.0.8",
         "ts-node": "^10.4.0",
         "typescript": "^4.5.4"
     },
