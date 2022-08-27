@@ -1,4 +1,4 @@
-import { Crypto, Order, OrdersFactory, OrderStatus, SuperproToken, TeeOffer } from "@super-protocol/sdk-js";
+import { Crypto, Order, OrdersFactory, OrderStatus, TeeOffer } from "@super-protocol/sdk-js";
 import { Encryption } from "@super-protocol/dto-js";
 import Printer from "../printer";
 import { generateExternalId } from "../utils";
@@ -24,7 +24,6 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
 
     Printer.print("Arguments are ready, creating root TEE order...");
     const id = generateExternalId();
-    await SuperproToken.approve(OrdersFactory.address, params.holdDeposit, { from: params.consumerAddress });
     await OrdersFactory.createOrder(
         {
             offer: params.teeOffer,
