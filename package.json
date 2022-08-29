@@ -1,9 +1,9 @@
 {
     "name": "@super-protocol/ctl",
-    "version": "0.1.0-beta.5",
+    "version": "0.1.0-beta.6",
     "description": "A tool for publishing values in a secure and reliable way.",
     "main": "build/index.js",
-    "author": "Ilya Shmelev",
+    "author": "SuperProtocol",
     "bin": "build/index.js",
     "scripts": {
         "dev": "ts-node ./src/index.ts",
@@ -19,7 +19,7 @@
     "dependencies": {
         "@iarna/toml": "^2.2.5",
         "@super-protocol/dto-js": "^0.0.13",
-        "@super-protocol/sdk-js": "^0.6.1",
+        "@super-protocol/sdk-js": "^0.7.1-beta.7",
         "axios": "^0.27.2",
         "cli-progress": "^3.9.1",
         "colors": "^1.4.0",
