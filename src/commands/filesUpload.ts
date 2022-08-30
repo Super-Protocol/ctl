@@ -1,6 +1,5 @@
 import { promises as fs } from "fs";
 import encryptFileService from "../services/encryptFile";
-import packFolderService from "../services/packFolder";
 import uploadService from "../services/uploadFile";
 import { ResourceType, StorageType } from "@super-protocol/dto-js";
 import Printer from "../printer";
@@ -30,16 +29,10 @@ export default async (params: FilesUploadParams) => {
     const encryption = await generateEncryptionService();
 
     let localPath = params.localPath.replace(/\/$/, "");
-    let packedFilePath: string | undefined;
 
     let info = await fs.stat(localPath);
     if (info.isDirectory()) {
-        let output = `${localPath}`;
-        localPath = await packFolderService(localPath, output, (total: number, current: number) => {
-            Printer.progress("Packing", total, current);
-        });
-
-        packedFilePath = localPath;
+        throw new Error("Folder uploading is not supported, pack it to .tar.gz archive");
     }
 
     let encryptedFileData = await encryptFileService(localPath, encryption, (total: number, current: number) => {
@@ -76,11 +69,6 @@ export default async (params: FilesUploadParams) => {
         Printer.print(`Resource was written into ${outputpath}\n`);
     } finally {
         Printer.print("Deleting temp files..");
-        try {
-            if (typeof packedFilePath != "undefined") await fs.unlink(packedFilePath);
-        } catch (e) {
-            Printer.error(`Error when deleting ${packedFilePath}`);
-        }
         await fs.unlink(encryptedFileData.encryptedFilePath);
         Printer.print("Done");
     }

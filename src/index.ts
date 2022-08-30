@@ -463,8 +463,8 @@ async function main() {
 
     filesCommand
         .command("upload")
-        .description("Uploads a file or a directory specified by the <localPath> argument to the remote storage")
-        .argument("localPath", "Path to a file or folder for uploading")
+        .description("Uploads a file specified by the <localPath> argument to the remote storage")
+        .argument("localPath", "Path to a file for uploading")
         .option(
             "--output <path>",
             "Path to save output resource file (download credentials, encryption and metadata)",
