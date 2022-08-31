@@ -31,7 +31,6 @@ const ConfigValidators = {
         resultEncryption: z.object({
             algo: z.nativeEnum(CryptoAlgorithm),
             encoding: z.nativeEnum(Encoding),
-            key: z.string(),
         }),
         resultDecryptionKey: z.string(),
     }),

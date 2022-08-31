@@ -8,8 +8,8 @@ import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
 import { Wallet } from "ethers";
 import getTeeBalance from "../services/getTeeBalance";
-import { ErrorWithCustomMessage, etherToWei, weiToEther } from "../utils";
-import checkKeysPairService from "../services/checkKeysPair";
+import { etherToWei, weiToEther } from "../utils";
+import getPublicFromPrivate from "../services/getPublicFromPrivate";
 
 export type WorkflowCreateParams = {
     blockchainConfig: BlockchainConfig;
@@ -25,17 +25,13 @@ export type WorkflowCreateParams = {
 };
 
 const workflowCreate = async (params: WorkflowCreateParams) => {
-    try {
-        if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
+    if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
             throw Error("TEE order supports ECIES result encryption only");
 
-        await checkKeysPairService({
-            encryption: params.resultEncryption,
-            decryptionKey: params.resultDecryptionKey,
-        });
-    } catch (error) {
-        throw ErrorWithCustomMessage("Invalid result encryption keys pair", error as Error);
-    }
+    const resultEncryption: Encryption = {
+        ...params.resultEncryption,
+        key: getPublicFromPrivate(params.resultDecryptionKey),
+    };
 
     const solutions = await parseInputResourcesService({
         options: params.solutions,
@@ -145,7 +141,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
                         data: dataTIIs,
                         solution: solutionTIIs,
                     }),
-                    resultPublicKey: params.resultEncryption,
+                    resultPublicKey: resultEncryption,
                     holdDeposit: holdDeposit.toString(),
                     consumerAddress: consumerAddress!,
                 }));

@@ -27,7 +27,6 @@
     "workflow": {
         "resultEncryption": {
             "algo": "ECIES",
-            "key": "YOUR_PUBLIC_KEY_HERE",
             "encoding": "base64"
         },
         "resultDecryptionKey": "YOUR_PRIVATE_KEY_HERE"

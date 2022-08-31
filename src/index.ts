@@ -27,6 +27,7 @@ import tokensBalance from "./commands/tokensBalance";
 import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
 import offerDownloadResult from "./commands/offerDownloadResult";
+import eccrypto from "eccrypto";
 
 async function main() {
     const program = new Command();
@@ -147,6 +148,13 @@ async function main() {
                 id,
                 amount,
             });
+        });
+
+    workflowsCommand
+        .command("gen-private")
+        .description("generates 32-byte private key")
+        .action(() => {
+            Printer.print(eccrypto.generatePrivate().toString("base64"));
         });
 
     workflowsCommand
