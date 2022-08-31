@@ -30,7 +30,7 @@ export const collectOptions = (value: string, previous: string[]) => {
 export const validateFields = (fields: string[], allowedFields: string[]) => {
     fields.forEach((field) => {
         if (!allowedFields.includes(field))
-            throw Error(`Field "${field}" not supported\nSupported fields: ${allowedFields.join(", ")}`);
+            throw Error(`Field "${field}" is not supported\nSupported fields: ${allowedFields.join(", ")}`);
     });
 };
 

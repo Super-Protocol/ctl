@@ -8,7 +8,7 @@ export type GetOfferResultParams = {
 
 const getOfferResult = async (params: GetOfferResultParams): Promise<Resource | null> => {
     const order = new Offer(params.offerId);
-    if (!(await order.isOfferExists())) throw Error(`Offer ${params.offerId} not found`);
+    if (!(await order.isOfferExists())) throw Error(`Offer ${params.offerId} was not found`);
 
     const info = await order.getInfo();
     if (!info.resultResource?.trim()) return null;
@@ -16,7 +16,7 @@ const getOfferResult = async (params: GetOfferResultParams): Promise<Resource | 
     try {
         return JSON.parse(info.resultResource);
     } catch (error) {
-        throw ErrorWithCustomMessage("Unable to parse offer result", error as Error);
+        throw ErrorWithCustomMessage("Could not parse the offer result", error as Error);
     }
 };
 

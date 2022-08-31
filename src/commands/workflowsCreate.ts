@@ -27,14 +27,14 @@ export type WorkflowCreateParams = {
 const workflowCreate = async (params: WorkflowCreateParams) => {
     try {
         if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
-            throw Error("TEE order supports ECIES result encryption only");
+            throw Error("Only ECIES result encryption is supported");
 
         await checkKeysPairService({
             encryption: params.resultEncryption,
             decryptionKey: params.resultDecryptionKey,
         });
     } catch (error) {
-        throw ErrorWithCustomMessage("Invalid result encryption keys pair", error as Error);
+        throw ErrorWithCustomMessage("Invalid result encryption key pair", error as Error);
     }
 
     const solutions = await parseInputResourcesService({
@@ -46,13 +46,13 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         optionsName: "data",
     });
 
-    Printer.print("Connecting to blockchain...");
+    Printer.print("Connecting to the blockchain");
     const consumerAddress = await initBlockchainConnectorService({
         blockchainConfig: params.blockchainConfig,
         actionAccountKey: params.actionAccountKey,
     });
 
-    Printer.print("Connected successfully, validating workflow configuration...");
+    Printer.print("Validating workflow configuration");
     await Promise.all(
         [...solutions.ids, ...data.ids].map((solutionId) =>
             validateOfferWorkflowService({
@@ -76,7 +76,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         }
     });
 
-    Printer.print("Workflow configuration is valid, generating input arguments for TEE...");
+    Printer.print("Generating input arguments for TEE");
     const [solutionTIIs, dataTIIs] = await Promise.all([
         Promise.all(
             solutions.resourceFiles.map((solution) =>
@@ -97,7 +97,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         ),
     ]);
 
-    Printer.print("Input arguments have been generated, checking hold deposit...");
+    Printer.print("Calculating payment deposit");
     let holdDeposit = await calcWorkflowDepositService({
         tee: params.tee,
         storage: params.storage,
@@ -108,7 +108,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     if (params.userDepositAmount) {
         const userDeposit = etherToWei(params.userDepositAmount);
         if (userDeposit.lt(holdDeposit)) {
-            Printer.error(`Provided deposit less than minimal required deposit (${weiToEther(holdDeposit)} TEE)`);
+            Printer.error(`Provided deposit is less than the minimum required deposit of (${weiToEther(holdDeposit)} TEE)`);
             return;
         }
         holdDeposit = userDeposit;
@@ -116,16 +116,16 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         const balance = await getTeeBalance({ address: new Wallet(params.actionAccountKey).address });
         if (balance.lt(holdDeposit)) {
             Printer.error(
-                `Balance of TEE tokens on your account (${weiToEther(
+                `Balance of your account (${weiToEther(
                     balance
-                )} TEE) less then workflow hold deposit (${weiToEther(holdDeposit)} TEE)`
+                )} TEE) is less than the workflow payment deposit (${weiToEther(holdDeposit)} TEE)`
             );
             return;
         }
     }
 
     Printer.print(
-        `Hold deposit has been checked, creating workflow orders with ${weiToEther(holdDeposit)} TEE of deposit ...`
+        `Creating workflow orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`
     );
 
     let workflowPromises = new Array(params.createWorkflows);
@@ -158,7 +158,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 
     const results = await Promise.all(workflowPromises);
 
-    Printer.print(`Workflows has been created successfully, root TEE order ids: ${JSON.stringify(results)}`);
+    Printer.print(`Workflow was created, TEE order id: ${JSON.stringify(results)}`);
 };
 
 export default workflowCreate;

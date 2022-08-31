@@ -40,20 +40,20 @@ const setValue = (obj: any, value: any, ...path: string[]) => {
 
 export default async (params: PrepareSolutionParams) => {
     assertNumber(params.sgxThreadNum, "Invalid threads number");
-    assertSize(params.loaderPalInternalMemSize, "Invalid sgx pal internal size");
+    assertSize(params.loaderPalInternalMemSize, "Invalid SGX pal internal size");
     assertSize(params.sysStackSize, "Invalid stack size");
     assertSize(params.sgxEnclaveSize, "Invalid enclave size");
 
     await mkdir(params.solutionPath, { recursive: true });
 
-    Printer.print("Getting manifest...");
+    Printer.print("Getting manifest");
 
     const { dockerImage, manifest } = await extractManifest({
         baseImagePath: params.baseImagePath,
         baseImageResource: params.baseImageResource,
     });
 
-    Printer.print("Patching manifest...");
+    Printer.print("Patching manifest");
 
     const manifestObject = <any>toml.parse(manifest);
 
@@ -62,7 +62,7 @@ export default async (params: PrepareSolutionParams) => {
     }
     if (params.sgxThreadNum) {
         if (parseInt(params.sgxThreadNum, 10) < 4) {
-            throw new Error("Value too low for number of threads, minimum is 4");
+            throw new Error("Value for the number of threads is too low, the minimum value is 4");
         }
         setValue(manifestObject, params.sgxThreadNum, "sgx", "thread_num");
     }
@@ -73,7 +73,7 @@ export default async (params: PrepareSolutionParams) => {
         setValue(manifestObject, params.sysStackSize, "sys", "stack", "size");
     }
 
-    Printer.print("Signing manifest...");
+    Printer.print("Signing manifest");
 
     const result = await signManifest({
         dockerImage,
@@ -89,7 +89,7 @@ export default async (params: PrepareSolutionParams) => {
     solutionHashAlgo = solutionHashAlgo || HashAlgorithm.SHA256;
 
     if (params.solutionOutputPath) {
-        Printer.print("Pack solution folder...");
+        Printer.print("Packing solution folder");
 
         const tarGzExt = ".tar.gz";
         const tgzExt = ".tgz";
@@ -125,14 +125,14 @@ export default async (params: PrepareSolutionParams) => {
         solutionHash = hashStream.digest().toString("hex");
     }
 
-    Printer.print("Solution and manifest successfully created.");
+    Printer.print("Solution and manifest were created");
     if (solutionHash) {
         Printer.print(`Solution hash [${solutionHashAlgo}]: ${solutionHash}`);
     }
     Printer.print("MRENCLAVE: " + result.mrenclave);
     Printer.print("MRSIGNER: " + result.mrsigner);
 
-    Printer.print("Saving metadata to the file...");
+    Printer.print("Saving metadata to file");
     const metadataPath = path.join(process.cwd(), params.metadataPath);
     const metadata = {
         linkage: {
@@ -146,5 +146,5 @@ export default async (params: PrepareSolutionParams) => {
         },
     };
     await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
-    Printer.print(`Metadata has been saved to ${metadataPath}`);
+    Printer.print(`Metadata was saved to ${metadataPath}`);
 };

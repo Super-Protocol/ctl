@@ -1,4 +1,4 @@
-import { Config as BlockchainConfig } from "@super-protocol/sdk-js";
+import { Config as BlockchainConfig } from "@super-protocol/sp-sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import cancelOrderService from "../services/cancelOrder";
@@ -11,16 +11,16 @@ export type OrderCancelParams = {
 };
 
 export default async (params: OrderCancelParams) => {
-    Printer.print("Connecting to blockchain...");
+    Printer.print("Connecting to the blockchain");
     await initBlockchainConnectorService({
         blockchainConfig: params.blockchainConfig,
         actionAccountKey: params.actionAccountKey,
     });
 
-    Printer.print("Connected successfully, checking if order exists...");
+    Printer.print("Checking if the order exists");
     await checkOrderService({ id: params.id });
 
-    Printer.print("Order found, canceling order...");
+    Printer.print("Canceling order");
     await cancelOrderService({ id: params.id });
-    Printer.print(`Order ${params.id} has been successfully canceled`);
+    Printer.print(`Order ${params.id} was canceled successfully`);
 };

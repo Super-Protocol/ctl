@@ -20,13 +20,13 @@ const checkPendingLoop = async (pk: string): Promise<void> => {
     let attempt = 0;
     let pendingAmount = await pendingStatusChecker(pk);
     while (pendingAmount > 0) {
-        Printer.progress(`Waiting for ${pendingAmount} pending transactions will be completed, before start`, MAX_ATTEMPT, attempt);
+        Printer.progress(`Waiting for ${pendingAmount} pending transactions to complete`, MAX_ATTEMPT, attempt);
         await sleep(ATTEMPT_PERIOD_MS);
         ++attempt;
         
         if (MAX_ATTEMPT == attempt) {
             Printer.stopProgress();
-            throw new Error("You may be using this private key in parallel in another app or the blockchain network is now overloaded. Please, try again later.");
+            throw new Error("Your private key may be in use by another application or the blockchain is overloaded, please try again later");
         }
 
         pendingAmount = await pendingStatusChecker(pk);

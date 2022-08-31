@@ -32,11 +32,11 @@ export default async (params: FilesUploadParams) => {
 
     let info = await fs.stat(localPath);
     if (info.isDirectory()) {
-        throw new Error("Folder uploading is not supported, pack it to .tar.gz archive");
+        throw new Error("Uploading a folder is not supported, please use a tar.gz archive");
     }
 
     let encryptedFileData = await encryptFileService(localPath, encryption, (total: number, current: number) => {
-        Printer.progress("Encrypting", total, current);
+        Printer.progress("Encrypting file", total, current);
     });
     const remotePath = `${generateExternalId()}.encrypted`;
 
@@ -49,7 +49,7 @@ export default async (params: FilesUploadParams) => {
                 credentials: params.writeCredentials,
             },
             (total: number, current: number) => {
-                Printer.progress("Uploading", total, current);
+                Printer.progress("Uploading file", total, current);
             }
         );
         Printer.stopProgress();
@@ -66,10 +66,10 @@ export default async (params: FilesUploadParams) => {
         };
         const outputpath = path.join(process.cwd(), params.outputPath);
         await fs.writeFile(outputpath, JSON.stringify(result, null, 2));
-        Printer.print(`Resource was written into ${outputpath}\n`);
+        Printer.print(`Resource file was created in ${outputpath}\n`);
     } finally {
-        Printer.print("Deleting temp files..");
+        Printer.print("Deleting temp files");
         await fs.unlink(encryptedFileData.encryptedFilePath);
-        Printer.print("Done");
+        Printer.print("File was uploaded successfully");
     }
 };
