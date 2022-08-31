@@ -174,10 +174,7 @@ async function main() {
             collectOptions,
             []
         )
-        .option(
-            "--createWorkflows <number>",
-            "Create workflows number (useful for performance test)"
-        )
+        .option("--createWorkflows <number>", "Create workflows number (useful for performance test)")
         .option(
             "--deposit <TEE>",
             "Amount of deposit for workflow hold deposit in TEE tokens (if not provided, will use minimal calculated deposit)"
@@ -203,7 +200,7 @@ async function main() {
                 resultEncryption: workflowConfig.resultEncryption,
                 resultDecryptionKey: workflowConfig.resultDecryptionKey,
                 userDepositAmount: options.deposit,
-                createWorkflows: (options.createWorkflows ? options.createWorkflows : 1)
+                createWorkflows: options.createWorkflows ? options.createWorkflows : 1,
             });
         });
 

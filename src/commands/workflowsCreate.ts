@@ -26,7 +26,7 @@ export type WorkflowCreateParams = {
 
 const workflowCreate = async (params: WorkflowCreateParams) => {
     if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
-            throw Error("TEE order supports ECIES result encryption only");
+        throw Error("TEE order supports ECIES result encryption only");
 
     const resultEncryption: Encryption = {
         ...params.resultEncryption,
@@ -126,25 +126,29 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 
     let workflowPromises = new Array(params.createWorkflows);
 
-    Printer.print('Approve tokens for all workflows');
-    await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.createWorkflows).toString(), { from: consumerAddress! });
+    Printer.print("Approve tokens for all workflows");
+    await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.createWorkflows).toString(), {
+        from: consumerAddress!,
+    });
 
-    Printer.print('Create workflows');
+    Printer.print("Create workflows");
     for (let pos = 0; pos < params.createWorkflows; pos++) {
         workflowPromises[pos] = new Promise(async (resolve, reject) => {
             try {
-                resolve(await createWorkflowService({
-                    teeOffer: params.tee,
-                    storageOffer: params.storage,
-                    inputOffers: solutions.ids.concat(data.ids),
-                    argsToEncrypt: JSON.stringify({
-                        data: dataTIIs,
-                        solution: solutionTIIs,
-                    }),
-                    resultPublicKey: resultEncryption,
-                    holdDeposit: holdDeposit.toString(),
-                    consumerAddress: consumerAddress!,
-                }));
+                resolve(
+                    await createWorkflowService({
+                        teeOffer: params.tee,
+                        storageOffer: params.storage,
+                        inputOffers: solutions.ids.concat(data.ids),
+                        argsToEncrypt: JSON.stringify({
+                            data: dataTIIs,
+                            solution: solutionTIIs,
+                        }),
+                        resultPublicKey: resultEncryption,
+                        holdDeposit: holdDeposit.toString(),
+                        consumerAddress: consumerAddress!,
+                    })
+                );
             } catch (error) {
                 Printer.error(`Error creating workflow ${error}`);
                 resolve(null);
