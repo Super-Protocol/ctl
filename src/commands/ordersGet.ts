@@ -19,7 +19,7 @@ export default async (params: OrdersGetParams) => {
     });
 
     if (!orders.list.length) {
-        Printer.print(`Order ${params.id} not found`);
+        Printer.print(`Order ${params.id} could not be found`);
         return;
     }
 
@@ -31,6 +31,6 @@ export default async (params: OrdersGetParams) => {
             orders.list[0].subOrders?.map((item) => prepareObjectToPrint(item, params.subOrdersFields)) || [];
 
         if (subOrders.length) Printer.table(subOrders);
-        else Printer.print(`There are no sub orders for order ${params.id}`);
+        else Printer.print(`There are no sub-orders for order ${params.id}`);
     }
 };

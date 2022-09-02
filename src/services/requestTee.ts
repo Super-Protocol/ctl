@@ -15,6 +15,6 @@ export default async (params: RequestTeeParams) => {
     try {
         await sdk.TeeTransfer({}, headers);
     } catch (error: any) {
-        throw ErrorWithCustomMessage(error?.response?.errors[0]?.message || "Error during TEE tokens request", error);
+        throw ErrorWithCustomMessage(error?.response?.errors[0]?.message || "TEE tokens request error", error);
     }
 };

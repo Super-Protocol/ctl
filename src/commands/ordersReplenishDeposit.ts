@@ -12,19 +12,19 @@ export type OrderReplenishDepositParams = {
 };
 
 export default async (params: OrderReplenishDepositParams) => {
-    Printer.print("Connecting to blockchain...");
+    Printer.print("Connecting to the blockchain");
     await initBlockchainConnectorService({
         blockchainConfig: params.blockchainConfig,
         actionAccountKey: params.actionAccountKey,
     });
 
-    Printer.print("Connected successfully, checking if order exists...");
+    Printer.print("Checking if the order exists");
     await checkOrderService({ id: params.id });
 
-    Printer.print("Order found, replenishing order deposit...");
+    Printer.print("Replenishing order deposit");
     await orderReplenishDepositService({
         id: params.id,
         amount: params.amount,
     });
-    Printer.print(`Deposit for order ${params.id} has been replenished successfully by ${params.amount} tokens`);
+    Printer.print(`Deposit for order ${params.id} was replenished with ${params.amount} tokens`);
 };

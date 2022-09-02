@@ -53,11 +53,11 @@ async function main() {
         providersListDefaultFields = ["address", "name"];
     providersCommand
         .command("list")
-        .description("Fetches list of providers")
+        .description("Fetch list of providers")
         .addOption(
             new Option(
                 "--fields <fields>",
-                `Provider fields to fetch (available fields: ${providersListFields.join(", ")})`
+                `Available fields: ${providersListFields.join(", ")}`
             )
                 .argParser(commaSeparatedList)
                 .default(providersListDefaultFields, providersListDefaultFields.join(","))
@@ -91,12 +91,12 @@ async function main() {
         providersGetDefaultFields = ["name", "description", "authority_account", "action_account"];
     providersCommand
         .command("get")
-        .description("Fetch fields of provider with <address>")
-        .argument("address", "Address to fetch the provider")
+        .description("Fetch fields of a provider with <address>")
+        .argument("address", "Provider address")
         .addOption(
             new Option(
                 "--fields <fields>",
-                `Provider fields to fetch (available fields: ${providersListFields.join(", ")})`
+                `Available fields: ${providersListFields.join(", ")}`
             )
                 .argParser(commaSeparatedList)
                 .default(providersGetDefaultFields, providersGetDefaultFields.join(","))
@@ -136,7 +136,7 @@ async function main() {
         .command("replenish-deposit")
         .description("Replenish order deposit with <id> by <amount>")
         .argument("id", "Order id")
-        .argument("amount", "Amount of tokens to replenish")
+        .argument("amount", "Amount of tokens")
         .action(async (id: string, amount: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -160,24 +160,27 @@ async function main() {
     workflowsCommand
         .command("create")
         .description("Creates workflow orders")
-        .requiredOption("--tee <id>", "TEE offer id (required)")
-        .requiredOption("--storage <id>", "Output storage offer id (required)")
+        .requiredOption("--tee <id>", "TEE offer id (this option is required)")
+        .requiredOption("--storage <id>", "Storage offer id (this option is required)")
         .requiredOption(
             "--solution <id> --solution <filepath>",
-            "Solution offer id or resource file path (required, may be many)",
+            "Solution offer id or resource file path (this option is required and accepts multiple values)",
             collectOptions,
             []
         )
         .option(
             "--data <id> --data <filepath>",
-            "Data offer id or resource file path (may be many)",
+            "Data offer id or resource file path (this option accepts multiple values)",
             collectOptions,
             []
         )
-        .option("--createWorkflows <number>", "Create workflows number (useful for performance test)")
+        .option(
+            "--createWorkflows <number>",
+            "Number of workflows to create"
+        )
         .option(
             "--deposit <TEE>",
-            "Amount of deposit for workflow hold deposit in TEE tokens (if not provided, will use minimal calculated deposit)"
+            "Payment deposit amount in TEE tokens (if not provided, the minimum required deposit is used)"
         )
         .action(async (options: any) => {
             if (!options.solution.length) {
@@ -222,9 +225,9 @@ async function main() {
         ordersListDefaultFields = ["id", "offer_name", "status"];
     ordersCommand
         .command("list")
-        .description("Fetches list of orders")
+        .description("Fetch list of orders")
         .addOption(
-            new Option("--fields <fields>", `Orders fields to fetch (available fields: ${ordersListFields.join(", ")})`)
+            new Option("--fields <fields>", `Available fields: ${ordersListFields.join(", ")}`)
                 .argParser(commaSeparatedList)
                 .default(ordersListDefaultFields, ordersListDefaultFields.join(","))
         )
@@ -283,17 +286,17 @@ async function main() {
     ordersCommand
         .command("get")
         .description("Fetch fields of order with <id>")
-        .argument("id", "ID to fetch the order")
+        .argument("id", "Order id")
         .addOption(
-            new Option("--fields <fields>", `Orders fields to fetch (available fields: ${ordersGetFields.join(", ")})`)
+            new Option("--fields <fields>", `Available fields: ${ordersGetFields.join(", ")}`)
                 .argParser(commaSeparatedList)
                 .default(ordersGetDefaultFields, ordersGetDefaultFields.join(","))
         )
-        .option("--suborders", "Show suborders", false)
+        .option("--suborders", "Show sub-orders", false)
         .addOption(
             new Option(
                 "--suborders_fields <fields>",
-                `Sub orders fields to fetch (available fields: ${subOrdersGetFields.join(", ")})`
+                `Sub-order available fields: ${subOrdersGetFields.join(", ")}`
             )
                 .argParser(commaSeparatedList)
                 .default(subOrdersGetDefaultFields, subOrdersGetDefaultFields.join(","))
@@ -318,8 +321,8 @@ async function main() {
     ordersCommand
         .command("download-result")
         .description("Downloading result of order with <id>")
-        .argument("id", "ID of order to fetch result")
-        .option("--save-to <path>", "Path to save decrypted result", "./result.gz")
+        .argument("id", "Order id")
+        .option("--save-to <path>", "Path to save result", "./result.gz")
         .action(async (orderId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -335,9 +338,9 @@ async function main() {
 
     tokensCommand
         .command("request")
-        .description("Request tokens to action account")
+        .description("Request tokens for the account")
         .option("--matic", "Request Polygon Mumbai MATIC tokens", false)
-        .option("--tee", "Request SuperProtocol TEE tokens", false)
+        .option("--tee", "Request Super Protocol TEE tokens", false)
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainKeysConfig = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
@@ -355,7 +358,7 @@ async function main() {
 
     tokensCommand
         .command("balance")
-        .description("Fetch token balance for action account")
+        .description("Fetch token balance of the account")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainKeysConfig = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
@@ -382,11 +385,11 @@ async function main() {
         offersListTeeDefaultFields = ["id", "name", "orders_in_queue"];
     offersListCommand
         .command("tee")
-        .description("Fetches list of offers")
+        .description("Fetch list of offers")
         .addOption(
             new Option(
                 "--fields <fields>",
-                `Orders fields to fetch (available fields: ${offersListTeeFields.join(", ")})`
+                `Available fields: ${offersListTeeFields.join(", ")}`
             )
                 .argParser(commaSeparatedList)
                 .default(offersListTeeDefaultFields, offersListTeeDefaultFields.join(","))
@@ -423,11 +426,11 @@ async function main() {
         offersListValueDefaultFields = ["id", "name", "type"];
     offersListCommand
         .command("value")
-        .description("Fetches list of offers")
+        .description("Fetch list of offers")
         .addOption(
             new Option(
                 "--fields <fields>",
-                `Orders fields to fetch (available fields: ${offersListValueFields.join(", ")})`
+                `Available fields: ${offersListValueFields.join(", ")}`
             )
                 .argParser(commaSeparatedList)
                 .default(offersListValueDefaultFields, offersListValueDefaultFields.join(","))
@@ -452,8 +455,8 @@ async function main() {
 
     offersCommand
         .command("download-result")
-        .description("Downloading result of offer with <id> (works only with offers that have pre published result)")
-        .argument("id", "ID of offer to fetch result")
+        .description("Download the content of an offer with <id> (only for offers that allows this operation)")
+        .argument("id", "Offer id")
         .option("--save-to <path>", "Path to save result", "./result.gz")
         .action(async (offerId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
@@ -468,14 +471,14 @@ async function main() {
 
     filesCommand
         .command("upload")
-        .description("Uploads a file specified by the <localPath> argument to the remote storage")
+        .description("Upload a file specified by the <localPath> argument to the remote storage")
         .argument("localPath", "Path to a file for uploading")
         .option(
             "--output <path>",
-            "Path to save output resource file (download credentials, encryption and metadata)",
+            "Path to save resource file that is used to access the uploaded file",
             "./resource.json"
         )
-        .option("--metadata <path>", "Path to a metadata file for adding fields to output resource")
+        .option("--metadata <path>", "Path to a metadata file for adding fields to the resource file")
         .action(async (localPath: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const storageConfig = configLoader.loadSection("storage") as Config["storage"];
@@ -493,10 +496,10 @@ async function main() {
     filesCommand
         .command("download")
         .description(
-            "Downloads and decrypts file from remote storage using resource in <resourcePath> to the <localPath>"
+            "Download and decrypt a file from the remote storage to the <localPath> using resource file <resourcePath>"
         )
-        .argument("resourcePath", "A path to resource file (generated by upload command)")
-        .argument("localPath", "Path to a file to save")
+        .argument("resourcePath", "Path to a resource file")
+        .argument("localPath", "Path to save a downloaded file")
         .action(async (resourcePath: string, localPath: string) => {
             await download({
                 resourcePath,
@@ -506,8 +509,8 @@ async function main() {
 
     filesCommand
         .command("delete")
-        .description("Deletes file in remote storage using resource in <resourcePath>")
-        .argument("resourcePath", "A path to resource file (generated by upload command)")
+        .description("Delete file in the remote storage using resource file <resourcePath>")
+        .argument("resourcePath", "Path to a resource file")
         .action(async (resourcePath: string) => {
             await filesDelete({
                 resourcePath,
@@ -516,24 +519,24 @@ async function main() {
 
     solutionsCommand
         .command("generate-key")
-        .description("Generates a solution key to the <outputPath>")
-        .argument("outputPath", "Path to a solution key file for saving")
+        .description("Generate a solution key and save it to <outputPath>")
+        .argument("outputPath", "Path to save a solution key file")
         .action(async (outputPath: string, options: any) => {
             await generateSolutionKey({ outputPath });
         });
 
     solutionsCommand
         .command("prepare")
-        .description("Prepares a solution in <solutionPath>, signs it with <solutionKeyPath>")
-        .argument("solutionPath", "Path to a file for uploading")
-        .argument("solutionKeyPath", "Path to a solution key")
+        .description("Prepare the solution and save it to <solutionPath>, sign it with <solutionKeyPath>")
+        .argument("solutionPath", "Path to the solution folder")
+        .argument("solutionKeyPath", "Path to the solution key")
         .option("--metadata <pathToSave>", "Path to save metadata (hash and MrEnclave)", "./metadata.json")
-        .option("--pack-solution <packSolution>", "Pack solution folder into tar gz", "")
+        .option("--pack-solution <packSolution>", "Path to the resulting tar.gz archive", "")
         .option("--base-image-path <pathToContainerImage>", "A container image file", "")
-        .option("--base-image-resource <containerImageResource>", "A container image resource name", "")
+        .option("--base-image-resource <containerImageResource>", "A container image resource file", "")
         .option("--write-default-manifest", "Write a default manifest for solutions with empty sgxMrEnclave", false)
         .option("--hash-algo <solutionHashAlgo>", "Hash calculation algorithm for solution", HashAlgorithm.SHA256)
-        .option("--sgx-thread-num <threadNum>", "A number of enclave threads", "")
+        .option("--sgx-thread-num <threadNum>", "Number of enclave threads", "")
         .option(
             "--sgx-enclave-size <enclaveSize>",
             "Entire enclave size (#M or #G), must be some value to the power of 2",
@@ -575,7 +578,7 @@ main()
         const message = error.message;
 
         if (isSilent || error.hasCustomMessage) error = error.error;
-        if (!isSilent) Printer.error("Error occured during execution");
+        if (!isSilent) Printer.error("Error occurred during execution");
 
         const errorLogPath = path.join(process.cwd(), "error.log");
         const errorDetails = JSON.stringify(error, null, 2);
@@ -585,7 +588,7 @@ main()
         );
 
         if (!isSilent) {
-            Printer.error(`Error log was written to ${errorLogPath}`);
+            Printer.error(`Error log was saved to ${errorLogPath}`);
             if (message) Printer.error(message);
             process.exit(1);
         } else {
