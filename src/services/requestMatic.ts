@@ -15,6 +15,6 @@ export default async (params: RequestTeeParams) => {
     try {
         await sdk.Transfer({}, headers);
     } catch (error: any) {
-        throw ErrorWithCustomMessage(error?.response?.errors[0]?.message || "Error during MATIC tokens request", error);
+        throw ErrorWithCustomMessage(error?.response?.errors[0]?.message || "MATIC tokens request error", error);
     }
 };

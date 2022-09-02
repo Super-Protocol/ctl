@@ -18,12 +18,12 @@ export default async (params: FilesDeleteParams): Promise<void> => {
 
     const resource = resourceFile.resource as StorageProviderResource;
     if (resource.type !== ResourceType.StorageProvider)
-        throw Error(`Resource type ${resource.type} not supported, supported only StorageProvider type`);
+        throw Error(`Resource type ${resource.type} is not supported, use StorageProvider type for this command`);
 
-    Printer.print("Deleting file...");
+    Printer.print("Deleting file");
     await deleteFileService({
         storageAccess: resource,
         remotePath: resource.filepath,
     });
-    Printer.print("File has been deleted successfully...");
+    Printer.print("File was deleted");
 };

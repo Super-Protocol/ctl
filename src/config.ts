@@ -76,9 +76,9 @@ class ConfigLoader {
         configPath = path.join(process.cwd(), configPath);
 
         if (!fs.existsSync(configPath)) {
-            Printer.error("Config file doesn't exist.");
+            Printer.error("Config file does not exist");
             fs.writeFileSync(configPath, fs.readFileSync(CONFIG_EXAMPLE_PATH));
-            throw Error(`Blank config file was created: ${configPath}\nPlease configure it.`);
+            throw Error(`Default config file was created: ${configPath}\nPlease configure it`);
         }
 
         this.rawConfig = JSON.parse(fs.readFileSync(configPath).toString());
