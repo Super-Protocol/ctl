@@ -9,6 +9,7 @@ import { Encryption, Resource, ResourceType, StorageProviderResource, UrlResourc
 import { Crypto, Config as BlockchainConfig } from "@super-protocol/sdk-js";
 import downloadFileByUrl from "../services/downloadFileByUrl";
 import initBlockchainConnector from "../services/initBlockchainConnector";
+import getPublicFromPrivate from "../services/getPublicFromPrivate";
 
 export type FilesDownloadParams = {
     blockchainConfig: BlockchainConfig;
@@ -20,6 +21,9 @@ export type FilesDownloadParams = {
 export const localTxtPath = "./result.txt";
 
 export default async (params: FilesDownloadParams): Promise<void> => {
+    // Validate decryption key
+    getPublicFromPrivate(params.resultDecryptionKey);
+
     Printer.print("Connecting to the blockchain");
     await initBlockchainConnector({
         blockchainConfig: params.blockchainConfig,

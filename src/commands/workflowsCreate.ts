@@ -2,7 +2,7 @@ import { Config as BlockchainConfig, TIIGenerator, SuperproToken, OrdersFactory 
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import validateOfferWorkflowService from "../services/validateOfferWorkflow";
-import { CryptoAlgorithm, Encryption } from "@super-protocol/dto-js";
+import { CryptoAlgorithm, Encoding, Encryption } from "@super-protocol/dto-js";
 import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
@@ -19,19 +19,20 @@ export type WorkflowCreateParams = {
     solutions: string[];
     data: string[];
     resultEncryption: Encryption;
-    resultDecryptionKey: string;
     userDepositAmount: string;
     createWorkflows: number;
 };
 
 const workflowCreate = async (params: WorkflowCreateParams) => {
-    try {
-        if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
-            throw Error("Only ECIES result encryption is supported");
+    if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
+        throw Error("Only ECIES result encryption is supported");
+    if (params.resultEncryption.encoding !== Encoding.base64)
+        throw new Error("Only base64 result encryption is supported");
 
     const resultEncryption: Encryption = {
-        ...params.resultEncryption,
-        key: getPublicFromPrivate(params.resultDecryptionKey),
+        algo: params.resultEncryption.algo,
+        encoding: params.resultEncryption.encoding,
+        key: getPublicFromPrivate(params.resultEncryption.key!),
     };
 
     const solutions = await parseInputResourcesService({

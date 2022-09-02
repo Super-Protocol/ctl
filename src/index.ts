@@ -201,7 +201,6 @@ async function main() {
                 solutions: options.solution,
                 data: options.data,
                 resultEncryption: workflowConfig.resultEncryption,
-                resultDecryptionKey: workflowConfig.resultDecryptionKey,
                 userDepositAmount: options.deposit,
                 createWorkflows: options.createWorkflows ? options.createWorkflows : 1,
             });
@@ -332,7 +331,7 @@ async function main() {
                 blockchainConfig: blockchainAccess,
                 orderId,
                 localPath: options.saveTo,
-                resultDecryptionKey: workflowConfig.resultDecryptionKey,
+                resultDecryptionKey: workflowConfig.resultEncryption.key!,
             });
         });
 
