@@ -32,9 +32,7 @@ export default async (params: ValidateOfferWorkflowParams) => {
                         );
                     }
                     if (type === OfferType.Data && params.dataArgs.length) {
-                        throw Error(
-                            `Offer ${params.offerId} permission settings do not allow custom data arguments`
-                        );
+                        throw Error(`Offer ${params.offerId} permission settings do not allow custom data arguments`);
                     }
                 })
             );

@@ -108,7 +108,9 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     if (params.userDepositAmount) {
         const userDeposit = etherToWei(params.userDepositAmount);
         if (userDeposit.lt(holdDeposit)) {
-            Printer.error(`Provided deposit is less than the minimum required deposit of (${weiToEther(holdDeposit)} TEE)`);
+            Printer.error(
+                `Provided deposit is less than the minimum required deposit of (${weiToEther(holdDeposit)} TEE)`
+            );
             return;
         }
         holdDeposit = userDeposit;
@@ -124,31 +126,33 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         }
     }
 
-    Printer.print(
-        `Creating workflow orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`
-    );
+    Printer.print(`Creating workflow orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`);
 
     let workflowPromises = new Array(params.createWorkflows);
 
-    Printer.print('Approve tokens for all workflows');
-    await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.createWorkflows).toString(), { from: consumerAddress! });
+    Printer.print("Approve tokens for all workflows");
+    await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.createWorkflows).toString(), {
+        from: consumerAddress!,
+    });
 
-    Printer.print('Create workflows');
+    Printer.print("Create workflows");
     for (let pos = 0; pos < params.createWorkflows; pos++) {
         workflowPromises[pos] = new Promise(async (resolve, reject) => {
             try {
-                resolve(await createWorkflowService({
-                    teeOffer: params.tee,
-                    storageOffer: params.storage,
-                    inputOffers: solutions.ids.concat(data.ids),
-                    argsToEncrypt: JSON.stringify({
-                        data: dataTIIs,
-                        solution: solutionTIIs,
-                    }),
-                    resultPublicKey: params.resultEncryption,
-                    holdDeposit: holdDeposit.toString(),
-                    consumerAddress: consumerAddress!,
-                }));
+                resolve(
+                    await createWorkflowService({
+                        teeOffer: params.tee,
+                        storageOffer: params.storage,
+                        inputOffers: solutions.ids.concat(data.ids),
+                        argsToEncrypt: JSON.stringify({
+                            data: dataTIIs,
+                            solution: solutionTIIs,
+                        }),
+                        resultPublicKey: params.resultEncryption,
+                        holdDeposit: holdDeposit.toString(),
+                        consumerAddress: consumerAddress!,
+                    })
+                );
             } catch (error) {
                 Printer.error(`Error creating workflow ${error}`);
                 resolve(null);
