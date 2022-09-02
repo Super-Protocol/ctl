@@ -314,7 +314,7 @@ async function main() {
         .command("download-result")
         .description("Downloading result of order with <id>")
         .argument("id", "ID of order to fetch result")
-        .option("--save-to <path>", "Path to save decrypted result", "./result.gz")
+        .option("--save-to <path>", "Path to save decrypted result", "./result.tar.gz")
         .action(async (orderId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -449,7 +449,7 @@ async function main() {
         .command("download-result")
         .description("Downloading result of offer with <id> (works only with offers that have pre published result)")
         .argument("id", "ID of offer to fetch result")
-        .option("--save-to <path>", "Path to save result", "./result.gz")
+        .option("--save-to <path>", "Path to save result", "./result.tar.gz")
         .action(async (offerId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
