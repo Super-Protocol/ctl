@@ -18,7 +18,7 @@ export default async (params: ProvidersGetParams) => {
     });
 
     if (!providers.list.length) {
-        Printer.print(`Provider ${params.address} not found`);
+        Printer.print(`Provider ${params.address} could not be found`);
         return;
     }
 

@@ -7,13 +7,13 @@ export type GenerateSolutionKeyParams = {
 };
 
 export default async (params: GenerateSolutionKeyParams) => {
-    Printer.print("Generating solution key...");
+    Printer.print("Generating solution key");
 
     const solutionKay = await generateSolutionKeyService();
 
-    Printer.print("Writing solution key to " + params.outputPath);
+    Printer.print("Saving solution key to " + params.outputPath);
 
     await writeFile(params.outputPath, solutionKay);
 
-    Printer.print("Generated successfully.");
+    Printer.print("Solution key was generated successfully");
 };

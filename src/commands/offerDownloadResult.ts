@@ -15,19 +15,19 @@ export type OfferDownloadParamsParams = {
 };
 
 export default async (params: OfferDownloadParamsParams): Promise<void> => {
-    Printer.print("Connecting to blockchain...");
+    Printer.print("Connecting to the blockchain");
     await initBlockchainConnector({
         blockchainConfig: params.blockchainConfig,
     });
 
-    Printer.print("Connected successfully, fetching offer result from blockchain...");
+    Printer.print("Fetching offer content");
     const resource = await getOfferResult({ offerId: params.offerId });
     if (!resource) {
-        Printer.print(`Offer ${params.offerId} requires to create order to get result`);
+        Printer.print(`Offer ${params.offerId} does not allow to download its content`);
         return;
     }
 
-    Printer.print("Offer result found, downloading file...");
+    Printer.print("Offer content is available for download");
     const localPath = path.join(process.cwd(), params.localPath.replace(/\/$/, ""));
     switch (resource.type) {
         case ResourceType.Url:
@@ -35,7 +35,7 @@ export default async (params: OfferDownloadParamsParams): Promise<void> => {
                 url: (resource as UrlResource).url,
                 savePath: path.join(process.cwd(), params.localPath),
                 progressListener: (total, current) => {
-                    Printer.progress("Downloading", total, current);
+                    Printer.progress("Downloading file", total, current);
                 },
             });
             break;
@@ -49,14 +49,14 @@ export default async (params: OfferDownloadParamsParams): Promise<void> => {
                 localPath,
                 storageProviderResource,
                 (total: number, current: number) => {
-                    Printer.progress("Downloading", total, current);
+                    Printer.progress("Downloading file", total, current);
                 }
             );
             break;
         default:
-            throw Error(`Resource type ${resource.type} not supported`);
+            throw Error(`Resource type ${resource.type} is not supported`);
     }
 
     Printer.stopProgress();
-    Printer.print("Done");
+    Printer.print("Offer contents downloaded successfully");
 };

@@ -7,7 +7,7 @@ export type ReadJsonFileParams = {
 
 const readResourceFile = async (params: ReadJsonFileParams) => {
     if (!existsSync(params.path)) {
-        throw Error(`File not found in ${params.path}`);
+        throw Error(`File could not be found in ${params.path}`);
     }
 
     let jsonString = await fs.readFile(params.path, "utf8");

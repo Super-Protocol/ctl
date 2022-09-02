@@ -14,14 +14,14 @@ export type TokensBalanceParams = {
 export default async (params: TokensBalanceParams) => {
     const address = new Wallet(params.actionAccountPrivateKey).address;
 
-    Printer.print("Connecting to blockchain...");
+    Printer.print("Connecting to the blockchain");
     await initBlockchainConnectorService({ blockchainConfig: params.blockchainConfig });
 
-    Printer.print("Fetching SuperProtocol TEE tokens balance...");
+    Printer.print("Fetching Super Protocol TEE tokens balance");
     const balanceTee = await getTeeBalanceService({ address });
-    Printer.print(`Balance of ${address} - ${weiToEther(balanceTee)} TEE`);
+    Printer.print(`Balance of ${address}: ${weiToEther(balanceTee)} TEE`);
 
-    Printer.print("Fetching Polygon Mumbai MATIC tokens balance...");
+    Printer.print("Fetching Polygon Mumbai MATIC tokens balance");
     const balanceMatic = await getMumbaiBalanceService({ address });
-    Printer.print(`Balance of ${address} - ${weiToEther(balanceMatic)} MATIC`);
+    Printer.print(`Balance of ${address}: ${weiToEther(balanceMatic)} MATIC`);
 };
