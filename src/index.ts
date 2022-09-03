@@ -27,6 +27,7 @@ import tokensBalance from "./commands/tokensBalance";
 import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
 import offerDownloadResult from "./commands/offerDownloadResult";
+import eccrypto from "eccrypto";
 
 async function main() {
     const program = new Command();
@@ -144,6 +145,13 @@ async function main() {
         });
 
     workflowsCommand
+        .command("gen-private")
+        .description("generates 32-byte private key")
+        .action(() => {
+            Printer.print(eccrypto.generatePrivate().toString("base64"));
+        });
+
+    workflowsCommand
         .command("create")
         .description("Creates workflow orders")
         .requiredOption("--tee <id>", "TEE offer id (this option is required)")
@@ -184,7 +192,6 @@ async function main() {
                 solutions: options.solution,
                 data: options.data,
                 resultEncryption: workflowConfig.resultEncryption,
-                resultDecryptionKey: workflowConfig.resultDecryptionKey,
                 userDepositAmount: options.deposit,
                 createWorkflows: options.createWorkflows ? options.createWorkflows : 1,
             });
@@ -312,7 +319,7 @@ async function main() {
                 blockchainConfig: blockchainAccess,
                 orderId,
                 localPath: options.saveTo,
-                resultDecryptionKey: workflowConfig.resultDecryptionKey,
+                resultDecryptionKey: workflowConfig.resultEncryption.key!,
             });
         });
 

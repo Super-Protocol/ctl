@@ -2,14 +2,14 @@ import { Config as BlockchainConfig, TIIGenerator, SuperproToken, OrdersFactory 
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import validateOfferWorkflowService from "../services/validateOfferWorkflow";
-import { CryptoAlgorithm, Encryption } from "@super-protocol/dto-js";
+import { CryptoAlgorithm, Encoding, Encryption } from "@super-protocol/dto-js";
 import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
 import { Wallet } from "ethers";
 import getTeeBalance from "../services/getTeeBalance";
-import { ErrorWithCustomMessage, etherToWei, weiToEther } from "../utils";
-import checkKeysPairService from "../services/checkKeysPair";
+import { etherToWei, weiToEther } from "../utils";
+import getPublicFromPrivate from "../services/getPublicFromPrivate";
 
 export type WorkflowCreateParams = {
     blockchainConfig: BlockchainConfig;
@@ -19,23 +19,15 @@ export type WorkflowCreateParams = {
     solutions: string[];
     data: string[];
     resultEncryption: Encryption;
-    resultDecryptionKey: string;
     userDepositAmount: string;
     createWorkflows: number;
 };
 
 const workflowCreate = async (params: WorkflowCreateParams) => {
-    try {
-        if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
-            throw Error("Only ECIES result encryption is supported");
-
-        await checkKeysPairService({
-            encryption: params.resultEncryption,
-            decryptionKey: params.resultDecryptionKey,
-        });
-    } catch (error) {
-        throw ErrorWithCustomMessage("Invalid result encryption key pair", error as Error);
-    }
+    if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
+        throw Error("Only ECIES result encryption is supported");
+    if (params.resultEncryption.encoding !== Encoding.base64)
+        throw new Error("Only base64 result encryption is supported");
 
     const solutions = await parseInputResourcesService({
         options: params.solutions,
