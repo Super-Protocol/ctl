@@ -82,7 +82,7 @@ const orderResults: { [id: string]: OrderResult } = {
 
 describe('ordersDownloadResult', () => {
     let blockchainConfig = {} as BlockchainConfig;
-    let localPath = './result.gz';
+    let localPath = './result.tar.gz';
 
     beforeEach(() => {
         (<any>fs).__setMockFiles({});
