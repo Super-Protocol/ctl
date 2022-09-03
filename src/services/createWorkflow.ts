@@ -85,14 +85,18 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
                     const subOrder = new Order(subOrders[index]);
                     await subOrder.cancelOrder({ from: params.consumerAddress });
                 } catch (error) {
-                    Printer.error(`Error occurred when canceling created order ${subOrders[index]}, the order was not canceled`);
+                    Printer.error(
+                        `Error occurred when canceling created order ${subOrders[index]}, the order was not canceled`
+                    );
                 }
             }
 
             try {
                 await teeOrder.cancelOrder({ from: params.consumerAddress });
             } catch (error) {
-                Printer.error(`Error occurred when canceling created TEE order ${params.consumerAddress}, the order was not canceled`);
+                Printer.error(
+                    `Error occurred when canceling created TEE order ${params.consumerAddress}, the order was not canceled`
+                );
             }
 
             Printer.error("Created orders were canceled");

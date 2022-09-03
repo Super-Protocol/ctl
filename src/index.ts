@@ -55,10 +55,7 @@ async function main() {
         .command("list")
         .description("Fetch list of providers")
         .addOption(
-            new Option(
-                "--fields <fields>",
-                `Available fields: ${providersListFields.join(", ")}`
-            )
+            new Option("--fields <fields>", `Available fields: ${providersListFields.join(", ")}`)
                 .argParser(commaSeparatedList)
                 .default(providersListDefaultFields, providersListDefaultFields.join(","))
         )
@@ -94,10 +91,7 @@ async function main() {
         .description("Fetch fields of a provider with <address>")
         .argument("address", "Provider address")
         .addOption(
-            new Option(
-                "--fields <fields>",
-                `Available fields: ${providersListFields.join(", ")}`
-            )
+            new Option("--fields <fields>", `Available fields: ${providersListFields.join(", ")}`)
                 .argParser(commaSeparatedList)
                 .default(providersGetDefaultFields, providersGetDefaultFields.join(","))
         )
@@ -174,10 +168,7 @@ async function main() {
             collectOptions,
             []
         )
-        .option(
-            "--createWorkflows <number>",
-            "Number of workflows to create"
-        )
+        .option("--createWorkflows <number>", "Number of workflows to create")
         .option(
             "--deposit <TEE>",
             "Payment deposit amount in TEE tokens (if not provided, the minimum required deposit is used)"
@@ -293,10 +284,7 @@ async function main() {
         )
         .option("--suborders", "Show sub-orders", false)
         .addOption(
-            new Option(
-                "--suborders_fields <fields>",
-                `Sub-order available fields: ${subOrdersGetFields.join(", ")}`
-            )
+            new Option("--suborders_fields <fields>", `Sub-order available fields: ${subOrdersGetFields.join(", ")}`)
                 .argParser(commaSeparatedList)
                 .default(subOrdersGetDefaultFields, subOrdersGetDefaultFields.join(","))
         )
@@ -386,10 +374,7 @@ async function main() {
         .command("tee")
         .description("Fetch list of offers")
         .addOption(
-            new Option(
-                "--fields <fields>",
-                `Available fields: ${offersListTeeFields.join(", ")}`
-            )
+            new Option("--fields <fields>", `Available fields: ${offersListTeeFields.join(", ")}`)
                 .argParser(commaSeparatedList)
                 .default(offersListTeeDefaultFields, offersListTeeDefaultFields.join(","))
         )
@@ -427,10 +412,7 @@ async function main() {
         .command("value")
         .description("Fetch list of offers")
         .addOption(
-            new Option(
-                "--fields <fields>",
-                `Available fields: ${offersListValueFields.join(", ")}`
-            )
+            new Option("--fields <fields>", `Available fields: ${offersListValueFields.join(", ")}`)
                 .argParser(commaSeparatedList)
                 .default(offersListValueDefaultFields, offersListValueDefaultFields.join(","))
         )

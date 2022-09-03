@@ -29,7 +29,9 @@ const checkPendingLoop = async (pk: string): Promise<void> => {
 
         if (MAX_ATTEMPT == attempt) {
             Printer.stopProgress();
-            throw new Error("Your private key may be in use by another application or the blockchain is overloaded, please try again later");
+            throw new Error(
+                "Your private key may be in use by another application or the blockchain is overloaded, please try again later"
+            );
         }
 
         pendingAmount = await pendingStatusChecker(pk);

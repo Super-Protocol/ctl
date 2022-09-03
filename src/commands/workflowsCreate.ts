@@ -29,12 +29,6 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     if (params.resultEncryption.encoding !== Encoding.base64)
         throw new Error("Only base64 result encryption is supported");
 
-    const resultEncryption: Encryption = {
-        algo: params.resultEncryption.algo,
-        encoding: params.resultEncryption.encoding,
-        key: getPublicFromPrivate(params.resultEncryption.key!),
-    };
-
     const solutions = await parseInputResourcesService({
         options: params.solutions,
         optionsName: "solution",
@@ -106,7 +100,9 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     if (params.userDepositAmount) {
         const userDeposit = etherToWei(params.userDepositAmount);
         if (userDeposit.lt(holdDeposit)) {
-            Printer.error(`Provided deposit is less than the minimum required deposit of (${weiToEther(holdDeposit)} TEE)`);
+            Printer.error(
+                `Provided deposit is less than the minimum required deposit of (${weiToEther(holdDeposit)} TEE)`
+            );
             return;
         }
         holdDeposit = userDeposit;
@@ -122,9 +118,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         }
     }
 
-    Printer.print(
-        `Creating workflow orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`
-    );
+    Printer.print(`Creating workflow orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`);
 
     let workflowPromises = new Array(params.createWorkflows);
 
@@ -146,7 +140,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
                             data: dataTIIs,
                             solution: solutionTIIs,
                         }),
-                        resultPublicKey: resultEncryption,
+                        resultPublicKey: params.resultEncryption,
                         holdDeposit: holdDeposit.toString(),
                         consumerAddress: consumerAddress!,
                     })
