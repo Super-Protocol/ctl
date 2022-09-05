@@ -9,10 +9,6 @@
     "blockchainKeys": {
         "actionAccountKey": ""
     },
-    "tee": {
-        "offerId": "",
-        "solutionArgs": {}
-    },
     "storage": {
         "storageType": "STORJ",
         "writeCredentials": {
