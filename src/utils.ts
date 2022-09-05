@@ -2,8 +2,13 @@ import { promisify } from "util";
 import { exec as execCallback } from "child_process";
 import { Command } from "commander";
 import { DateTime } from "luxon";
+import { BigNumberish, ethers } from "ethers";
+import { ErrorMessageOptions, generateErrorMessage } from "zod-error";
+import { ZodIssue } from "zod";
 
 export const exec = promisify(execCallback);
+
+export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const processSubCommands = (program: Command, process: (command: Command) => void) => {
     const processRecursive = (cmd: Command) => {
@@ -27,7 +32,7 @@ export const collectOptions = (value: string, previous: string[]) => {
 export const validateFields = (fields: string[], allowedFields: string[]) => {
     fields.forEach((field) => {
         if (!allowedFields.includes(field))
-            throw Error(`Field "${field}" not supported\nSupported fields: ${allowedFields.join(", ")}`);
+            throw Error(`Field "${field}" is not supported\nSupported fields: ${allowedFields.join(", ")}`);
     });
 };
 
@@ -59,7 +64,7 @@ export const SilentError = (error: Error) => ({
     isSilent: true,
 });
 
-export const ErrorWithCustomMessage = (message: string, error: Error) => ({
+export const ErrorWithCustomMessage = (message: string, error: any) => ({
     error,
     message,
     hasCustomMessage: true,
@@ -85,4 +90,37 @@ export const assertSize = (value: string | undefined, assertMessage: string) => 
     if (value && !value.match(/^[\d]+[KMG]$/)) {
         throw new Error(assertMessage);
     }
+};
+
+export const weiToEther = (wei?: BigNumberish | null, precision = 4) => {
+    if (!wei) return undefined;
+    let ether = ethers.utils.formatEther(wei);
+    return Number(ether.substring(0, ether.indexOf(".") + precision + 1)).toFixed(precision);
+};
+
+export const etherToWei = (ether: string) => {
+    return ethers.utils.parseEther(ether);
+};
+
+const options: ErrorMessageOptions = {
+    delimiter: {
+        component: " ",
+        error: "\n",
+    },
+    path: {
+        enabled: true,
+        type: "objectNotation",
+        transform: ({ label, value }) => `Field ${value}`,
+    },
+    code: {
+        enabled: false,
+    },
+    message: {
+        enabled: true,
+        transform: ({ label, value }) => `is ${value.charAt(0).toLowerCase() + value.slice(1)}`,
+    },
+};
+
+export const createZodErrorMessage = (error: ZodIssue[]) => {
+    return generateErrorMessage(error, options);
 };

@@ -3,8 +3,9 @@ import { Config as BlockchainConfig } from "@super-protocol/sdk-js";
 import fs from "fs";
 import path from "path";
 import process from "process";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import Printer from "./printer";
+import { createZodErrorMessage, ErrorWithCustomMessage } from "./utils";
 
 const ConfigValidators = {
     backend: z.object({
@@ -17,10 +18,6 @@ const ConfigValidators = {
     blockchainKeys: z.object({
         actionAccountKey: z.string(),
     }),
-    tee: z.object({
-        offerId: z.string(),
-        solutionArgs: z.any(),
-    }),
     storage: z.object({
         storageType: z.nativeEnum(StorageType),
         writeCredentials: z.any(),
@@ -29,12 +26,9 @@ const ConfigValidators = {
     workflow: z.object({
         resultEncryption: z.object({
             algo: z.nativeEnum(CryptoAlgorithm),
-            encoding: z.nativeEnum(Encoding),
             key: z.string(),
+            encoding: z.nativeEnum(Encoding),
         }),
-    }),
-    orderResult: z.object({
-        resultDecryptionKey: z.string(),
     }),
     accessToken: z.string(),
 };
@@ -47,10 +41,6 @@ export type Config = {
     blockchainKeys: {
         actionAccountKey: string;
     };
-    tee: {
-        offerId: string;
-        solutionArgs: any;
-    };
     storage: {
         storageType: StorageType;
         writeCredentials: any;
@@ -59,9 +49,6 @@ export type Config = {
     };
     workflow: {
         resultEncryption: Encryption;
-    };
-    orderResult: {
-        resultDecryptionKey: string;
     };
     accessToken: string;
 };
@@ -79,9 +66,9 @@ class ConfigLoader {
         configPath = path.join(process.cwd(), configPath);
 
         if (!fs.existsSync(configPath)) {
-            Printer.error("Config file doesn't exist.");
+            Printer.error("Config file does not exist");
             fs.writeFileSync(configPath, fs.readFileSync(CONFIG_EXAMPLE_PATH));
-            throw Error(`Blank config file was created: ${configPath}\nPlease configure it.`);
+            throw Error(`Default config file was created: ${configPath}\nPlease configure it`);
         }
 
         this.rawConfig = JSON.parse(fs.readFileSync(configPath).toString());
@@ -96,8 +83,13 @@ class ConfigLoader {
         if (!rawSection)
             throw Error(`${sectionName} not specified\nPlease configure ${sectionName} section in ${this.configPath}`);
 
-        // @ts-ignore validation result matches one of config keys
-        this.validatedConfig[sectionName] = validator.parse(rawSection);
+        try {
+            // @ts-ignore validation result matches one of config keys
+            this.validatedConfig[sectionName] = validator.parse(rawSection);
+        } catch (error) {
+            const errorMessage = createZodErrorMessage((error as ZodError).issues);
+            throw ErrorWithCustomMessage(`Invalid format of ${sectionName} config section:\n${errorMessage}`, error);
+        }
         return this.validatedConfig[sectionName];
     }
 }

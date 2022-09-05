@@ -1,11 +1,15 @@
-import { Config as BlockchainConfig, TIIGenerator } from "@super-protocol/sdk-js";
+import { Config as BlockchainConfig, TIIGenerator, SuperproToken, OrdersFactory } from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import validateOfferWorkflowService from "../services/validateOfferWorkflow";
-import { Encryption } from "@super-protocol/dto-js";
+import { CryptoAlgorithm, Encoding, Encryption } from "@super-protocol/dto-js";
 import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
+import { Wallet } from "ethers";
+import getTeeBalance from "../services/getTeeBalance";
+import { etherToWei, weiToEther } from "../utils";
+import getPublicFromPrivate from "../services/getPublicFromPrivate";
 
 export type WorkflowCreateParams = {
     blockchainConfig: BlockchainConfig;
@@ -15,9 +19,16 @@ export type WorkflowCreateParams = {
     solutions: string[];
     data: string[];
     resultEncryption: Encryption;
+    userDepositAmount: string;
+    createWorkflows: number;
 };
 
 const workflowCreate = async (params: WorkflowCreateParams) => {
+    if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
+        throw Error("Only ECIES result encryption is supported");
+    if (params.resultEncryption.encoding !== Encoding.base64)
+        throw new Error("Only base64 result encryption is supported");
+
     const solutions = await parseInputResourcesService({
         options: params.solutions,
         optionsName: "solution",
@@ -27,13 +38,13 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         optionsName: "data",
     });
 
-    Printer.print("Connecting to blockchain...");
+    Printer.print("Connecting to the blockchain");
     const consumerAddress = await initBlockchainConnectorService({
         blockchainConfig: params.blockchainConfig,
         actionAccountKey: params.actionAccountKey,
     });
 
-    Printer.print("Connected successfully, validating workflow configuration...");
+    Printer.print("Validating workflow configuration");
     await Promise.all(
         [...solutions.ids, ...data.ids].map((solutionId) =>
             validateOfferWorkflowService({
@@ -57,7 +68,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         }
     });
 
-    Printer.print("Workflow configuration is valid, generating input arguments for TEE...");
+    Printer.print("Generating input arguments for TEE");
     const [solutionTIIs, dataTIIs] = await Promise.all([
         Promise.all(
             solutions.resourceFiles.map((solution) =>
@@ -78,31 +89,72 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         ),
     ]);
 
-    Printer.print("Input arguments have been generated, calculating hold deposit...");
-    const holdDeposit = await calcWorkflowDepositService({
+    Printer.print("Calculating payment deposit");
+    let holdDeposit = await calcWorkflowDepositService({
         tee: params.tee,
         storage: params.storage,
         solutions: solutions.ids,
         data: data.ids,
     });
 
-    Printer.print(
-        `Hold deposit has been calculated, creating workflow orders with ${holdDeposit} tokens of deposit ...`
-    );
-    const teeOrderId = await createWorkflowService({
-        teeOffer: params.tee,
-        storageOffer: params.storage,
-        inputOffers: solutions.ids.concat(data.ids),
-        argsToEncrypt: JSON.stringify({
-            data: dataTIIs,
-            solution: solutionTIIs,
-        }),
-        resultPublicKey: params.resultEncryption,
-        holdDeposit: holdDeposit.toString(),
-        consumerAddress: consumerAddress!,
+    if (params.userDepositAmount) {
+        const userDeposit = etherToWei(params.userDepositAmount);
+        if (userDeposit.lt(holdDeposit)) {
+            Printer.error(
+                `Provided deposit is less than the minimum required deposit of (${weiToEther(holdDeposit)} TEE)`
+            );
+            return;
+        }
+        holdDeposit = userDeposit;
+
+        const balance = await getTeeBalance({ address: new Wallet(params.actionAccountKey).address });
+        if (balance.lt(holdDeposit)) {
+            Printer.error(
+                `Balance of your account (${weiToEther(
+                    balance
+                )} TEE) is less than the workflow payment deposit (${weiToEther(holdDeposit)} TEE)`
+            );
+            return;
+        }
+    }
+
+    Printer.print(`Creating workflow orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`);
+
+    let workflowPromises = new Array(params.createWorkflows);
+
+    Printer.print("Approve tokens for all workflows");
+    await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.createWorkflows).toString(), {
+        from: consumerAddress!,
     });
 
-    Printer.print(`Workflow has been created successfully, root TEE order id: ${teeOrderId}`);
+    Printer.print("Create workflows");
+    for (let pos = 0; pos < params.createWorkflows; pos++) {
+        workflowPromises[pos] = new Promise(async (resolve, reject) => {
+            try {
+                resolve(
+                    await createWorkflowService({
+                        teeOffer: params.tee,
+                        storageOffer: params.storage,
+                        inputOffers: solutions.ids.concat(data.ids),
+                        argsToEncrypt: JSON.stringify({
+                            data: dataTIIs,
+                            solution: solutionTIIs,
+                        }),
+                        resultPublicKey: params.resultEncryption,
+                        holdDeposit: holdDeposit.toString(),
+                        consumerAddress: consumerAddress!,
+                    })
+                );
+            } catch (error) {
+                Printer.error(`Error creating workflow ${error}`);
+                resolve(null);
+            }
+        });
+    }
+
+    const results = await Promise.all(workflowPromises);
+
+    Printer.print(`Workflow was created, TEE order id: ${JSON.stringify(results)}`);
 };
 
 export default workflowCreate;

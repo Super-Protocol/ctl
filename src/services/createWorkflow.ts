@@ -1,7 +1,8 @@
-import { Crypto, Order, OrdersFactory, OrderStatus, SuperproToken, TeeOffer } from "@super-protocol/sdk-js";
+import { Crypto, Order, OrdersFactory, OrderStatus, TeeOffer } from "@super-protocol/sdk-js";
 import { Encryption } from "@super-protocol/dto-js";
 import Printer from "../printer";
-import { generateExternalId } from "../utils";
+import { generateExternalId, sleep } from "../utils";
+import { MAX_ATTEMPT_WAITING_NEW_TX, ATTEMPT_PERIOD_MS } from "../constants";
 
 export type CreateWorkflowParams = {
     teeOffer: string;
@@ -14,17 +15,16 @@ export type CreateWorkflowParams = {
 };
 
 export default async (params: CreateWorkflowParams): Promise<string> => {
-    Printer.print("Fetching root TEE offer...");
+    Printer.print("Fetching TEE offer");
     const teeOffer = new TeeOffer(params.teeOffer);
     const offerInfo = await teeOffer.getInfo();
 
-    Printer.print("TEE offer found, encrypting arguments...");
+    Printer.print("Encrypting arguments");
     const encryptedArgs = await Crypto.encrypt(params.argsToEncrypt, JSON.parse(offerInfo.argsPublicKey));
     const suspended = !!params.inputOffers.length;
 
-    Printer.print("Arguments are ready, creating root TEE order...");
+    Printer.print("Creating TEE order");
     const id = generateExternalId();
-    await SuperproToken.approve(OrdersFactory.address, params.holdDeposit, { from: params.consumerAddress });
     await OrdersFactory.createOrder(
         {
             offer: params.teeOffer,
@@ -44,14 +44,23 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
         { from: params.consumerAddress }
     );
 
+    let { orderId } = await OrdersFactory.getOrder(params.consumerAddress, id);
+    let attempt = 0;
+    while (orderId === '-1') {
+        sleep(ATTEMPT_PERIOD_MS);
+        const events = await OrdersFactory.getOrder(params.consumerAddress, id);
+        orderId = events.orderId;
+
+        if (orderId == '-1' && attempt == MAX_ATTEMPT_WAITING_NEW_TX) {
+            throw new Error(`TEE order wasn't created within ${MAX_ATTEMPT_WAITING_NEW_TX * ATTEMPT_PERIOD_MS / 1000} seconds. Try increasing the gas price.`);
+        }
+    }
     Printer.print("TEE order created successfully, fetching created order...");
-    const action = await OrdersFactory.getOrder(params.consumerAddress, id);
-    const teeOrder = new Order(action.orderId.toString());
-    Printer.print("TEE order found");
+    const teeOrder = new Order(orderId.toString());
 
     try {
         if (suspended) {
-            Printer.print(`Creating ${params.inputOffers.length} sub orders...`);
+            Printer.print(`Creating ${params.inputOffers.length} sub-orders`);
             for (let index in params.inputOffers) {
                 await teeOrder.createSubOrder(
                     {
@@ -73,11 +82,11 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
                 );
             }
 
-            Printer.print("Done, starting TEE order...");
+            Printer.print("Starting TEE order");
             await teeOrder.start({ from: params.consumerAddress });
         }
     } catch (e) {
-        Printer.error("Error during sub orders creation, canceling all created orders...");
+        Printer.error("Error occurred during the creation of sub-orders, canceling all created orders");
         try {
             const subOrders = await teeOrder.getSubOrders();
 
@@ -86,19 +95,23 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
                     const subOrder = new Order(subOrders[index]);
                     await subOrder.cancelOrder({ from: params.consumerAddress });
                 } catch (error) {
-                    Printer.error(`Error when canceling created order ${subOrders[index]}, order not canceled`);
+                    Printer.error(
+                        `Error occurred when canceling created order ${subOrders[index]}, the order was not canceled`
+                    );
                 }
             }
 
             try {
                 await teeOrder.cancelOrder({ from: params.consumerAddress });
             } catch (error) {
-                Printer.error(`Error when canceling created TEE order ${params.consumerAddress}, order not canceled`);
+                Printer.error(
+                    `Error occurred when canceling created TEE order ${params.consumerAddress}, the order was not canceled`
+                );
             }
 
-            Printer.error("Created orders have been canceled");
+            Printer.error("Created orders were canceled");
         } catch (e) {
-            Printer.error("Error when canceling created orders, no orders canceled");
+            Printer.error("Error occurred when canceling created orders, no orders were canceled");
         }
         throw e;
     }

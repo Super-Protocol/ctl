@@ -9,10 +9,6 @@
     "blockchainKeys": {
         "actionAccountKey": ""
     },
-    "tee": {
-        "offerId": "",
-        "solutionArgs": {}
-    },
     "storage": {
         "storageType": "STORJ",
         "writeCredentials": {
@@ -27,12 +23,9 @@
     "workflow": {
         "resultEncryption": {
             "algo": "ECIES",
-            "key": "YOUR_PUBLIC_KEY_HERE",
+            "key": "YOUR_PRIVATE_KEY_HERE",
             "encoding": "base64"
         }
-    },
-    "orderResult": {
-        "resultDecryptionKey": "YOUR_PRIVATE_KEY_HERE"
     },
     "accessToken": "YOUR_ACCESS_TOKEN"
 }

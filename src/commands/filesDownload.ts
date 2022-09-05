@@ -21,7 +21,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
 
     const resource = resourceFile.resource as StorageProviderResource;
     if (resource.type !== ResourceType.StorageProvider)
-        throw Error(`Resource type ${resource.type} not supported, supported only StorageProvider type`);
+        throw Error(`Resource type ${resource.type} is not supported, use StorageProvider type for this command`);
 
     let localPath = params.localPath.replace(/\/$/, "");
     if (resourceFile.encryption) localPath += ".encrypted";
@@ -32,20 +32,20 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     };
 
     await downloadService(resource.filepath, localPath, storageAccess, (total: number, current: number) => {
-        Printer.progress("Downloading", total, current);
+        Printer.progress("Downloading file", total, current);
     });
 
     if (resourceFile.encryption) {
         await decryptFileService(localPath, resourceFile.encryption, (total: number, current: number) => {
-            Printer.progress("Decrypting", total, current);
+            Printer.progress("Decrypting file", total, current);
         });
 
         Printer.stopProgress();
-        Printer.print("Deleting temp files..");
+        Printer.print("Deleting temp files");
         await fs.unlink(localPath);
     } else {
         Printer.stopProgress();
     }
 
-    Printer.print("Done");
+    Printer.print("File was downloaded successfully");
 };

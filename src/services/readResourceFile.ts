@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { ZodError } from "zod";
 import {
     CryptoAlgorithm,
     Encoding,
@@ -11,7 +11,7 @@ import {
     StorageType,
 } from "@super-protocol/dto-js";
 import readJsonFile from "./readJsonFile";
-import { ErrorWithCustomMessage } from "../utils";
+import { createZodErrorMessage, ErrorWithCustomMessage } from "../utils";
 
 export type ReadResourceFileParams = {
     path: string;
@@ -67,8 +67,12 @@ const readResourceFile = async (params: ReadResourceFileParams): Promise<Resourc
 
     try {
         await ResourceFileValidator.parseAsync(resourceFile);
-    } catch (e) {
-        throw ErrorWithCustomMessage(`Invalid Resource format of file ${params.path}`, e as Error);
+    } catch (error) {
+        const errorMessage = createZodErrorMessage((error as ZodError).issues);
+        throw ErrorWithCustomMessage(
+            `Invalid Resource format of file ${params.path}:\n${errorMessage}`,
+            error as Error
+        );
     }
 
     return resourceFile;

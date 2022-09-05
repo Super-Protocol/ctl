@@ -2,6 +2,7 @@ import { Wallet } from "ethers";
 import requestTeeService from "../services/requestTee";
 import requestMaticService from "../services/requestMatic";
 import Printer from "../printer";
+import { program } from "commander";
 
 export type TokensRequestParams = {
     actionAccountPrivateKey: string;
@@ -12,28 +13,29 @@ export type TokensRequestParams = {
 };
 
 export default async (params: TokensRequestParams) => {
-    if (!params.backendUrl && !params.requestMatic) {
-        Printer.print("No tokens specified for request, please add --tee or --matic flag to request specific tokens");
+    if (!params.requestTee && !params.requestMatic) {
+        Printer.print("No token type was specified, please add --tee or --matic flag to request specific tokens");
+        program.help();
         return;
     }
 
     const address = new Wallet(params.actionAccountPrivateKey).address;
 
     if (params.requestTee) {
-        Printer.print(`Requesting SuperProtocol TEE tokens on ${address}...`);
+        Printer.print(`Requesting Super Protocol TEE tokens for ${address}`);
         await requestTeeService({
             backendUrl: params.backendUrl,
             accessToken: params.accessToken,
         });
-        Printer.print(`SuperProtocol TEE tokens successfully requested to ${address}`);
+        Printer.print(`TEE tokens will be transferred to ${address} shortly`);
     }
 
     if (params.requestMatic) {
-        Printer.print(`Requesting Polygon Mumbai MATIC tokens on ${address}...`);
+        Printer.print(`Requesting Polygon Mumbai MATIC tokens for ${address}`);
         await requestMaticService({
             backendUrl: params.backendUrl,
             accessToken: params.accessToken,
         });
-        Printer.print(`Polygon Mumbai MATIC tokens successfully requested on ${address}`);
+        Printer.print(`MATIC tokens will be transferred to ${address} shortly`);
     }
 };

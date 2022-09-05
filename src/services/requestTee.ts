@@ -1,6 +1,7 @@
 import { getSdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
 import getGqlHeaders from "./gqlHeaders";
+import { ErrorWithCustomMessage } from "../utils";
 
 export type RequestTeeParams = {
     backendUrl: string;
@@ -11,5 +12,9 @@ export default async (params: RequestTeeParams) => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
     const headers = getGqlHeaders(params.accessToken);
 
-    await sdk.TeeTransfer({}, headers);
+    try {
+        await sdk.TeeTransfer({}, headers);
+    } catch (error: any) {
+        throw ErrorWithCustomMessage(error?.response?.errors[0]?.message || "TEE tokens request error", error);
+    }
 };

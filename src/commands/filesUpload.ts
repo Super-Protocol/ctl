@@ -1,6 +1,5 @@
 import { promises as fs } from "fs";
 import encryptFileService from "../services/encryptFile";
-import packFolderService from "../services/packFolder";
 import uploadService from "../services/uploadFile";
 import { ResourceType, StorageType } from "@super-protocol/dto-js";
 import Printer from "../printer";
@@ -30,20 +29,14 @@ export default async (params: FilesUploadParams) => {
     const encryption = await generateEncryptionService();
 
     let localPath = params.localPath.replace(/\/$/, "");
-    let packedFilePath: string | undefined;
 
     let info = await fs.stat(localPath);
     if (info.isDirectory()) {
-        let output = `${localPath}`;
-        localPath = await packFolderService(localPath, output, (total: number, current: number) => {
-            Printer.progress("Packing", total, current);
-        });
-
-        packedFilePath = localPath;
+        throw new Error("Uploading a folder is not supported, please use a tar.gz archive");
     }
 
     let encryptedFileData = await encryptFileService(localPath, encryption, (total: number, current: number) => {
-        Printer.progress("Encrypting", total, current);
+        Printer.progress("Encrypting file", total, current);
     });
     const remotePath = `${generateExternalId()}.encrypted`;
 
@@ -56,7 +49,7 @@ export default async (params: FilesUploadParams) => {
                 credentials: params.writeCredentials,
             },
             (total: number, current: number) => {
-                Printer.progress("Uploading", total, current);
+                Printer.progress("Uploading file", total, current);
             }
         );
         Printer.stopProgress();
@@ -73,15 +66,10 @@ export default async (params: FilesUploadParams) => {
         };
         const outputpath = path.join(process.cwd(), params.outputPath);
         await fs.writeFile(outputpath, JSON.stringify(result, null, 2));
-        Printer.print(`Resource was written into ${outputpath}\n`);
+        Printer.print(`Resource file was created in ${outputpath}\n`);
     } finally {
-        Printer.print("Deleting temp files..");
-        try {
-            if (typeof packedFilePath != "undefined") await fs.unlink(packedFilePath);
-        } catch (e) {
-            Printer.error(`Error when deleting ${packedFilePath}`);
-        }
+        Printer.print("Deleting temp files");
         await fs.unlink(encryptedFileData.encryptedFilePath);
-        Printer.print("Done");
+        Printer.print("File was uploaded successfully");
     }
 };

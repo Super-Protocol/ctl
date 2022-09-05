@@ -4,7 +4,7 @@ import { existsSync } from "fs";
 import { assertCommand, exec } from "../utils";
 
 const assertDockerCommand = () =>
-    assertCommand("docker version", "Docker is not found in PATH. Is Docker installed here?");
+    assertCommand("docker version", "Docker was not found in PATH, please verify that Docker is installed");
 
 export const extractManifest = async (opts: {
     baseImagePath?: string;
@@ -24,7 +24,7 @@ export const extractManifest = async (opts: {
 
         dockerImage = stdout.split("\n").filter(Boolean).pop() ?? "";
     } else {
-        throw new Error("No base image and resource were provided");
+        throw new Error("Base image and resource were not provided");
     }
 
     const destManifestName = "baseSolution.manifest";
@@ -92,7 +92,7 @@ gramine-sgx-get-token --sig /entrypoint.sig --output /entrypoint.token
     const mrsigner = (stdout.match(/mr_signer:\s+([0-9a-fA-F]+)/)?.[1] || "").toLowerCase();
 
     if (!mrenclave || !mrsigner) {
-        throw new Error("Fail to parse MRENCLAVE and MRSIGNER");
+        throw new Error("Could not parse MRENCLAVE and MRSIGNER");
     }
 
     const writeManifest = async (mrenclave: string) => {
