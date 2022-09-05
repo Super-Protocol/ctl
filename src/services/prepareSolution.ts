@@ -1,6 +1,6 @@
-import { tmpdir } from "os";
 import { join } from "path";
-import { writeFile, rm, mkdir, copyFile, realpath } from "fs/promises";
+import { writeFile, readFile, rm, mkdir, copyFile, realpath} from "fs/promises";
+import { existsSync } from "fs";
 import { assertCommand, exec } from "../utils";
 
 const assertDockerCommand = () =>
@@ -9,6 +9,7 @@ const assertDockerCommand = () =>
 export const extractManifest = async (opts: {
     baseImagePath?: string;
     baseImageResource?: string;
+    workingPath: string;
 }): Promise<{ manifest: string; dockerImage: string }> => {
     await assertDockerCommand();
 
@@ -26,15 +27,23 @@ export const extractManifest = async (opts: {
         throw new Error("Base image and resource were not provided");
     }
 
-    const { stdout } = await exec(
-        `docker run --rm -i --entrypoint /bin/sh "${dockerImage}" -exc "cat /entrypoint.manifest"`
+    const destManifestName = "baseSolution.manifest";
+    await exec(
+        `docker run --rm -i -v ${opts.workingPath}:/mnt/host --entrypoint /bin/sh "${dockerImage}" -exc "cp -f /gramine/app_files/entrypoint.manifest /mnt/host/${destManifestName}"`
     );
+
+    const baseSolutionManifestPath = join(opts.workingPath, destManifestName);
+    if (!existsSync(baseSolutionManifestPath)) {
+        throw new Error(`An error occurred while extract the manifest`);
+    }
+    const content = await readFile(baseSolutionManifestPath, 'utf8');
 
     return {
         dockerImage,
-        manifest: stdout,
+        manifest: content,
     };
 };
+
 
 export const signManifest = async (opts: {
     dockerImage: string;
@@ -42,6 +51,7 @@ export const signManifest = async (opts: {
     keyPath: string;
     solutionPath: string;
     writeDefaultManifest: boolean;
+    workingPath: string;
 }): Promise<{
     solutionMetadataPath: string;
     mrenclave: string;
@@ -50,11 +60,10 @@ export const signManifest = async (opts: {
     await assertDockerCommand();
 
     const keyPath = await realpath(opts.keyPath);
-    const workingPath = join(tmpdir(), "spctl" + String(Date.now()));
-    const scriptPath = join(workingPath, "entrypoint.script");
-    const entrypointManifestPath = join(workingPath, "entrypoint.manifest");
-    const entrypointSigPath = join(workingPath, "entrypoint.sig.tmp");
-    const entrypointSgxPath = join(workingPath, "entrypoint.manifest.sgx.tmp");
+    const scriptPath = join(opts.workingPath, "entrypoint.script");
+    const entrypointManifestPath = join(opts.workingPath, "entrypoint.manifest");
+    const entrypointSigPath = join(opts.workingPath, "entrypoint.sig.tmp");
+    const entrypointSgxPath = join(opts.workingPath, "entrypoint.manifest.sgx.tmp");
 
     const splitter = "============= gramine-sgx-get-token ================";
     const script = `#!/usr/bin/env bash
@@ -66,58 +75,53 @@ echo "${splitter}"
 gramine-sgx-get-token --sig /entrypoint.sig --output /entrypoint.token
 `;
 
-    try {
-        await mkdir(opts.solutionPath, { recursive: true });
-        await mkdir(workingPath, { recursive: true });
+    await mkdir(opts.solutionPath, { recursive: true });
 
-        await writeFile(scriptPath, script);
-        await writeFile(entrypointManifestPath, opts.manifest);
+    await writeFile(scriptPath, script);
+    await writeFile(entrypointManifestPath, opts.manifest);
 
-        // preparing files to be filled
-        await writeFile(entrypointSigPath, "");
-        await writeFile(entrypointSgxPath, "");
+    // preparing files to be filled
+    await writeFile(entrypointSigPath, "");
+    await writeFile(entrypointSgxPath, "");
 
-        const { stdout } = await exec(
-            `docker run --hostname localhost --rm -i --entrypoint /bin/sh -v "${keyPath}:/sign.key" -v "${scriptPath}:/script.sh" -v "${entrypointManifestPath}:/entrypoint.manifest" -v "${entrypointSgxPath}:/entrypoint.manifest.sgx" -v "${entrypointSigPath}:/entrypoint.sig" "${opts.dockerImage}" /script.sh`
+    const { stdout } = await exec(
+        `docker run --hostname localhost --rm -i --entrypoint /bin/sh -v "${keyPath}:/sign.key" -v "${scriptPath}:/script.sh" -v "${entrypointManifestPath}:/entrypoint.manifest" -v "${entrypointSgxPath}:/entrypoint.manifest.sgx" -v "${entrypointSigPath}:/entrypoint.sig" "${opts.dockerImage}" /script.sh`
+    );
+
+    const mrenclave = (stdout.match(/mr_enclave:\s+([0-9a-fA-F]+)/)?.[1] || "").toLowerCase();
+    const mrsigner = (stdout.match(/mr_signer:\s+([0-9a-fA-F]+)/)?.[1] || "").toLowerCase();
+
+    if (!mrenclave || !mrsigner) {
+        throw new Error("Could not parse MRENCLAVE and MRSIGNER");
+    }
+
+    const writeManifest = async (mrenclave: string) => {
+        const solutionMetadataPath = join(
+            await realpath(opts.solutionPath),
+            ".solution-metadata",
+            "sgx-gramine",
+            "manifests",
+            "mrenclave",
+            mrenclave
         );
 
-        const mrenclave = (stdout.match(/mr_enclave:\s+([0-9a-fA-F]+)/)?.[1] || "").toLowerCase();
-        const mrsigner = (stdout.match(/mr_signer:\s+([0-9a-fA-F]+)/)?.[1] || "").toLowerCase();
+        await mkdir(solutionMetadataPath, { recursive: true });
 
-        if (!mrenclave || !mrsigner) {
-            throw new Error("Could not parse MRENCLAVE and MRSIGNER");
-        }
+        await copyFile(entrypointSgxPath, join(solutionMetadataPath, "entrypoint.manifest.sgx"));
+        await copyFile(entrypointSigPath, join(solutionMetadataPath, "entrypoint.sig"));
 
-        const writeManifest = async (mrenclave: string) => {
-            const solutionMetadataPath = join(
-                await realpath(opts.solutionPath),
-                ".solution-metadata",
-                "sgx-gramine",
-                "manifests",
-                "mrenclave",
-                mrenclave
-            );
+        return solutionMetadataPath;
+    };
 
-            await mkdir(solutionMetadataPath, { recursive: true });
+    const solutionMetadataPath = await writeManifest(mrenclave);
 
-            await copyFile(entrypointSgxPath, join(solutionMetadataPath, "entrypoint.manifest.sgx"));
-            await copyFile(entrypointSigPath, join(solutionMetadataPath, "entrypoint.sig"));
-
-            return solutionMetadataPath;
-        };
-
-        const solutionMetadataPath = await writeManifest(mrenclave);
-
-        if (opts.writeDefaultManifest) {
-            await writeManifest("_");
-        }
-
-        return {
-            solutionMetadataPath,
-            mrenclave,
-            mrsigner,
-        };
-    } finally {
-        await rm(workingPath, { force: true, recursive: true });
+    if (opts.writeDefaultManifest) {
+        await writeManifest("_");
     }
+
+    return {
+        solutionMetadataPath,
+        mrenclave,
+        mrsigner,
+    };
 };

@@ -9,6 +9,7 @@ import { assertNumber, assertSize } from "../utils";
 import { Encoding, HashAlgorithm } from "@super-protocol/dto-js";
 import { promises as fs } from "fs";
 import path from "path";
+import { tmpdir } from "os";
 
 export type PrepareSolutionParams = {
     metadataPath: string;
@@ -46,91 +47,96 @@ export default async (params: PrepareSolutionParams) => {
 
     await mkdir(params.solutionPath, { recursive: true });
 
-    Printer.print("Getting manifest");
+    const workingPath = path.join(tmpdir(), "spctl" + String(Date.now()));
+    try {
+        await mkdir(workingPath, { recursive: true });
+        Printer.print("Getting manifest");
 
-    const { dockerImage, manifest } = await extractManifest({
-        baseImagePath: params.baseImagePath,
-        baseImageResource: params.baseImageResource,
-    });
+        const { dockerImage, manifest } = await extractManifest({
+            baseImagePath: params.baseImagePath,
+            baseImageResource: params.baseImageResource,
+            workingPath: workingPath
+        });
 
-    Printer.print("Patching manifest");
+        Printer.print("Patching manifest");
 
-    const manifestObject = <any>toml.parse(manifest);
+        const manifestObject = <any>toml.parse(manifest);
 
-    if (params.sgxEnclaveSize) {
-        setValue(manifestObject, params.sgxEnclaveSize, "sgx", "enclave_size");
-    }
-    if (params.sgxThreadNum) {
-        if (parseInt(params.sgxThreadNum, 10) < 4) {
-            throw new Error("Value for the number of threads is too low, the minimum value is 4");
+        if (params.sgxEnclaveSize) {
+            setValue(manifestObject, params.sgxEnclaveSize, "sgx", "enclave_size");
         }
-        setValue(manifestObject, params.sgxThreadNum, "sgx", "thread_num");
-    }
-    if (params.loaderPalInternalMemSize) {
-        setValue(manifestObject, params.loaderPalInternalMemSize, "loader", "pal_internal_mem_size");
-    }
-    if (params.sysStackSize) {
-        setValue(manifestObject, params.sysStackSize, "sys", "stack", "size");
-    }
-
-    Printer.print("Signing manifest");
-
-    const result = await signManifest({
-        dockerImage,
-        keyPath: params.keyPath,
-        manifest: toml.stringify(manifestObject),
-        solutionPath: params.solutionPath,
-        writeDefaultManifest: params.writeDefaultManifest,
-    });
-
-    let solutionHash = "";
-    let { solutionHashAlgo } = params;
-
-    solutionHashAlgo = solutionHashAlgo || HashAlgorithm.SHA256;
-
-    if (params.solutionOutputPath) {
-        Printer.print("Packing solution folder");
-
-        const tarGzExt = ".tar.gz";
-        const tgzExt = ".tgz";
-        const ext = params.solutionOutputPath.toLowerCase();
-
-        // fix ext
-        if (ext.slice(-tarGzExt.length) !== tarGzExt && ext.slice(-tgzExt.length) !== tgzExt) {
-            params.solutionOutputPath += tarGzExt;
-        }
-
-        const hashStream = createHash(solutionHashAlgo);
-
-        await packFolderService(
-            params.solutionPath,
-            params.solutionOutputPath,
-            (total: number, current: number) => {
-                Printer.progress("Packing", total, current);
-            },
-            {
-                withoutUpFolder: true,
-                transform: new Transform({
-                    transform: (chunk, encoding, done) => {
-                        hashStream.write(chunk);
-
-                        done(null, chunk);
-                    },
-                }),
+        if (params.sgxThreadNum) {
+            if (parseInt(params.sgxThreadNum, 10) < 4) {
+                throw new Error("Value for the number of threads is too low, the minimum value is 4");
             }
-        );
+            setValue(manifestObject, params.sgxThreadNum, "sgx", "thread_num");
+        }
+        if (params.loaderPalInternalMemSize) {
+            setValue(manifestObject, params.loaderPalInternalMemSize, "loader", "pal_internal_mem_size");
+        }
+        if (params.sysStackSize) {
+            setValue(manifestObject, params.sysStackSize, "sys", "stack", "size");
+        }
 
-        Printer.stopProgress();
+        Printer.print("Signing manifest");
 
-        solutionHash = hashStream.digest().toString("hex");
-    }
+        const result = await signManifest({
+            dockerImage,
+            keyPath: params.keyPath,
+            manifest: toml.stringify(manifestObject),
+            solutionPath: params.solutionPath,
+            writeDefaultManifest: params.writeDefaultManifest,
+            workingPath: workingPath
+        });
 
-    Printer.print("Solution and manifest were created");
-    if (solutionHash) {
-        Printer.print(`Solution hash [${solutionHashAlgo}]: ${solutionHash}`);
-    }
-    Printer.print("MRENCLAVE: " + result.mrenclave);
-    Printer.print("MRSIGNER: " + result.mrsigner);
+        let solutionHash = "";
+        let { solutionHashAlgo } = params;
+
+        solutionHashAlgo = solutionHashAlgo || HashAlgorithm.SHA256;
+
+        if (params.solutionOutputPath) {
+            Printer.print("Packing solution folder");
+
+            const tarGzExt = ".tar.gz";
+            const tgzExt = ".tgz";
+            const ext = params.solutionOutputPath.toLowerCase();
+
+            // fix ext
+            if (ext.slice(-tarGzExt.length) !== tarGzExt && ext.slice(-tgzExt.length) !== tgzExt) {
+                params.solutionOutputPath += tarGzExt;
+            }
+
+            const hashStream = createHash(solutionHashAlgo);
+
+            await packFolderService(
+                params.solutionPath,
+                params.solutionOutputPath,
+                (total: number, current: number) => {
+                    Printer.progress("Packing", total, current);
+                },
+                {
+                    withoutUpFolder: true,
+                    transform: new Transform({
+                        transform: (chunk, encoding, done) => {
+                            hashStream.write(chunk);
+
+                            done(null, chunk);
+                        },
+                    }),
+                }
+            );
+
+            Printer.stopProgress();
+
+            solutionHash = hashStream.digest().toString("hex");
+        }
+
+        Printer.print("Solution and manifest were created");
+        if (solutionHash) {
+            Printer.print(`Solution hash [${solutionHashAlgo}]: ${solutionHash}`);
+        }
+        Printer.print("MRENCLAVE: " + result.mrenclave);
+        Printer.print("MRSIGNER: " + result.mrsigner);
 
     Printer.print("Saving metadata to file");
     const metadataPath = path.join(process.cwd(), params.metadataPath);
@@ -147,4 +153,7 @@ export default async (params: PrepareSolutionParams) => {
     };
     await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
     Printer.print(`Metadata was saved to ${metadataPath}`);
+    } finally {
+        await fs.rm(workingPath, { force: true, recursive: true });
+    }
 };
