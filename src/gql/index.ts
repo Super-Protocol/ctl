@@ -143,6 +143,19 @@ export type Erc20rFilter = {
     owner?: InputMaybe<Scalars["String"]>;
 };
 
+export type EventData = {
+    __typename?: "EventData";
+    contract: Scalars["String"];
+    data: EventObject;
+    name: Scalars["String"];
+};
+
+export type EventDataInput = {
+    contract: Scalars["String"];
+    data: EventObjectInput;
+    name: Scalars["String"];
+};
+
 export type EventFilter = {
     /** filter events by custom params */
     events?: InputMaybe<Array<EventSource>>;
@@ -153,6 +166,31 @@ export type EventFilterField = {
     consumer?: InputMaybe<Scalars["String"]>;
     /** filter by offerType */
     offerType?: InputMaybe<TOfferType>;
+};
+
+export type EventObject = {
+    __typename?: "EventObject";
+    consumer?: Maybe<Scalars["String"]>;
+    externalId?: Maybe<Scalars["String"]>;
+    from?: Maybe<Scalars["String"]>;
+    offerId?: Maybe<Scalars["String"]>;
+    orderId?: Maybe<Scalars["String"]>;
+    owner?: Maybe<Scalars["String"]>;
+    spender?: Maybe<Scalars["String"]>;
+    to?: Maybe<Scalars["String"]>;
+    value?: Maybe<Scalars["String"]>;
+};
+
+export type EventObjectInput = {
+    consumer?: InputMaybe<Scalars["String"]>;
+    externalId?: InputMaybe<Scalars["String"]>;
+    from?: InputMaybe<Scalars["String"]>;
+    offerId?: InputMaybe<Scalars["String"]>;
+    orderId?: InputMaybe<Scalars["String"]>;
+    owner?: InputMaybe<Scalars["String"]>;
+    spender?: InputMaybe<Scalars["String"]>;
+    to?: InputMaybe<Scalars["String"]>;
+    value?: InputMaybe<Scalars["String"]>;
 };
 
 export type EventSource = {
@@ -277,7 +315,7 @@ export type Mutation = {
     __typename?: "Mutation";
     /** Transfers specific amount of TEE tokens to specific address */
     teeTransfer: Scalars["Boolean"];
-    /** Transfers specific amount of TEE tokens to specific address */
+    /** Transfers specific amount of coins to specific address */
     transfer: Scalars["Boolean"];
 };
 
@@ -435,11 +473,29 @@ export type OfferRestrictionsInput = {
 
 export type OfferStats = {
     __typename?: "OfferStats";
-    ordersInQueue: Scalars["Float"];
+    blocked?: Maybe<Scalars["Float"]>;
+    canceled?: Maybe<Scalars["Float"]>;
+    canceling?: Maybe<Scalars["Float"]>;
+    done?: Maybe<Scalars["Float"]>;
+    error?: Maybe<Scalars["Float"]>;
+    freeCores?: Maybe<Scalars["Float"]>;
+    new?: Maybe<Scalars["Float"]>;
+    ordersInQueue?: Maybe<Scalars["Float"]>;
+    processing?: Maybe<Scalars["Float"]>;
+    suspended?: Maybe<Scalars["Float"]>;
 };
 
 export type OfferStatsInput = {
-    ordersInQueue: Scalars["Float"];
+    blocked?: InputMaybe<Scalars["Float"]>;
+    canceled?: InputMaybe<Scalars["Float"]>;
+    canceling?: InputMaybe<Scalars["Float"]>;
+    done?: InputMaybe<Scalars["Float"]>;
+    error?: InputMaybe<Scalars["Float"]>;
+    freeCores?: InputMaybe<Scalars["Float"]>;
+    new?: InputMaybe<Scalars["Float"]>;
+    ordersInQueue?: InputMaybe<Scalars["Float"]>;
+    processing?: InputMaybe<Scalars["Float"]>;
+    suspended?: InputMaybe<Scalars["Float"]>;
 };
 
 export type Order = {
@@ -591,8 +647,12 @@ export type OrderResultInput = {
 export type OrdersFilter = {
     /** filter by orderInfo -> consumer */
     consumer?: InputMaybe<Scalars["String"]>;
+    /** exclude filter by orderInfo -> status */
+    excludeStatuses?: InputMaybe<Array<Scalars["String"]>>;
     /** filter by blockchain id */
     id?: InputMaybe<Scalars["String"]>;
+    /** include filter by orderInfo -> status */
+    includeStatuses?: InputMaybe<Array<Scalars["String"]>>;
     /** filter by orderInfo -> args -> inputOffers */
     inputOffers?: InputMaybe<Array<Scalars["String"]>>;
     /** filter by orderInfo -> offer */
@@ -922,13 +982,29 @@ export type StakingPageInfo = {
 
 export type Stats = {
     __typename?: "Stats";
-    freeCores: Scalars["Float"];
-    ordersInQueue: Scalars["Float"];
+    blocked?: Maybe<Scalars["Float"]>;
+    canceled?: Maybe<Scalars["Float"]>;
+    canceling?: Maybe<Scalars["Float"]>;
+    done?: Maybe<Scalars["Float"]>;
+    error?: Maybe<Scalars["Float"]>;
+    freeCores?: Maybe<Scalars["Float"]>;
+    new?: Maybe<Scalars["Float"]>;
+    ordersInQueue?: Maybe<Scalars["Float"]>;
+    processing?: Maybe<Scalars["Float"]>;
+    suspended?: Maybe<Scalars["Float"]>;
 };
 
 export type StatsInput = {
-    freeCores: Scalars["Float"];
-    ordersInQueue: Scalars["Float"];
+    blocked?: InputMaybe<Scalars["Float"]>;
+    canceled?: InputMaybe<Scalars["Float"]>;
+    canceling?: InputMaybe<Scalars["Float"]>;
+    done?: InputMaybe<Scalars["Float"]>;
+    error?: InputMaybe<Scalars["Float"]>;
+    freeCores?: InputMaybe<Scalars["Float"]>;
+    new?: InputMaybe<Scalars["Float"]>;
+    ordersInQueue?: InputMaybe<Scalars["Float"]>;
+    processing?: InputMaybe<Scalars["Float"]>;
+    suspended?: InputMaybe<Scalars["Float"]>;
 };
 
 export type Subscription = {
@@ -1068,6 +1144,7 @@ export type Transaction = {
     baseAddress: Scalars["String"];
     blockHash?: Maybe<Scalars["String"]>;
     blockNumber?: Maybe<Scalars["Float"]>;
+    events?: Maybe<Array<EventData>>;
     from: Scalars["String"];
     gas: Scalars["Float"];
     gasPrice: Scalars["String"];
@@ -1108,6 +1185,7 @@ export type TransactionInputType = {
     baseAddress: Scalars["String"];
     blockHash?: InputMaybe<Scalars["String"]>;
     blockNumber?: InputMaybe<Scalars["Float"]>;
+    events?: InputMaybe<Array<EventDataInput>>;
     from: Scalars["String"];
     gas: Scalars["Float"];
     gasPrice: Scalars["String"];
@@ -1590,7 +1668,7 @@ export type TeeOffersQuery = {
                         name: string;
                         tokenReceiver: string;
                     };
-                    stats?: { __typename?: "Stats"; freeCores: number; ordersInQueue: number } | null;
+                    stats?: { __typename?: "Stats"; freeCores?: number | null; ordersInQueue?: number | null } | null;
                     teeOfferInfo: {
                         __typename?: "TeeOfferInfo";
                         argsPublicKey: string;
