@@ -18,10 +18,6 @@ const ConfigValidators = {
     blockchainKeys: z.object({
         actionAccountKey: z.string(),
     }),
-    tee: z.object({
-        offerId: z.string(),
-        solutionArgs: z.any(),
-    }),
     storage: z.object({
         storageType: z.nativeEnum(StorageType),
         writeCredentials: z.any(),
@@ -44,10 +40,6 @@ export type Config = {
     blockchain: BlockchainConfig;
     blockchainKeys: {
         actionAccountKey: string;
-    };
-    tee: {
-        offerId: string;
-        solutionArgs: any;
     };
     storage: {
         storageType: StorageType;
