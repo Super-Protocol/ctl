@@ -8,6 +8,8 @@ import { ZodIssue } from "zod";
 
 export const exec = promisify(execCallback);
 
+export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export const processSubCommands = (program: Command, process: (command: Command) => void) => {
     const processRecursive = (cmd: Command) => {
         cmd.commands.forEach((cmd) => {

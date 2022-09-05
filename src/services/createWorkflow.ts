@@ -1,7 +1,8 @@
 import { Crypto, Order, OrdersFactory, OrderStatus, TeeOffer } from "@super-protocol/sdk-js";
 import { Encryption } from "@super-protocol/dto-js";
 import Printer from "../printer";
-import { generateExternalId } from "../utils";
+import { generateExternalId, sleep } from "../utils";
+import { MAX_ATTEMPT_WAITING_NEW_TX, ATTEMPT_PERIOD_MS } from "../constants";
 
 export type CreateWorkflowParams = {
     teeOffer: string;
@@ -43,10 +44,19 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
         { from: params.consumerAddress }
     );
 
-    Printer.print("Fetching created order");
-    const action = await OrdersFactory.getOrder(params.consumerAddress, id);
-    const teeOrder = new Order(action.orderId.toString());
-    Printer.print("TEE order was found");
+    let { orderId } = await OrdersFactory.getOrder(params.consumerAddress, id);
+    let attempt = 0;
+    while (orderId === '-1') {
+        sleep(ATTEMPT_PERIOD_MS);
+        const events = await OrdersFactory.getOrder(params.consumerAddress, id);
+        orderId = events.orderId;
+
+        if (orderId == '-1' && attempt == MAX_ATTEMPT_WAITING_NEW_TX) {
+            throw new Error(`TEE order wasn't created within ${MAX_ATTEMPT_WAITING_NEW_TX * ATTEMPT_PERIOD_MS / 1000} seconds. Try increasing the gas price.`);
+        }
+    }
+    Printer.print("TEE order created successfully, fetching created order...");
+    const teeOrder = new Order(orderId.toString());
 
     try {
         if (suspended) {
