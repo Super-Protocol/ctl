@@ -6,10 +6,11 @@ import { isCommandSupported } from "../services/uplinkSetupHelper";
 import path from "path";
 import getOrderResult from "../services/getOrderResult";
 import { Encryption, Resource, ResourceType, StorageProviderResource, UrlResource } from "@super-protocol/dto-js";
-import { Crypto, Config as BlockchainConfig } from "@super-protocol/sdk-js";
+import { Crypto, Config as BlockchainConfig, OrderStatus } from "@super-protocol/sdk-js";
 import downloadFileByUrl from "../services/downloadFileByUrl";
 import initBlockchainConnector from "../services/initBlockchainConnector";
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
+import checkOrderService from "../services/checkOrder";
 
 export type FilesDownloadParams = {
     blockchainConfig: BlockchainConfig;
@@ -27,6 +28,12 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     Printer.print("Connecting to the blockchain");
     await initBlockchainConnector({
         blockchainConfig: params.blockchainConfig,
+    });
+
+    Printer.print("Checking if the order result is ready");
+    await checkOrderService({
+        id: params.orderId,
+        statuses: [OrderStatus.Canceled, OrderStatus.Done, OrderStatus.Error, OrderStatus.Canceling],
     });
 
     Printer.print("Fetching order result");
