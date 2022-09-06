@@ -54,6 +54,8 @@ export default async (params: FilesUploadParams) => {
         );
         Printer.stopProgress();
 
+        Printer.print("File was uploaded successfully");
+
         const result = {
             ...metadata,
             encryption: encryptedFileData.encryption,
@@ -70,6 +72,5 @@ export default async (params: FilesUploadParams) => {
     } finally {
         Printer.print("Deleting temp files");
         await fs.unlink(encryptedFileData.encryptedFilePath);
-        Printer.print("File was uploaded successfully");
     }
 };
