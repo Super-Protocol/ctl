@@ -6,7 +6,7 @@ import { ResourceType, StorageProviderResource, UrlResource } from "@super-proto
 import downloadFileByUrl from "../services/downloadFileByUrl";
 import initBlockchainConnector from "../services/initBlockchainConnector";
 import { Config as BlockchainConfig } from "@super-protocol/sdk-js/build/BlockchainConnector";
-import getOfferResult from "../services/getOfferResult";
+import getOfferContent from "../services/getOfferContent";
 
 export type OfferDownloadParamsParams = {
     blockchainConfig: BlockchainConfig;
@@ -21,7 +21,7 @@ export default async (params: OfferDownloadParamsParams): Promise<void> => {
     });
 
     Printer.print("Fetching offer content");
-    const resource = await getOfferResult({ offerId: params.offerId });
+    const resource = await getOfferContent({ offerId: params.offerId });
     if (!resource) {
         Printer.print(`Offer ${params.offerId} does not allow to download its content`);
         return;
@@ -58,5 +58,5 @@ export default async (params: OfferDownloadParamsParams): Promise<void> => {
     }
 
     Printer.stopProgress();
-    Printer.print("Offer contents downloaded successfully");
+    Printer.print(`Offer content was saved to ${params.localPath}`);
 };

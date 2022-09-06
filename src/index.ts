@@ -26,7 +26,7 @@ import tokensRequest from "./commands/tokensRequest";
 import tokensBalance from "./commands/tokensBalance";
 import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
-import offerDownloadResult from "./commands/offerDownloadResult";
+import offersDownloadContent from "./commands/offersDownloadContent";
 import eccrypto from "eccrypto";
 
 async function main() {
@@ -435,15 +435,15 @@ async function main() {
         });
 
     offersCommand
-        .command("download-result")
+        .command("download-content")
         .description("Download the content of an offer with <id> (only for offers that allows this operation)")
         .argument("id", "Offer id")
-        .option("--save-to <path>", "Path to save result", "./result.tar.gz")
+        .option("--save-to <path>", "Path to save content", "./offer.tar.gz")
         .action(async (offerId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
 
-            await offerDownloadResult({
+            await offersDownloadContent({
                 blockchainConfig: blockchainAccess,
                 offerId,
                 localPath: options.saveTo,

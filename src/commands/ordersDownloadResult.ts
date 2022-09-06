@@ -137,7 +137,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     Printer.stopProgress();
     Printer.print("Deleting temp files");
     await fs.unlink(localPath);
-    Printer.print("Order result was downloaded successfully");
+    Printer.print(`Order result was saved to ${params.localPath}`);
 };
 
 async function tryDecrypt(encryption: Encryption, decryptionKey: string): Promise<string | undefined> {
