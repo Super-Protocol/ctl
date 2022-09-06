@@ -1,5 +1,5 @@
 import { join } from "path";
-import { writeFile, readFile, rm, mkdir, copyFile, realpath} from "fs/promises";
+import { writeFile, readFile, rm, mkdir, copyFile, realpath } from "fs/promises";
 import { existsSync } from "fs";
 import { assertCommand, exec } from "../utils";
 
@@ -36,14 +36,13 @@ export const extractManifest = async (opts: {
     if (!existsSync(baseSolutionManifestPath)) {
         throw new Error(`An error occurred while extract the manifest`);
     }
-    const content = await readFile(baseSolutionManifestPath, 'utf8');
+    const content = await readFile(baseSolutionManifestPath, "utf8");
 
     return {
         dockerImage,
         manifest: content,
     };
 };
-
 
 export const signManifest = async (opts: {
     dockerImage: string;

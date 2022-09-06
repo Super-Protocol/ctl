@@ -46,13 +46,17 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
 
     let { orderId } = await OrdersFactory.getOrder(params.consumerAddress, id);
     let attempt = 0;
-    while (orderId === '-1') {
+    while (orderId === "-1") {
         sleep(ATTEMPT_PERIOD_MS);
         const events = await OrdersFactory.getOrder(params.consumerAddress, id);
         orderId = events.orderId;
 
-        if (orderId == '-1' && attempt == MAX_ATTEMPT_WAITING_NEW_TX) {
-            throw new Error(`TEE order wasn't created within ${MAX_ATTEMPT_WAITING_NEW_TX * ATTEMPT_PERIOD_MS / 1000} seconds. Try increasing the gas price.`);
+        if (orderId == "-1" && attempt == MAX_ATTEMPT_WAITING_NEW_TX) {
+            throw new Error(
+                `TEE order wasn't created within ${
+                    (MAX_ATTEMPT_WAITING_NEW_TX * ATTEMPT_PERIOD_MS) / 1000
+                } seconds. Try increasing the gas price.`
+            );
         }
     }
     Printer.print("TEE order created successfully, fetching created order...");

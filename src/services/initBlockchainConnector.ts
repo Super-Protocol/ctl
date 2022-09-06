@@ -20,10 +20,14 @@ const checkPendingLoop = async (pk: string): Promise<void> => {
     let attempt = 0;
     let pendingAmount = await pendingStatusChecker(pk);
     while (pendingAmount > 0) {
-        Printer.progress(`Waiting for ${pendingAmount} pending transactions will be completed, before start`, MAX_ATTEMPT_WAITING_OLD_TXS, attempt);
+        Printer.progress(
+            `Waiting for ${pendingAmount} pending transactions will be completed, before start`,
+            MAX_ATTEMPT_WAITING_OLD_TXS,
+            attempt
+        );
         await sleep(ATTEMPT_PERIOD_MS);
         ++attempt;
-        
+
         if (MAX_ATTEMPT_WAITING_OLD_TXS == attempt) {
             Printer.stopProgress();
             throw new Error(

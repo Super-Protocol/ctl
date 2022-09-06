@@ -55,7 +55,7 @@ export default async (params: PrepareSolutionParams) => {
         const { dockerImage, manifest } = await extractManifest({
             baseImagePath: params.baseImagePath,
             baseImageResource: params.baseImageResource,
-            workingPath: workingPath
+            workingPath: workingPath,
         });
 
         Printer.print("Patching manifest");
@@ -86,7 +86,7 @@ export default async (params: PrepareSolutionParams) => {
             manifest: toml.stringify(manifestObject),
             solutionPath: params.solutionPath,
             writeDefaultManifest: params.writeDefaultManifest,
-            workingPath: workingPath
+            workingPath: workingPath,
         });
 
         let solutionHash = "";
@@ -138,21 +138,21 @@ export default async (params: PrepareSolutionParams) => {
         Printer.print("MRENCLAVE: " + result.mrenclave);
         Printer.print("MRSIGNER: " + result.mrsigner);
 
-    Printer.print("Saving metadata to file");
-    const metadataPath = path.join(process.cwd(), params.metadataPath);
-    const metadata = {
-        linkage: {
-            encoding: Encoding.base64,
-            mrenclave: Buffer.from(result.mrenclave, "hex").toString(Encoding.base64),
-        },
-        hash: {
-            encoding: Encoding.base64,
-            hashAlgo: solutionHashAlgo,
-            hash: Buffer.from(solutionHash, "hex").toString(Encoding.base64),
-        },
-    };
-    await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
-    Printer.print(`Metadata was saved to ${metadataPath}`);
+        Printer.print("Saving metadata to file");
+        const metadataPath = path.join(process.cwd(), params.metadataPath);
+        const metadata = {
+            linkage: {
+                encoding: Encoding.base64,
+                mrenclave: Buffer.from(result.mrenclave, "hex").toString(Encoding.base64),
+            },
+            hash: {
+                encoding: Encoding.base64,
+                hashAlgo: solutionHashAlgo,
+                hash: Buffer.from(solutionHash, "hex").toString(Encoding.base64),
+            },
+        };
+        await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+        Printer.print(`Metadata was saved to ${metadataPath}`);
     } finally {
         await fs.rm(workingPath, { force: true, recursive: true });
     }
