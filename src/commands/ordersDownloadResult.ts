@@ -55,7 +55,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
             await writeResult(
                 localTxtPath,
                 JSON.stringify(encrypted),
-                "Could not decrypt the result, saving raw data to file"
+                "Could not decrypt the result, make sure that the result encryption key in the config file is correct"
             );
             return;
         }
@@ -78,7 +78,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
             await writeResult(
                 localTxtPath,
                 JSON.stringify(encrypted),
-                "Could not decrypt the result, saving raw data to file"
+                "Could not decrypt the result, make sure that the result encryption key in the config file is correct"
             );
             return;
         }
@@ -160,5 +160,5 @@ async function tryParse(text: string): Promise<any> {
 async function writeResult(localPath: string, content: string, message: string) {
     Printer.print(message);
     await fs.writeFile(path.join(process.cwd(), localPath), content);
-    Printer.print(`Order result was saved to ${localPath}`);
+    Printer.print(`Order result metadata was saved to ${localPath}`);
 }
