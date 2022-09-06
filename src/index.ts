@@ -145,8 +145,8 @@ async function main() {
         });
 
     workflowsCommand
-        .command("gen-private")
-        .description("generates 32-byte private key")
+        .command("generate-key")
+        .description("Generate a private key for encryption")
         .action(() => {
             Printer.print(eccrypto.generatePrivate().toString("base64"));
         });
