@@ -38,7 +38,7 @@ export default async (params: FetchOffersParams) => {
                 holdSum: weiToEther(item.node?.offerInfo.holdSum),
                 providerName: item.node?.providerInfo.name,
                 providerId: item.node?.origins?.createdBy,
-                cancelebel: item.node?.offerInfo?.cancelable,
+                cancelable: item.node?.offerInfo?.cancelable,
                 modifiedDate: formatDate(item.node?.origins?.modifiedDate),
             })) || [],
         cursor: result.page.pageInfo!.endCursor,
