@@ -2,6 +2,7 @@ import { GraphQLClient } from "graphql-request";
 import { OrderStatus } from "@super-protocol/sdk-js";
 import { getSdk, TOfferType } from "../gql";
 import getGqlHeaders from "./gqlHeaders";
+import { ErrorWithCustomMessage } from "../utils";
 
 export type FetchOrdersCountParams = {
     backendUrl: string;
@@ -15,16 +16,22 @@ export default async (params: FetchOrdersCountParams): Promise<number> => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
     const headers = getGqlHeaders(params.accessToken);
 
-    const { result } = await sdk.OrdersCount(
-        {
-            filter: {
-                includeStatuses: params.includeStatuses,
-                consumer: params.consumer,
-                offerType: params.offerType,
+    try {
+        const { result } = await sdk.OrdersCount(
+            {
+                filter: {
+                    includeStatuses: params.includeStatuses,
+                    consumer: params.consumer,
+                    offerType: params.offerType,
+                },
             },
-        },
-        headers
-    );
+            headers
+        );
 
-    return result.pageData?.count || 0;
+        return result.pageData?.count || 0;
+    } catch (error: any) {
+        let message = "Fetching orders count error";
+        if (error?.response?.errors[0]?.message) message += ": " + error.response.errors[0].message;
+        throw ErrorWithCustomMessage(message, error);
+    }
 };

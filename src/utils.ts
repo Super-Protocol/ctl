@@ -130,5 +130,5 @@ export const createZodErrorMessage = (error: ZodIssue[]) => {
 
 export const preparePath = (rawPath: string) => {
     if (path.isAbsolute(rawPath)) return rawPath;
-    return path.join(process.cwd(), rawPath)
-}
+    return path.join(process.cwd(), rawPath);
+};

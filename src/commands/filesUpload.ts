@@ -67,7 +67,7 @@ export default async (params: FilesUploadParams) => {
         };
         const outputpath = preparePath(params.outputPath);
         await fs.writeFile(outputpath, JSON.stringify(result, null, 2));
-        Printer.print(`Resource file was created in ${outputpath}\n`);
+        Printer.print(`Resource file was created in ${outputpath}`);
     } finally {
         Printer.print("Deleting temp files");
         await fs.unlink(encryptedFileData.encryptedFilePath);
