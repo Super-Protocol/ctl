@@ -94,6 +94,14 @@ query OrdersSelect($pagination: ConnectionArgs!, $filter: OrdersFilter) {
     }
 }
 
+query OrdersCount($filter: OrdersFilter) {
+    result: orders(pagination: { first: 1 }, filter: $filter) {
+        pageData {
+            count
+        }
+    }
+}
+
 query Order($id: String!) {
     order(id: $id) {
         id

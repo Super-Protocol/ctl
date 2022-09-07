@@ -1,4 +1,10 @@
-import { Config as BlockchainConfig, TIIGenerator, SuperproToken, OrdersFactory } from "@super-protocol/sdk-js";
+import {
+    Config as BlockchainConfig,
+    TIIGenerator,
+    SuperproToken,
+    OrdersFactory,
+    OrderStatus,
+} from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import validateOfferWorkflowService from "../services/validateOfferWorkflow";
@@ -6,12 +12,16 @@ import { CryptoAlgorithm, Encoding, Encryption } from "@super-protocol/dto-js";
 import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
-import { Wallet } from "ethers";
 import getTeeBalance from "../services/getTeeBalance";
 import { etherToWei, weiToEther } from "../utils";
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
+import fetchOrdersCountService from "../services/fetchOrdersCount";
+import { TOfferType } from "../gql";
+import { MAX_ORDERS_RUNNING } from "../constants";
 
 export type WorkflowCreateParams = {
+    backendUrl: string;
+    accessToken: string;
     blockchainConfig: BlockchainConfig;
     actionAccountKey: string;
     tee: string;
@@ -29,6 +39,26 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     if (params.resultEncryption.encoding !== Encoding.base64)
         throw new Error("Only base64 result encryption is supported");
 
+    Printer.print("Connecting to the blockchain");
+    const consumerAddress = await initBlockchainConnectorService({
+        blockchainConfig: params.blockchainConfig,
+        actionAccountKey: params.actionAccountKey,
+    });
+
+    const ordersCount = await fetchOrdersCountService({
+        backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
+        includeStatuses: [OrderStatus.New, OrderStatus.Processing],
+        consumer: consumerAddress!,
+        offerType: TOfferType.TeeOffer,
+    });
+
+    if (ordersCount >= MAX_ORDERS_RUNNING) {
+        throw new Error(
+            "We limit the maximum number of active orders per user. You will be able to create order when one of the processing ones is completed."
+        );
+    }
+
     const resultEncryption: Encryption = {
         algo: params.resultEncryption.algo,
         encoding: params.resultEncryption.encoding,
@@ -42,12 +72,6 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     const data = await parseInputResourcesService({
         options: params.data,
         optionsName: "data",
-    });
-
-    Printer.print("Connecting to the blockchain");
-    const consumerAddress = await initBlockchainConnectorService({
-        blockchainConfig: params.blockchainConfig,
-        actionAccountKey: params.actionAccountKey,
     });
 
     Printer.print("Validating workflow configuration");
@@ -113,7 +137,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         }
         holdDeposit = userDeposit;
 
-        const balance = await getTeeBalance({ address: new Wallet(params.actionAccountKey).address });
+        const balance = await getTeeBalance({ address: consumerAddress! });
         if (balance.lt(holdDeposit)) {
             Printer.error(
                 `Balance of your account (${weiToEther(

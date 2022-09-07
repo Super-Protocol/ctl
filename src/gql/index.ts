@@ -1505,6 +1505,15 @@ export type OrdersSelectQuery = {
     };
 };
 
+export type OrdersCountQueryVariables = Exact<{
+    filter?: InputMaybe<OrdersFilter>;
+}>;
+
+export type OrdersCountQuery = {
+    __typename?: "Query";
+    result: { __typename?: "ListOrdersResponse"; pageData?: { __typename?: "PageDataDto"; count: number } | null };
+};
+
 export type OrderQueryVariables = Exact<{
     id: Scalars["String"];
 }>;
@@ -1957,6 +1966,15 @@ export const OrdersSelectDocument = gql`
     }
     ${PageDataDtoFragmentFragmentDoc}
 `;
+export const OrdersCountDocument = gql`
+    query OrdersCount($filter: OrdersFilter) {
+        result: orders(pagination: { first: 1 }, filter: $filter) {
+            pageData {
+                count
+            }
+        }
+    }
+`;
 export const OrderDocument = gql`
     query Order($id: String!) {
         order(id: $id) {
@@ -2276,6 +2294,20 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
                         ...wrappedRequestHeaders,
                     }),
                 "OrdersSelect",
+                "query"
+            );
+        },
+        OrdersCount(
+            variables: OrdersCountQueryVariables,
+            requestHeaders?: Dom.RequestInit["headers"]
+        ): Promise<OrdersCountQuery> {
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<OrdersCountQuery>(OrdersCountDocument, variables, {
+                        ...requestHeaders,
+                        ...wrappedRequestHeaders,
+                    }),
+                "OrdersCount",
                 "query"
             );
         },

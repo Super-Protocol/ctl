@@ -180,11 +180,15 @@ async function main() {
             }
 
             const configLoader = new ConfigLoader(options.config);
+            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
             const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
             const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
             const workflowConfig = configLoader.loadSection("workflow") as Config["workflow"];
 
             await workflowsCreate({
+                backendUrl: backendAccess.url,
+                accessToken,
                 blockchainConfig: blockchainAccess,
                 actionAccountKey: blockchainKeys.actionAccountKey,
                 tee: options.tee,

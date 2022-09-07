@@ -9,7 +9,7 @@ import path from "path";
 
 export const exec = promisify(execCallback);
 
-export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const processSubCommands = (program: Command, process: (command: Command) => void) => {
     process(program);
