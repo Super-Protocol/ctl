@@ -12,6 +12,8 @@ export const exec = promisify(execCallback);
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const processSubCommands = (program: Command, process: (command: Command) => void) => {
+    process(program);
+
     const processRecursive = (cmd: Command) => {
         cmd.commands.forEach((cmd) => {
             process(cmd);
