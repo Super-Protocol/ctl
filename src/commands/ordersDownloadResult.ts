@@ -10,6 +10,7 @@ import { Crypto, Config as BlockchainConfig, OrderStatus } from "@super-protocol
 import downloadFileByUrl from "../services/downloadFileByUrl";
 import initBlockchainConnector from "../services/initBlockchainConnector";
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
+import { preparePath } from "../utils";
 import checkOrderService from "../services/checkOrder";
 
 export type FilesDownloadParams = {
@@ -94,13 +95,13 @@ export default async (params: FilesDownloadParams): Promise<void> => {
 
     Printer.print("Result was decrypted, downloading file");
     const resource: Resource = decrypted.resource!;
-    const localPath = `${params.localPath.replace(/\/$/, "")}.encrypted`;
+    const localPath = `${preparePath(params.localPath).replace(/\/$/, "")}.encrypted`;
 
     switch (resource.type) {
         case ResourceType.Url:
             await downloadFileByUrl({
                 url: (resource as UrlResource).url,
-                savePath: path.join(process.cwd(), localPath),
+                savePath: localPath,
                 progressListener: (total, current) => {
                     Printer.progress("Downloading file", total, current);
                 },

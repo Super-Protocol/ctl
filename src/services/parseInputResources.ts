@@ -1,7 +1,6 @@
-import path from "path";
-import process from "process";
 import readResourceFile, { ResourceFile } from "./readResourceFile";
 import { AESEncryption, Cipher, CryptoAlgorithm, Encoding } from "@super-protocol/dto-js";
+import { preparePath } from "../utils";
 
 export type ParseInputResourcesParams = {
     options: string[];
@@ -21,7 +20,7 @@ export default async (params: ParseInputResourcesParams) => {
             }
 
             const resourceFile = await readResourceFile({
-                path: path.join(process.cwd(), param),
+                path: preparePath(param),
             });
 
             // TODO: remove this code, after TII with no encryption will be allowed

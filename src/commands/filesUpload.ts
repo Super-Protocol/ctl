@@ -4,8 +4,7 @@ import uploadService from "../services/uploadFile";
 import { ResourceType, StorageType } from "@super-protocol/dto-js";
 import Printer from "../printer";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
-import path from "path";
-import { generateExternalId } from "../utils";
+import { generateExternalId, preparePath } from "../utils";
 import readJsonFileService from "../services/readJsonFile";
 import generateEncryptionService from "../services/generateEncryption";
 
@@ -23,12 +22,12 @@ export default async (params: FilesUploadParams) => {
 
     let metadata = {};
     if (params.metadataPath) {
-        metadata = await readJsonFileService({ path: path.join(process.cwd(), params.metadataPath) });
+        metadata = await readJsonFileService({ path: preparePath(params.metadataPath) });
     }
 
     const encryption = await generateEncryptionService();
 
-    let localPath = params.localPath.replace(/\/$/, "");
+    let localPath = preparePath(params.localPath).replace(/\/$/, "");
 
     let info = await fs.stat(localPath);
     if (info.isDirectory()) {
@@ -66,7 +65,7 @@ export default async (params: FilesUploadParams) => {
                 credentials: params.writeCredentials,
             },
         };
-        const outputpath = path.join(process.cwd(), params.outputPath);
+        const outputpath = preparePath(params.outputPath);
         await fs.writeFile(outputpath, JSON.stringify(result, null, 2));
         Printer.print(`Resource file was created in ${outputpath}\n`);
     } finally {

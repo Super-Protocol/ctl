@@ -3,9 +3,9 @@ import downloadService from "../services/downloadFile";
 import decryptFileService from "../services/decryptFile";
 import Printer from "../printer";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
-import path from "path";
 import readResourceFileService from "../services/readResourceFile";
 import { ResourceType, StorageProviderResource } from "@super-protocol/dto-js";
+import { preparePath } from "../utils";
 
 export type FilesDownloadParams = {
     resourcePath: string;
@@ -16,14 +16,14 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     if (!isCommandSupported()) return;
 
     const resourceFile = await readResourceFileService({
-        path: path.join(process.cwd(), params.resourcePath),
+        path: preparePath(params.resourcePath),
     });
 
     const resource = resourceFile.resource as StorageProviderResource;
     if (resource.type !== ResourceType.StorageProvider)
         throw Error(`Resource type ${resource.type} is not supported, use StorageProvider type for this command`);
 
-    let localPath = params.localPath.replace(/\/$/, "");
+    let localPath = preparePath(params.localPath).replace(/\/$/, "");
     if (resourceFile.encryption) localPath += ".encrypted";
 
     const storageAccess = {

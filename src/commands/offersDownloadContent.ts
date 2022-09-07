@@ -6,6 +6,7 @@ import { ResourceType, StorageProviderResource, UrlResource } from "@super-proto
 import downloadFileByUrl from "../services/downloadFileByUrl";
 import initBlockchainConnector from "../services/initBlockchainConnector";
 import { Config as BlockchainConfig } from "@super-protocol/sdk-js/build/BlockchainConnector";
+import { preparePath } from "../utils";
 import getOfferContent from "../services/getOfferContent";
 
 export type OfferDownloadParamsParams = {
@@ -28,7 +29,7 @@ export default async (params: OfferDownloadParamsParams): Promise<void> => {
     }
 
     Printer.print("Offer content is available for download");
-    const localPath = path.join(process.cwd(), params.localPath.replace(/\/$/, ""));
+    const localPath = preparePath(params.localPath).replace(/\/$/, "");
     switch (resource.type) {
         case ResourceType.Url:
             await downloadFileByUrl({

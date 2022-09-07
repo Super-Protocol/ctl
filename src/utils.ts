@@ -5,6 +5,7 @@ import { DateTime } from "luxon";
 import { BigNumberish, ethers } from "ethers";
 import { ErrorMessageOptions, generateErrorMessage } from "zod-error";
 import { ZodIssue } from "zod";
+import path from "path";
 
 export const exec = promisify(execCallback);
 
@@ -124,3 +125,8 @@ const options: ErrorMessageOptions = {
 export const createZodErrorMessage = (error: ZodIssue[]) => {
     return generateErrorMessage(error, options);
 };
+
+export const preparePath = (rawPath: string) => {
+    if (path.isAbsolute(rawPath)) return rawPath;
+    return path.join(process.cwd(), rawPath)
+}

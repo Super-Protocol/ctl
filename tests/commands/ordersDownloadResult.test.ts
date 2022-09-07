@@ -4,6 +4,7 @@ import ordersDownloadResult, { localTxtPath } from "../../src/commands/ordersDow
 import fs, { promises as fsPromises } from "fs";
 import path from "path";
 import { CryptoAlgorithm, Encoding, Encryption } from "@super-protocol/dto-js";
+import { preparePath } from "../../src/utils";
 
 jest.mock("fs");
 jest.mock("../../src/services/initBlockchainConnector");
@@ -19,7 +20,7 @@ jest.mock("../../src/services/downloadFileByUrl");
 jest.mock("../../src/services/decryptFile", () => {
     const mock = jest.fn().mockImplementation(async (filepath: string) => {
         const decryptedFilepath = filepath.substring(0, filepath.lastIndexOf(".encrypted"));
-        await fsPromises.writeFile(path.join(process.cwd(), decryptedFilepath), decryptedFileContent);
+        await fsPromises.writeFile(preparePath(decryptedFilepath), decryptedFileContent);
     });
     return {
         __esModule: true,
