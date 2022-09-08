@@ -1,4 +1,5 @@
 import { Order, OrderStatus } from "@super-protocol/sdk-js";
+import { getObjectKey } from "../utils";
 
 export type CheckOrderParams = {
     id: string;
@@ -15,7 +16,11 @@ const checkOrder = async (params: CheckOrderParams) => {
         const info = await order.getOrderInfo();
 
         if (!params.statuses.includes(info.status)) {
-            throw new Error("Can't execute in the current order status");
+            const current = getObjectKey(info.status, OrderStatus);
+            const supported = params.statuses.map(s => getObjectKey(s, OrderStatus)).join(", ");
+            throw new Error(
+                `Order status ${current} is not supported for this command, supported order statuses are: ${supported}`
+            );
         }
     }
 };

@@ -52,9 +52,9 @@ export const prepareObjectToPrint = (object: { [key: string]: any }, fields: str
     return newObject;
 };
 
-export const getObjectKey = (value: any, object: { [key: string]: any }) => {
+export const getObjectKey = (value: any, object: object) => {
     const result = Object.entries(object).find(([k, v]) => v === value);
-    return result ? result[0] : "none";
+    return result && result[0];
 };
 
 export const formatDate = (date: string | number | Date | undefined) => {

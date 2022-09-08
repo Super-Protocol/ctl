@@ -34,7 +34,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     Printer.print("Checking if the order result is ready");
     await checkOrderService({
         id: params.orderId,
-        statuses: [OrderStatus.Canceled, OrderStatus.Done, OrderStatus.Error, OrderStatus.Canceling],
+        statuses: [OrderStatus.Canceled, OrderStatus.Done, OrderStatus.Error],
     });
 
     Printer.print("Fetching order result");
