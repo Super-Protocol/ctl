@@ -13,11 +13,11 @@ import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
 import getTeeBalance from "../services/getTeeBalance";
-import { etherToWei, weiToEther } from "../utils";
+import { ErrorTxRevertedByEvm, etherToWei, weiToEther } from "../utils";
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
 import fetchOrdersCountService from "../services/fetchOrdersCount";
 import { TOfferType } from "../gql";
-import { MAX_ORDERS_RUNNING } from "../constants";
+import { MAX_ORDERS_RUNNING, TX_REVERTED_BY_EVM_ERROR } from "../constants";
 
 export type WorkflowCreateParams = {
     backendUrl: string;
@@ -153,9 +153,14 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     let workflowPromises = new Array(params.createWorkflows);
 
     Printer.print("Approve tokens for all workflows");
-    await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.createWorkflows).toString(), {
-        from: consumerAddress!,
-    });
+    try {
+        await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.createWorkflows).toString(), {
+            from: consumerAddress!,
+        });
+    } catch (error: any) {
+        if (error.message?.includes(TX_REVERTED_BY_EVM_ERROR)) throw ErrorTxRevertedByEvm(error);
+        else throw error;
+    }
 
     Printer.print("Create workflows");
     for (let pos = 0; pos < params.createWorkflows; pos++) {

@@ -6,7 +6,7 @@ export type GetOrderResultParams = {
 
 const getOrderResult = async (params: GetOrderResultParams) => {
     const order = new Order(params.orderId);
-    return await order.getOrderResult();
+    return order.getOrderResult();
 };
 
 export default getOrderResult;
