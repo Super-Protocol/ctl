@@ -28,6 +28,7 @@ import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
 import offersDownloadContent from "./commands/offersDownloadContent";
 import eccrypto from "eccrypto";
+import ordersWithdrawDeposit from "./commands/ordersWithdrawDeposit";
 
 async function main() {
     const program = new Command();
@@ -324,6 +325,22 @@ async function main() {
                 orderId,
                 localPath: options.saveTo,
                 resultDecryptionKey: workflowConfig.resultEncryption.key!,
+            });
+        });
+
+    ordersCommand
+        .command("withdraw-deposit")
+        .description("Withdraw order deposit from completed order with <id>")
+        .argument("id", "Order id")
+        .action(async (id: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
+
+            await ordersWithdrawDeposit({
+                blockchainConfig: blockchainAccess,
+                actionAccountKey: blockchainKeys.actionAccountKey,
+                id,
             });
         });
 
