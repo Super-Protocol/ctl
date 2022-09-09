@@ -10,6 +10,7 @@ export type CalcWorkflowDepositParams = {
 
 const calcWorkflowDeposit = async (params: CalcWorkflowDepositParams) => {
     const offers = [...params.solutions, ...params.data, params.storage, params.tee];
+    const orderMinDeposit = await Superpro.getParam(ParamName.OrderMinimumDeposit);
 
     let offersDeposits = BigNumber.from(0);
     await Promise.all(
@@ -20,7 +21,9 @@ const calcWorkflowDeposit = async (params: CalcWorkflowDepositParams) => {
         })
     );
 
-    return offersDeposits;
+    const workflowDeposit = offersDeposits.gte(orderMinDeposit) ? offersDeposits : BigNumber.from(orderMinDeposit);
+
+    return workflowDeposit;
 };
 
 export default calcWorkflowDeposit;
