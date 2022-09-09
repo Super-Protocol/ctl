@@ -18,6 +18,11 @@ export default async (params: OffersListTeeParams) => {
         cursor: params.cursor,
     });
 
+    if (!offers.list.length) {
+        Printer.print("No tee offers found");
+        return;
+    }
+
     const rows = offers.list.map((item) => prepareObjectToPrint(item, params.fields));
 
     Printer.table(rows);

@@ -11,6 +11,7 @@ export type FetchOrdersParams = {
     limit: number;
     cursor?: string;
     id?: string;
+    customerAddress?: string;
 };
 
 export default async (params: FetchOrdersParams) => {
@@ -26,7 +27,7 @@ export default async (params: FetchOrdersParams) => {
                     sortDir: "DESC",
                     sortBy: "origins.createdDate",
                 },
-                filter: { id: params.id },
+                filter: { id: params.id, consumer: params.customerAddress },
             },
             headers
         );

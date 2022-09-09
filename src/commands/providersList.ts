@@ -18,6 +18,11 @@ export default async (params: ProviderListParams) => {
         cursor: params.cursor,
     });
 
+    if (!providers.list.length) {
+        Printer.print("No providers found");
+        return;
+    }
+
     const rows = providers.list.map((item) => prepareObjectToPrint(item, params.fields));
 
     Printer.table(rows);
