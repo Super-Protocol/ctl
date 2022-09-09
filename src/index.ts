@@ -225,12 +225,18 @@ async function main() {
                 .argParser(commaSeparatedList)
                 .default(ordersListDefaultFields, ordersListDefaultFields.join(","))
         )
+        .option("--my-account", "Only show orders that were created by the action account specified in the config file", false)
         .option("--limit <number>", "Limit of records", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const backendAccess = configLoader.loadSection("backend") as Config["backend"];
             const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+
+            let actionAccountKey;
+            if (options.myAccount) {
+                actionAccountKey = (configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"]).actionAccountKey;
+            }
 
             validateFields(options.fields, ordersListFields);
 
@@ -240,6 +246,7 @@ async function main() {
                 accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
+                actionAccountKey,
             });
         });
 
