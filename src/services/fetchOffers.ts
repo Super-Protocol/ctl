@@ -41,6 +41,7 @@ export default async (params: FetchOffersParams) => {
                     providerId: item.node?.origins?.createdBy,
                     cancelebel: item.node?.offerInfo?.cancelable,
                     modifiedDate: formatDate(item.node?.origins?.modifiedDate),
+                    restrictions: item.node?.offerInfo.restrictions
                 })) || [],
             cursor: result.page.pageInfo!.endCursor,
         };

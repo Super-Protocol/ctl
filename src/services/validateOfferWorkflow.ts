@@ -3,6 +3,7 @@ import { ResourceFile } from "./readResourceFile";
 
 export type ValidateOfferWorkflowParams = {
     offerId: string;
+    restrictions: string[];
     tee: string;
     solutions: string[];
     data?: string[];
@@ -12,6 +13,7 @@ export type ValidateOfferWorkflowParams = {
 
 export default async (params: ValidateOfferWorkflowParams) => {
     const offer = new Offer(params.offerId);
+    const restrictionOffers = params.restrictions.map(id => new Offer(id));
 
     await Promise.all([
         (async () => {
@@ -20,12 +22,9 @@ export default async (params: ValidateOfferWorkflowParams) => {
             }
         })(),
         (async () => {
-            const offerInfo = await offer.getInfo();
             await Promise.all(
-                offerInfo.restrictions.offers.map(async (offerId) => {
-                    const allowedOffer = new Offer(offerId);
-                    let type = await allowedOffer.getOfferType();
-
+                restrictionOffers.map(async (allowedOffer) => {
+                    let type = allowedOffer.type ?? await allowedOffer.getOfferType();
                     if (type === OfferType.Solution && params.solutionArgs.length) {
                         throw Error(
                             `Offer ${params.offerId} permission settings do not allow custom solution arguments`
@@ -61,14 +60,22 @@ export default async (params: ValidateOfferWorkflowParams) => {
                 !otherSolutions.length &&
                 !params.solutionArgs.length
             ) {
-                throw Error(`Offer ${params.offerId} permission settings require the use of a solution offer`);
+                const allowedOffers = restrictionOffers.filter(async allowedOffer => {
+                    const type = allowedOffer.type ?? await allowedOffer.getOfferType();
+                    return type === OfferType.Solution;
+                }).map(o => o.id);
+                throw Error(`Offer ${params.offerId} must be used in conjunction with one of the following solutions: ${allowedOffers.join(", ")}`);
             }
         })(),
         (async () => {
             if (!params.data) return;
             const otherData = params.data.filter((data) => data !== params.offerId);
             if ((await offer.isRestrictedByOfferType(OfferType.Data)) && !otherData.length && !params.dataArgs.length) {
-                throw Error(`Offer ${params.offerId} permission settings require the use of a data offer`);
+                const allowedOffers = restrictionOffers.filter(async offer => {
+                    const type = offer.type ?? await offer.getOfferType();
+                    return type === OfferType.Solution;
+                }).map(o => o.id);
+                throw Error(`Offer ${params.offerId} must be used in conjunction with one of the following data offers: ${allowedOffers.join(", ")}`);
             }
         })(),
     ]);

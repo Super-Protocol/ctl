@@ -18,6 +18,7 @@ import getPublicFromPrivate from "../services/getPublicFromPrivate";
 import fetchOrdersCountService from "../services/fetchOrdersCount";
 import { TOfferType } from "../gql";
 import { MAX_ORDERS_RUNNING, TX_REVERTED_BY_EVM_ERROR } from "../constants";
+import fetchOffers from "../services/fetchOffers";
 
 export type WorkflowCreateParams = {
     backendUrl: string;
@@ -76,16 +77,25 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 
     Printer.print("Validating workflow configuration");
     await Promise.all(
-        [...solutions.ids, ...data.ids].map((solutionId) =>
-            validateOfferWorkflowService({
-                offerId: solutionId,
+        [...solutions.ids, ...data.ids].map(async (offerId) => {
+            const offer = await fetchOffers({
+                backendUrl: params.backendUrl,
+                accessToken: params.accessToken,
+                limit: 1,
+                id: offerId
+            })
+                .then(({ list }) => list[0]);
+            
+            return validateOfferWorkflowService({
+                offerId,
+                restrictions: offer?.restrictions?.offers || [],
                 tee: params.tee,
                 solutions: solutions.ids,
                 data: data.ids,
                 solutionArgs: solutions.resourceFiles,
                 dataArgs: data.resourceFiles,
             })
-        )
+        })
     );
 
     let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(solutions.ids.concat(data.ids));
