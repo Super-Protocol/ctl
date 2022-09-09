@@ -17,7 +17,7 @@ const checkOrder = async (params: CheckOrderParams) => {
 
         if (!params.statuses.includes(info.status)) {
             const current = getObjectKey(info.status, OrderStatus);
-            const supported = params.statuses.map(s => getObjectKey(s, OrderStatus)).join(", ");
+            const supported = params.statuses.map((s) => getObjectKey(s, OrderStatus)).join(", ");
             throw new Error(
                 `Order status ${current} is not supported for this command, supported order statuses are: ${supported}`
             );

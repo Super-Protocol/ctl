@@ -6,6 +6,7 @@ import { BigNumberish, ethers } from "ethers";
 import { ErrorMessageOptions, generateErrorMessage } from "zod-error";
 import { ZodIssue } from "zod";
 import path from "path";
+import { TX_REVERTED_BY_EVM_ERROR } from "./constants";
 
 export const exec = promisify(execCallback);
 
@@ -72,6 +73,9 @@ export const ErrorWithCustomMessage = (message: string, error: any) => ({
     message,
     hasCustomMessage: true,
 });
+
+export const ErrorTxRevertedByEvm = (error: any) =>
+    ErrorWithCustomMessage(`${TX_REVERTED_BY_EVM_ERROR}\nTransaction hash: ${error.receipt?.transactionHash}`, error);
 
 export const assertCommand = async (command: string, assertMessage: string) => {
     try {
