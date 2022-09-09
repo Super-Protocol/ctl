@@ -32,7 +32,7 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
             args: {
                 inputOffers: params.inputOffers,
                 selectedOffers: [params.storageOffer],
-                slots: 1,
+                slots: 4,
             },
             encryptedArgs: JSON.stringify(encryptedArgs),
             resultPublicKey: JSON.stringify(params.resultPublicKey),
@@ -73,7 +73,7 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
                         args: {
                             inputOffers: [],
                             selectedOffers: [],
-                            slots: 1,
+                            slots: 4,
                         },
                         resultPublicKey: offerInfo.argsPublicKey,
                         encryptedArgs: "",
