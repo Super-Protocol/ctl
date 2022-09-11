@@ -28,6 +28,7 @@ import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
 import offersDownloadContent from "./commands/offersDownloadContent";
 import eccrypto from "eccrypto";
+import {OfferType} from "@super-protocol/sdk-js";
 
 async function main() {
     const program = new Command();
@@ -226,6 +227,10 @@ async function main() {
                 .default(ordersListDefaultFields, ordersListDefaultFields.join(","))
         )
         .option("--my-account", "Only show orders that were created by the action account specified in the config file", false)
+        .addOption(
+            new Option("--type <type>", "Only show orders of the specified type")
+                .choices(Object.keys(OfferType))
+        )
         .option("--limit <number>", "Limit of records", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
@@ -247,6 +252,7 @@ async function main() {
                 limit: +options.limit,
                 cursor: options.cursor,
                 actionAccountKey,
+                offerType: options.type,
             });
         });
 
