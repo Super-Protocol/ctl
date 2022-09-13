@@ -40,6 +40,11 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     Printer.print("Fetching order result");
     const { encryptedError, encryptedResult } = await getOrderResult({ orderId: params.orderId });
     const encrypted = encryptedResult || encryptedError;
+    if (!encrypted.length) {
+        Printer.print("There is no result in the specified order");
+        return;
+    }
+
     Printer.print("Decrypting file");
 
     let encryptedResultObject: { resource: Encryption; encryption?: Encryption } = await tryParse(encrypted);
