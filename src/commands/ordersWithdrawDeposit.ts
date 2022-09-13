@@ -24,8 +24,13 @@ export default async (params: OrderWithdrawDepositParams) => {
     });
 
     Printer.print("Withdrawing deposit");
-    await orderWithdrawDepositService({
+    const withdrawn = await orderWithdrawDepositService({
         id: params.id,
     });
-    Printer.print(`Deposit for order ${params.id} has been withdrawn successfully`);
+
+    if (withdrawn.gt(0)) {
+        Printer.print(`Unspent deposit of ${withdrawn} for order ${params.id} has been withdrawn successfully`);
+    } else {
+        Printer.print(`Nothing to withdraw. Unspent value is ${withdrawn}`);
+    }
 };
