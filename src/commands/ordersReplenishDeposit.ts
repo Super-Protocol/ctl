@@ -3,6 +3,7 @@ import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import orderReplenishDepositService from "../services/orderReplenishDeposit";
 import checkOrderService from "../services/checkOrder";
+import { etherToWei } from "../utils";
 
 export type OrderReplenishDepositParams = {
     blockchainConfig: BlockchainConfig;
@@ -24,7 +25,7 @@ export default async (params: OrderReplenishDepositParams) => {
     Printer.print("Replenishing order deposit");
     await orderReplenishDepositService({
         id: params.id,
-        amount: params.amount,
+        amount: etherToWei(params.amount).toString(),
     });
     Printer.print(`Deposit for order ${params.id} was replenished with ${params.amount} tokens`);
 };

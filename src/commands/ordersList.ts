@@ -1,6 +1,8 @@
 import fetchOrdersService from "../services/fetchOrders";
 import Printer from "../printer";
 import { prepareObjectToPrint } from "../utils";
+import { Wallet } from "ethers";
+import { OfferType } from "@super-protocol/sdk-js";
 
 export type OrdersListParams = {
     backendUrl: string;
@@ -8,6 +10,8 @@ export type OrdersListParams = {
     fields: string[];
     limit: number;
     cursor?: string;
+    actionAccountKey?: string;
+    offerType?: keyof OfferType;
 };
 
 export default async (params: OrdersListParams) => {
@@ -16,7 +20,14 @@ export default async (params: OrdersListParams) => {
         accessToken: params.accessToken,
         limit: params.limit,
         cursor: params.cursor,
+        customerAddress: params.actionAccountKey ? new Wallet(params.actionAccountKey).address : undefined,
+        offerType: params.offerType,
     });
+
+    if (!orders.list.length) {
+        Printer.print("No orders found");
+        return;
+    }
 
     const rows = orders.list.map((item) => prepareObjectToPrint(item, params.fields));
 

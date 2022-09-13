@@ -1,6 +1,6 @@
-import { getSdk } from "../gql";
+import {getSdk, TOfferType} from "../gql";
 import { GraphQLClient } from "graphql-request";
-import { OrderStatus } from "@super-protocol/sdk-js";
+import { OfferType, OrderStatus } from "@super-protocol/sdk-js";
 import { ErrorWithCustomMessage, formatDate, getObjectKey, weiToEther } from "../utils";
 import { BigNumber } from "ethers";
 import getGqlHeaders from "./gqlHeaders";
@@ -11,6 +11,8 @@ export type FetchOrdersParams = {
     limit: number;
     cursor?: string;
     id?: string;
+    customerAddress?: string;
+    offerType?: keyof OfferType;
 };
 
 export default async (params: FetchOrdersParams) => {
@@ -26,7 +28,11 @@ export default async (params: FetchOrdersParams) => {
                     sortDir: "DESC",
                     sortBy: "origins.createdDate",
                 },
-                filter: { id: params.id },
+                filter: {
+                    id: params.id,
+                    consumer: params.customerAddress,
+                    offerType: params.offerType as unknown as TOfferType
+                },
             },
             headers
         );

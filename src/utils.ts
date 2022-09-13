@@ -6,6 +6,7 @@ import { BigNumberish, ethers } from "ethers";
 import { ErrorMessageOptions, generateErrorMessage } from "zod-error";
 import { ZodIssue } from "zod";
 import path from "path";
+import { TX_REVERTED_BY_EVM_ERROR } from "./constants";
 
 export const exec = promisify(execCallback);
 
@@ -52,9 +53,9 @@ export const prepareObjectToPrint = (object: { [key: string]: any }, fields: str
     return newObject;
 };
 
-export const getObjectKey = (value: any, object: { [key: string]: any }) => {
+export const getObjectKey = (value: any, object: object) => {
     const result = Object.entries(object).find(([k, v]) => v === value);
-    return result ? result[0] : "none";
+    return result && result[0];
 };
 
 export const formatDate = (date: string | number | Date | undefined) => {
@@ -72,6 +73,9 @@ export const ErrorWithCustomMessage = (message: string, error: any) => ({
     message,
     hasCustomMessage: true,
 });
+
+export const ErrorTxRevertedByEvm = (error: any) =>
+    ErrorWithCustomMessage(`${TX_REVERTED_BY_EVM_ERROR}\nTransaction hash: ${error.receipt?.transactionHash}`, error);
 
 export const assertCommand = async (command: string, assertMessage: string) => {
     try {
@@ -98,7 +102,11 @@ export const assertSize = (value: string | undefined, assertMessage: string) => 
 export const weiToEther = (wei?: BigNumberish | null, precision = 4) => {
     if (!wei) return undefined;
     let ether = ethers.utils.formatEther(wei);
-    return Number(ether.substring(0, ether.indexOf(".") + precision + 1)).toFixed(precision);
+    const decimals = ether.substring(ether.indexOf(".") + 1);
+    if (decimals.length < precision) {
+        ether = ether.padEnd(ether.length + (precision - decimals.length), '0');
+    }
+    return ether;
 };
 
 export const etherToWei = (ether: string) => {

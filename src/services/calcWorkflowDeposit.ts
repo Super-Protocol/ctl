@@ -9,22 +9,21 @@ export type CalcWorkflowDepositParams = {
 };
 
 const calcWorkflowDeposit = async (params: CalcWorkflowDepositParams) => {
-    const valueOffers = params.solutions.concat(params.data, [params.storage]);
+    const offers = [...params.solutions, ...params.data, params.storage, params.tee];
     const orderMinDeposit = await Superpro.getParam(ParamName.OrderMinimumDeposit);
 
     let offersDeposits = BigNumber.from(0);
     await Promise.all(
-        valueOffers.map(async (id) => {
+        offers.map(async (id) => {
             const offer = new Offer(id);
-            const { holdSum } = await offer.getInfo();
-            offersDeposits = offersDeposits.add(holdSum);
+            const holdDeposit = await offer.getHoldDeposit();
+            offersDeposits = offersDeposits.add(holdDeposit);
         })
     );
 
-    // TODO: add calc for TEE offer
-    offersDeposits = offersDeposits.add(orderMinDeposit);
+    const workflowDeposit = offersDeposits.gte(orderMinDeposit) ? offersDeposits : BigNumber.from(orderMinDeposit);
 
-    return offersDeposits;
+    return workflowDeposit;
 };
 
 export default calcWorkflowDeposit;

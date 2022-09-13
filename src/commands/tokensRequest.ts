@@ -16,7 +16,6 @@ export default async (params: TokensRequestParams) => {
     if (!params.requestTee && !params.requestMatic) {
         Printer.print("No token type was specified, please add --tee or --matic flag to request specific tokens");
         program.help();
-        return;
     }
 
     const address = new Wallet(params.actionAccountPrivateKey).address;

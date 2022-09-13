@@ -48,13 +48,13 @@ describe("checkOrder", () => {
 
     it("should throw error when order is not in the required status", async () => {
         await expect(checkOrder({ id: "3", statuses: [OrderStatus.Done] })).rejects.toThrowError(
-            "Can't execute in the current order status"
+            `Order status New is not supported for this command, supported order statuses are: Done`
         );
     });
 
     it("should throw error when order is not in some of the required statuses", async () => {
         await expect(checkOrder({ id: "3", statuses: [OrderStatus.Done, OrderStatus.Canceled] })).rejects.toThrowError(
-            "Can't execute in the current order status"
+            `Order status New is not supported for this command, supported order statuses are: Done, Canceled`
         );
     });
 });
