@@ -29,8 +29,8 @@ export default async (params: OrderWithdrawDepositParams) => {
     });
 
     if (withdrawn.gt(0)) {
-        Printer.print(`Unspent deposit of ${withdrawn} for order ${params.id} has been withdrawn successfully`);
+        Printer.print(`Unspent deposit of ${withdrawn} TEE was withdrawn successfully`);
     } else {
-        Printer.print(`Nothing to withdraw. Unspent value is ${withdrawn}`);
+        Printer.print(`There is no unspent deposit in order ${params.id}`);
     }
 };
