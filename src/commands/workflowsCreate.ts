@@ -4,6 +4,7 @@ import {
     SuperproToken,
     OrdersFactory,
     OrderStatus,
+    Offer,
 } from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
@@ -75,26 +76,43 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         optionsName: "data",
     });
 
+    const subOfferIds = [...solutions.ids, ...data.ids];
+
+    const offers = await fetchOffers({
+        backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
+        limit: subOfferIds.length,
+        ids: subOfferIds,
+    }).then(({ list }) => list);
+
+    const restrictionOffersMap = new Map<string, Offer>(
+        offers.flatMap(({ restrictions }) => restrictions?.offers || []).map((id) => [id, new Offer(id)])
+    );
+
+    // offers.forEach(({restrictions}) => {
+    //     if (restrictions?.offers?.length) {
+    //         restrictions.offers.forEach(o => {
+    //             if (!restrictionOffers.has(o)) {
+    //                 restrictionOffers.set(o, new Offer(o));
+    //             }
+    //         })
+    //     }
+    // })
     Printer.print("Validating workflow configuration");
     await Promise.all(
-        [...solutions.ids, ...data.ids].map(async (offerId) => {
-            const offer = await fetchOffers({
-                backendUrl: params.backendUrl,
-                accessToken: params.accessToken,
-                limit: 1,
-                id: offerId
-            })
-                .then(({ list }) => list[0]);
-            
+        subOfferIds.map(async (offerId) => {
+            const toffer = offers.find((o) => o.id === offerId);
+            const restrictions =
+                <Offer[]>toffer?.restrictions?.offers?.map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
             return validateOfferWorkflowService({
                 offerId,
-                restrictions: offer?.restrictions?.offers || [],
+                restrictions,
                 tee: params.tee,
                 solutions: solutions.ids,
                 data: data.ids,
                 solutionArgs: solutions.resourceFiles,
                 dataArgs: data.resourceFiles,
-            })
+            });
         })
     );
 

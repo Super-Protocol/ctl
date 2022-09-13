@@ -3,7 +3,7 @@ import { ResourceFile } from "./readResourceFile";
 
 export type ValidateOfferWorkflowParams = {
     offerId: string;
-    restrictions: string[];
+    restrictions: Offer[];
     tee: string;
     solutions: string[];
     data?: string[];
@@ -13,7 +13,6 @@ export type ValidateOfferWorkflowParams = {
 
 export default async (params: ValidateOfferWorkflowParams) => {
     const offer = new Offer(params.offerId);
-    const restrictionOffers = params.restrictions.map(id => new Offer(id));
 
     await Promise.all([
         (async () => {
@@ -23,8 +22,8 @@ export default async (params: ValidateOfferWorkflowParams) => {
         })(),
         (async () => {
             await Promise.all(
-                restrictionOffers.map(async (allowedOffer) => {
-                    let type = allowedOffer.type ?? await allowedOffer.getOfferType();
+                params.restrictions.map(async (allowedOffer) => {
+                    let type = allowedOffer.type ?? (await allowedOffer.getOfferType());
                     if (type === OfferType.Solution && params.solutionArgs.length) {
                         throw Error(
                             `Offer ${params.offerId} permission settings do not allow custom solution arguments`
@@ -36,23 +35,40 @@ export default async (params: ValidateOfferWorkflowParams) => {
                 })
             );
         })(),
+        /**
+         * If offer has any solution offers in restrictions - params.solutions should be included into restrictions
+         */
         Promise.all(
             params.solutions.map(async (solutionId) => {
                 if (!(await offer.isRestrictionsPermitThatOffer(solutionId))) {
+                    const allowedOffers = filterOffersByType(params.restrictions, OfferType.Solution).map((o) => o.id);
                     throw Error(
-                        `Offer ${params.offerId} permission settings do not allow solution offer ${solutionId}`
+                        `Offer ${params.offerId} must be used in conjunction with the following solutions: ${allowedOffers}`
                     );
                 }
             })
         ),
+        /**
+         * If offer has any data offers in restrictions - params.data should be included into restrictions
+         */
         params.data &&
             Promise.all(
+                // проверка, что у оффера (любого) есть dataId в ограничениях
                 params.data.map(async (dataId) => {
                     if (!(await offer.isRestrictionsPermitThatOffer(dataId))) {
-                        throw Error(`Offer ${params.offerId} permission settings do not allow data offer ${dataId}`);
+                        const allowedOffers = filterOffersByType(params.restrictions, OfferType.Data).map((o) => o.id);
+                        throw Error(
+                            `Offer ${params.offerId} must be used in conjunction with the following data offers: ${allowedOffers}`
+                        );
                     }
                 })
             ),
+        /**
+         * Checks if offer has (at least one of):
+         * - Restriction on type Soultion,
+         * - Has some solution offers in restrictions;
+         * And neither of (other) solutions passed in params
+         */
         (async () => {
             const otherSolutions = params.solutions.filter((solution) => solution !== params.offerId);
             if (
@@ -60,23 +76,47 @@ export default async (params: ValidateOfferWorkflowParams) => {
                 !otherSolutions.length &&
                 !params.solutionArgs.length
             ) {
-                const allowedOffers = restrictionOffers.filter(async allowedOffer => {
-                    const type = allowedOffer.type ?? await allowedOffer.getOfferType();
-                    return type === OfferType.Solution;
-                }).map(o => o.id);
-                throw Error(`Offer ${params.offerId} must be used in conjunction with one of the following solutions: ${allowedOffers.join(", ")}`);
+                const allowedOffers = filterOffersByType(params.restrictions, OfferType.Solution).map((o) => o.id);
+                if (allowedOffers.length) {
+                    throw Error(
+                        `Offer ${
+                            params.offerId
+                        } must be used in conjunction with one of the following solutions: ${allowedOffers.join(", ")}`
+                    );
+                } else {
+                    throw Error(`Offer ${params.offerId} must be used in conjunction with at least one solution`);
+                }
             }
         })(),
+        /**
+         * Checks if offer has (at least one of):
+         * - Restriction on type Data,
+         * - Has some data offers in restrictions;
+         * And neither of (other) data passed in params
+         */
         (async () => {
+            // проверка, что у оффера (какого?) есть ограничение на тип Data, либо есть КАКИЕ-ТО DATA в ограничениях, но при этом они не переданы
             if (!params.data) return;
             const otherData = params.data.filter((data) => data !== params.offerId);
             if ((await offer.isRestrictedByOfferType(OfferType.Data)) && !otherData.length && !params.dataArgs.length) {
-                const allowedOffers = restrictionOffers.filter(async offer => {
-                    const type = offer.type ?? await offer.getOfferType();
-                    return type === OfferType.Solution;
-                }).map(o => o.id);
-                throw Error(`Offer ${params.offerId} must be used in conjunction with one of the following data offers: ${allowedOffers.join(", ")}`);
+                const allowedOffers = filterOffersByType(params.restrictions, OfferType.Data).map((o) => o.id);
+                if (allowedOffers.length) {
+                    throw Error(
+                        `Offer ${
+                            params.offerId
+                        } must be used in conjunction with the following datas: ${allowedOffers.join(", ")}`
+                    );
+                } else {
+                    throw Error(`Offer ${params.offerId} must be used in conjunction with at least one data`);
+                }
             }
         })(),
     ]);
+};
+
+const filterOffersByType = (offers: Offer[], offerType: OfferType) => {
+    return offers.filter(async (offer) => {
+        const type = offer.type ?? (await offer.getOfferType());
+        return type === offerType;
+    });
 };
