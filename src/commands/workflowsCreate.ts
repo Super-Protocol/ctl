@@ -87,24 +87,15 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     }).then(({ list }) => list);
 
     const restrictionOffersMap = new Map<string, Offer>(
-        offers.flatMap(({ restrictions }) => restrictions?.offers || []).map((id) => [id, new Offer(id)])
+        offers.flatMap(({ restrictions }) => restrictions).map((id) => [id, new Offer(id)])
     );
 
-    // offers.forEach(({restrictions}) => {
-    //     if (restrictions?.offers?.length) {
-    //         restrictions.offers.forEach(o => {
-    //             if (!restrictionOffers.has(o)) {
-    //                 restrictionOffers.set(o, new Offer(o));
-    //             }
-    //         })
-    //     }
-    // })
     Printer.print("Validating workflow configuration");
     await Promise.all(
         subOfferIds.map(async (offerId) => {
-            const toffer = offers.find((o) => o.id === offerId);
+            const offerToCheck = offers.find((o) => o.id === offerId);
             const restrictions =
-                <Offer[]>toffer?.restrictions?.offers?.map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
+                <Offer[]>offerToCheck?.restrictions.map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
             return validateOfferWorkflowService({
                 offerId,
                 restrictions,
