@@ -36,7 +36,7 @@ export default async (params: ValidateOfferWorkflowParams) => {
             );
         })(),
         /**
-         * If offer has any solution offers in restrictions - params.solutions should be included into restrictions
+         * If offer has any solution offers in restrictions then params.solutions should be included into restrictions
          */
         Promise.all(
             params.solutions.map(async (solutionId) => {
@@ -49,11 +49,10 @@ export default async (params: ValidateOfferWorkflowParams) => {
             })
         ),
         /**
-         * If offer has any data offers in restrictions - params.data should be included into restrictions
+         * If offer has any data offers in restrictions then params.data should be included into restrictions
          */
         params.data &&
             Promise.all(
-                // проверка, что у оффера (любого) есть dataId в ограничениях
                 params.data.map(async (dataId) => {
                     if (!(await offer.isRestrictionsPermitThatOffer(dataId))) {
                         const allowedOffers = filterOffersByType(params.restrictions, OfferType.Data).map((o) => o.id);
@@ -95,7 +94,6 @@ export default async (params: ValidateOfferWorkflowParams) => {
          * And neither of (other) data passed in params
          */
         (async () => {
-            // проверка, что у оффера (какого?) есть ограничение на тип Data, либо есть КАКИЕ-ТО DATA в ограничениях, но при этом они не переданы
             if (!params.data) return;
             const otherData = params.data.filter((data) => data !== params.offerId);
             if ((await offer.isRestrictedByOfferType(OfferType.Data)) && !otherData.length && !params.dataArgs.length) {
