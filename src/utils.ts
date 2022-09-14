@@ -104,7 +104,7 @@ export const weiToEther = (wei?: BigNumberish | null, precision = 4) => {
     let ether = ethers.utils.formatEther(wei);
     const decimals = ether.substring(ether.indexOf(".") + 1);
     if (decimals.length < precision) {
-        ether = ether.padEnd(ether.length + (precision - decimals.length), '0');
+        ether = ether.padEnd(ether.length + (precision - decimals.length), "0");
     }
     return ether;
 };

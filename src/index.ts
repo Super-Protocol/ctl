@@ -28,7 +28,8 @@ import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
 import offersDownloadContent from "./commands/offersDownloadContent";
 import eccrypto from "eccrypto";
-import {OfferType} from "@super-protocol/sdk-js";
+import { OfferType } from "@super-protocol/sdk-js";
+import { MAX_ORDERS_RUNNING } from "./constants";
 
 async function main() {
     const program = new Command();
@@ -174,6 +175,11 @@ async function main() {
             "--deposit <TEE>",
             "Payment deposit amount in TEE tokens (if not provided, the minimum required deposit is used)"
         )
+        .addOption(
+            new Option("--orders-limit <number>", "Overrides default orders limit per user")
+                .default(MAX_ORDERS_RUNNING)
+                .hideHelp()
+        )
         .action(async (options: any) => {
             if (!options.solution.length) {
                 Printer.error("error: required option '--solution <id> --solution <filepath>' not specified");
@@ -199,6 +205,7 @@ async function main() {
                 resultEncryption: workflowConfig.resultEncryption,
                 userDepositAmount: options.deposit,
                 createWorkflows: options.createWorkflows ? options.createWorkflows : 1,
+                ordersLimit: options.ordersLimit,
             });
         });
 
@@ -226,10 +233,13 @@ async function main() {
                 .argParser(commaSeparatedList)
                 .default(ordersListDefaultFields, ordersListDefaultFields.join(","))
         )
-        .option("--my-account", "Only show orders that were created by the action account specified in the config file", false)
+        .option(
+            "--my-account",
+            "Only show orders that were created by the action account specified in the config file",
+            false
+        )
         .addOption(
-            new Option("--type <type>", "Only show orders of the specified type")
-                .choices(Object.keys(OfferType))
+            new Option("--type <type>", "Only show orders of the specified type").choices(Object.keys(OfferType))
         )
         .option("--limit <number>", "Limit of records", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
@@ -240,7 +250,8 @@ async function main() {
 
             let actionAccountKey;
             if (options.myAccount) {
-                actionAccountKey = (configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"]).actionAccountKey;
+                actionAccountKey = (configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"])
+                    .actionAccountKey;
             }
 
             validateFields(options.fields, ordersListFields);
