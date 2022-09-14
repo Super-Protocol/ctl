@@ -472,6 +472,10 @@ async function main() {
         .description("Upload a file specified by the <localPath> argument to the remote storage")
         .argument("localPath", "Path to a file for uploading")
         .option(
+            "--filename <string>",
+            "The name of the resulting file in the storage"
+        )
+        .option(
             "--output <path>",
             "Path to save resource file that is used to access the uploaded file",
             "./resource.json"
@@ -486,6 +490,7 @@ async function main() {
                 storageType: storageConfig.storageType,
                 writeCredentials: storageConfig.writeCredentials,
                 readCredentials: storageConfig.readCredentials,
+                remotePath: options.filename,
                 outputPath: options.output,
                 metadataPath: options.metadata,
             });
@@ -497,11 +502,11 @@ async function main() {
             "Download and decrypt a file from the remote storage to the <localPath> using resource file <resourcePath>"
         )
         .argument("resourcePath", "Path to a resource file")
-        .argument("localPath", "Path to save a downloaded file")
-        .action(async (resourcePath: string, localPath: string) => {
+        .argument("localDirectory", "Path to save a downloaded file")
+        .action(async (resourcePath: string, localDirectory: string) => {
             await download({
                 resourcePath,
-                localPath,
+                localDirectory,
             });
         });
 

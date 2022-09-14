@@ -9,7 +9,7 @@ import { preparePath } from "../utils";
 
 export type FilesDownloadParams = {
     resourcePath: string;
-    localPath: string;
+    localDirectory: string;
 };
 
 export default async (params: FilesDownloadParams): Promise<void> => {
@@ -23,8 +23,12 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     if (resource.type !== ResourceType.StorageProvider)
         throw Error(`Resource type ${resource.type} is not supported, use StorageProvider type for this command`);
 
-    let localPath = preparePath(params.localPath).replace(/\/$/, "");
-    if (resourceFile.encryption) localPath += ".encrypted";
+    let localPath = preparePath(params.localDirectory).replace(/\/$/, "");
+    let info = await fs.stat(localPath);
+    if (!info.isDirectory()) {
+        throw new Error("localDirectory argument must be the path to a folder");
+    }
+    localPath += `/${resource.filepath}`;
 
     const storageAccess = {
         storageType: resource.storageType,
