@@ -29,6 +29,7 @@ import offersListValue from "./commands/offersListValue";
 import offersDownloadContent from "./commands/offersDownloadContent";
 import eccrypto from "eccrypto";
 import { OfferType } from "@super-protocol/sdk-js";
+import { MAX_ORDERS_RUNNING } from "./constants";
 import offersGet from "./commands/offersGet";
 
 async function main() {
@@ -176,6 +177,11 @@ async function main() {
             "--deposit <TEE>",
             "Payment deposit amount in TEE tokens (if not provided, the minimum required deposit is used)"
         )
+        .addOption(
+            new Option("--orders-limit <number>", "Overrides default orders limit per user")
+                .default(MAX_ORDERS_RUNNING)
+                .hideHelp()
+        )
         .action(async (options: any) => {
             if (!options.solution.length) {
                 Printer.error("error: required option '--solution <id> --solution <filepath>' not specified");
@@ -201,6 +207,7 @@ async function main() {
                 resultEncryption: workflowConfig.resultEncryption,
                 userDepositAmount: options.deposit,
                 createWorkflows: options.createWorkflows ? options.createWorkflows : 1,
+                ordersLimit: options.ordersLimit,
             });
         });
 
