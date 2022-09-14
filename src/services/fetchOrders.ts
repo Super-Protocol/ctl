@@ -52,7 +52,7 @@ export default async (params: FetchOrdersParams) => {
                     unspentDeposit: weiToEther(
                         BigNumber.from(item.node?.orderHoldDeposit).sub(item.node?.depositSpent ?? 0)
                     ),
-                    cancelebel: item.node?.offerInfo?.cancelable || false,
+                    cancelable: item.node?.offerInfo?.cancelable || false,
                     modifiedDate: formatDate(item.node?.origins?.modifiedDate),
                     subOrdersCount: item.node?.subOrders?.length,
                     subOrders: item.node?.subOrders?.map((subItem) => ({
@@ -61,7 +61,7 @@ export default async (params: FetchOrdersParams) => {
                         status: getObjectKey(subItem.orderInfo.status, OrderStatus),
                         offerName: subItem.offerInfo?.name || subItem.teeOfferInfo?.name,
                         offerDescription: subItem.offerInfo?.description || subItem.teeOfferInfo?.description,
-                        cancelebel: subItem.offerInfo?.cancelable || false,
+                        cancelable: subItem.offerInfo?.cancelable || false,
                         actualCost: weiToEther(subItem.depositSpent),
                         modifiedDate: formatDate(subItem.origins?.modifiedDate),
                     })),
