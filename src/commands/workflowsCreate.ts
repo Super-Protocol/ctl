@@ -31,6 +31,7 @@ export type WorkflowCreateParams = {
     resultEncryption: Encryption;
     userDepositAmount: string;
     createWorkflows: number;
+    ordersLimit: number;
 };
 
 const workflowCreate = async (params: WorkflowCreateParams) => {
@@ -53,9 +54,9 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         offerType: TOfferType.TeeOffer,
     });
 
-    if (ordersCount >= MAX_ORDERS_RUNNING) {
+    if (ordersCount >= params.ordersLimit) {
         throw new Error(
-            "We limit the maximum number of active orders per user. You will be able to create order when one of the processing ones is completed."
+            `You have reached a limit on the number of active orders: ${MAX_ORDERS_RUNNING}\nThis restriction was introduced temporarily due to the limited computing resources available during the Testnet phase`
         );
     }
 
