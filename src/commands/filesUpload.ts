@@ -10,6 +10,7 @@ import generateEncryptionService from "../services/generateEncryption";
 
 export type FilesUploadParams = {
     localPath: string;
+    remotePath?: string;
     outputPath: string;
     metadataPath?: string;
     storageType: StorageType;
@@ -37,7 +38,7 @@ export default async (params: FilesUploadParams) => {
     let encryptedFileData = await encryptFileService(localPath, encryption, (total: number, current: number) => {
         Printer.progress("Encrypting file", total, current);
     });
-    const remotePath = `${generateExternalId()}.encrypted`;
+    const remotePath = `${params.remotePath || generateExternalId()}.encrypted`;
 
     try {
         await uploadService(
