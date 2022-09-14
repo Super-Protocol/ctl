@@ -27,7 +27,7 @@
     "dependencies": {
         "@iarna/toml": "^2.2.5",
         "@super-protocol/dto-js": "^0.0.13",
-        "@super-protocol/sdk-js": "^0.8.1-beta.4",
+        "@super-protocol/sdk-js": "^0.9.0-beta.1",
         "axios": "^0.27.2",
         "cli-progress": "^3.9.1",
         "colors": "^1.4.0",

@@ -1,10 +1,12 @@
 import { HashAlgorithm } from "@super-protocol/dto-js";
+import { OfferType } from "@super-protocol/sdk-js";
 
 const packageJson = require("../package.json");
 
 import { Command, Option } from "commander";
 import fs from "fs";
 import path from "path";
+import eccrypto from "eccrypto";
 
 import ConfigLoader, { Config } from "./config";
 import download from "./commands/filesDownload";
@@ -27,8 +29,7 @@ import tokensBalance from "./commands/tokensBalance";
 import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
 import offersDownloadContent from "./commands/offersDownloadContent";
-import eccrypto from "eccrypto";
-import { OfferType } from "@super-protocol/sdk-js";
+import ordersWithdrawDeposit from "./commands/ordersWithdrawDeposit";
 import { MAX_ORDERS_RUNNING } from "./constants";
 
 async function main() {
@@ -348,6 +349,22 @@ async function main() {
                 orderId,
                 localPath: options.saveTo,
                 resultDecryptionKey: workflowConfig.resultEncryption.key!,
+            });
+        });
+
+    ordersCommand
+        .command("withdraw-deposit")
+        .description("Withdraw order deposit from completed order with <id>")
+        .argument("id", "Order id")
+        .action(async (id: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
+
+            await ordersWithdrawDeposit({
+                blockchainConfig: blockchainAccess,
+                actionAccountKey: blockchainKeys.actionAccountKey,
+                id,
             });
         });
 
