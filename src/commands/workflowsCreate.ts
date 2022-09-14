@@ -4,6 +4,7 @@ import {
     SuperproToken,
     OrdersFactory,
     OrderStatus,
+    Offer,
 } from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
@@ -18,6 +19,7 @@ import getPublicFromPrivate from "../services/getPublicFromPrivate";
 import fetchOrdersCountService from "../services/fetchOrdersCount";
 import { TOfferType } from "../gql";
 import { MAX_ORDERS_RUNNING, TX_REVERTED_BY_EVM_ERROR } from "../constants";
+import fetchOffers from "../services/fetchOffers";
 
 export type WorkflowCreateParams = {
     backendUrl: string;
@@ -75,18 +77,35 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         optionsName: "data",
     });
 
+    const subOfferIds = [...solutions.ids, ...data.ids];
+
+    const offers = await fetchOffers({
+        backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
+        limit: subOfferIds.length,
+        ids: subOfferIds,
+    }).then(({ list }) => list);
+
+    const restrictionOffersMap = new Map<string, Offer>(
+        offers.flatMap(({ restrictions }) => restrictions).map((id) => [id, new Offer(id)])
+    );
+
     Printer.print("Validating workflow configuration");
     await Promise.all(
-        [...solutions.ids, ...data.ids].map((solutionId) =>
-            validateOfferWorkflowService({
-                offerId: solutionId,
+        subOfferIds.map(async (offerId) => {
+            const offerToCheck = offers.find((o) => o.id === offerId);
+            const restrictions =
+                <Offer[]>offerToCheck?.restrictions.map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
+            return validateOfferWorkflowService({
+                offerId,
+                restrictions,
                 tee: params.tee,
                 solutions: solutions.ids,
                 data: data.ids,
                 solutionArgs: solutions.resourceFiles,
                 dataArgs: data.resourceFiles,
-            })
-        )
+            });
+        })
     );
 
     let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(solutions.ids.concat(data.ids));
