@@ -28,7 +28,7 @@ import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
 import offersDownloadContent from "./commands/offersDownloadContent";
 import eccrypto from "eccrypto";
-import {OfferType} from "@super-protocol/sdk-js";
+import { OfferType } from "@super-protocol/sdk-js";
 
 async function main() {
     const program = new Command();
@@ -226,10 +226,13 @@ async function main() {
                 .argParser(commaSeparatedList)
                 .default(ordersListDefaultFields, ordersListDefaultFields.join(","))
         )
-        .option("--my-account", "Only show orders that were created by the action account specified in the config file", false)
+        .option(
+            "--my-account",
+            "Only show orders that were created by the action account specified in the config file",
+            false
+        )
         .addOption(
-            new Option("--type <type>", "Only show orders of the specified type")
-                .choices(Object.keys(OfferType))
+            new Option("--type <type>", "Only show orders of the specified type").choices(Object.keys(OfferType))
         )
         .option("--limit <number>", "Limit of records", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
@@ -240,7 +243,8 @@ async function main() {
 
             let actionAccountKey;
             if (options.myAccount) {
-                actionAccountKey = (configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"]).actionAccountKey;
+                actionAccountKey = (configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"])
+                    .actionAccountKey;
             }
 
             validateFields(options.fields, ordersListFields);
