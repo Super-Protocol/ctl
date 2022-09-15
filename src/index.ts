@@ -31,6 +31,7 @@ import offersListValue from "./commands/offersListValue";
 import offersDownloadContent from "./commands/offersDownloadContent";
 import ordersWithdrawDeposit from "./commands/ordersWithdrawDeposit";
 import { MAX_ORDERS_RUNNING } from "./constants";
+import offersGet from "./commands/offersGet";
 
 async function main() {
     const program = new Command();
@@ -44,6 +45,7 @@ async function main() {
     const tokensCommand = program.command("tokens");
     const offersCommand = program.command("offers");
     const offersListCommand = offersCommand.command("list");
+    const offersGetCommand = offersCommand.command("get");
 
     const providersListFields = [
             "address",
@@ -406,7 +408,7 @@ async function main() {
             "id",
             "name",
             "description",
-            "provider_id",
+            "provider_address",
             "provider_name",
             "total_cores",
             "free_cores",
@@ -446,7 +448,7 @@ async function main() {
             "name",
             "description",
             "type",
-            "provider_id",
+            "provider_address",
             "provider_name",
             "hold_sum",
             "cancelable",
@@ -476,6 +478,77 @@ async function main() {
                 accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
+            });
+        });
+
+    const teeOffersGetFields = [
+        "name",
+        "description",
+        "provider_address",
+        "provider_name",
+        "total_cores",
+        "free_cores",
+        "orders_in_queue",
+        "cancelable",
+        "modified_date",
+    ];
+    offersGetCommand
+        .command("tee")
+        .description("Fetch fields of TEE offer with <id>")
+        .argument("id", "Offer id")
+        .addOption(
+            new Option("--fields <fields>", `Available fields: ${teeOffersGetFields.join(", ")}`)
+                .argParser(commaSeparatedList)
+                .default(teeOffersGetFields, teeOffersGetFields.join(","))
+        )
+        .action(async (id: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+
+            validateFields(options.fields, teeOffersGetFields);
+
+            await offersGet({
+                fields: options.fields,
+                backendUrl: backendAccess.url,
+                type: "tee",
+                accessToken,
+                id,
+            });
+        });
+
+    const offersGetFields = [
+        "provider_address",
+        "name",
+        "description",
+        "type",
+        "cancelable",
+        "modified_date",
+        "hold_sum",
+        "restrictions",
+    ];
+    offersGetCommand
+        .command("value")
+        .description("Fetch fields of value offer with <id>")
+        .argument("id", "Offer id")
+        .addOption(
+            new Option("--fields <fields>", `Available fields: ${offersGetFields.join(", ")}`)
+                .argParser(commaSeparatedList)
+                .default(offersGetFields, offersGetFields.join(","))
+        )
+        .action(async (id: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
+            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+
+            validateFields(options.fields, offersGetFields);
+
+            await offersGet({
+                fields: options.fields,
+                backendUrl: backendAccess.url,
+                type: "value",
+                accessToken,
+                id,
             });
         });
 

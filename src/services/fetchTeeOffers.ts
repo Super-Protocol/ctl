@@ -40,7 +40,7 @@ export default async (params: FetchTeeOffersParams) => {
                     totalCores: item.node?.teeOfferInfo.slots,
                     freeCores: item.node?.stats?.freeCores,
                     ordersInQueue: item.node?.stats?.ordersInQueue,
-                    cancelebel: false,
+                    cancelable: false,
                     modifiedDate: formatDate(item.node?.origins?.modifiedDate),
                 })) || [],
             cursor: result.page.pageInfo!.endCursor,
