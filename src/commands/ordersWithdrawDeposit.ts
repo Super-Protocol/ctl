@@ -3,6 +3,7 @@ import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import orderWithdrawDepositService from "../services/orderWithdrawDeposit";
 import checkOrderService from "../services/checkOrder";
+import { weiToEther } from "../utils";
 
 export type OrderWithdrawDepositParams = {
     blockchainConfig: BlockchainConfig;
@@ -29,7 +30,7 @@ export default async (params: OrderWithdrawDepositParams) => {
     });
 
     if (withdrawn.gt(0)) {
-        Printer.print(`Unspent deposit of ${withdrawn} TEE was withdrawn successfully`);
+        Printer.print(`Unspent deposit of ${weiToEther(withdrawn)} TEE was withdrawn successfully`);
     } else {
         Printer.print(`There is no unspent deposit in order ${params.id}`);
     }

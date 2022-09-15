@@ -18,7 +18,7 @@ import { ErrorTxRevertedByEvm, etherToWei, weiToEther } from "../utils";
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
 import fetchOrdersCountService from "../services/fetchOrdersCount";
 import { TOfferType } from "../gql";
-import { MAX_ORDERS_RUNNING, TX_REVERTED_BY_EVM_ERROR } from "../constants";
+import { TX_REVERTED_BY_EVM_ERROR } from "../constants";
 import fetchOffers from "../services/fetchOffers";
 
 export type WorkflowCreateParams = {
@@ -32,7 +32,7 @@ export type WorkflowCreateParams = {
     data: string[];
     resultEncryption: Encryption;
     userDepositAmount: string;
-    createWorkflows: number;
+    workflowNumber: number;
     ordersLimit: number;
 };
 
@@ -56,9 +56,9 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         offerType: TOfferType.TeeOffer,
     });
 
-    if (ordersCount >= params.ordersLimit) {
+    if (params.workflowNumber === 1 && ordersCount >= params.ordersLimit) {
         throw new Error(
-            `You have reached a limit on the number of active orders: ${MAX_ORDERS_RUNNING}\nThis restriction was introduced temporarily due to the limited computing resources available during the Testnet phase`
+            `You have reached a limit on the number of active orders: ${params.ordersLimit}\nThis restriction was introduced temporarily due to the limited computing resources available during the Testnet phase`
         );
     }
 
@@ -170,11 +170,11 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 
     Printer.print(`Creating workflow orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`);
 
-    let workflowPromises = new Array(params.createWorkflows);
+    let workflowPromises = new Array(params.workflowNumber);
 
     Printer.print("Approve tokens for all workflows");
     try {
-        await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.createWorkflows).toString(), {
+        await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.workflowNumber).toString(), {
             from: consumerAddress!,
         });
     } catch (error: any) {
@@ -183,7 +183,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     }
 
     Printer.print("Create workflows");
-    for (let pos = 0; pos < params.createWorkflows; pos++) {
+    for (let pos = 0; pos < params.workflowNumber; pos++) {
         workflowPromises[pos] = new Promise(async (resolve, reject) => {
             try {
                 resolve(

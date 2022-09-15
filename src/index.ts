@@ -173,11 +173,11 @@ async function main() {
             collectOptions,
             []
         )
-        .option("--createWorkflows <number>", "Number of workflows to create")
         .option(
             "--deposit <TEE>",
             "Payment deposit amount in TEE tokens (if not provided, the minimum required deposit is used)"
         )
+        .addOption(new Option("--workflow-number <number>", "Number of workflows to create").default(1).hideHelp())
         .addOption(
             new Option("--orders-limit <number>", "Overrides default orders limit per user")
                 .default(MAX_ORDERS_RUNNING)
@@ -207,8 +207,8 @@ async function main() {
                 data: options.data,
                 resultEncryption: workflowConfig.resultEncryption,
                 userDepositAmount: options.deposit,
-                createWorkflows: options.createWorkflows ? options.createWorkflows : 1,
-                ordersLimit: options.ordersLimit,
+                workflowNumber: Number(options.workflowNumber),
+                ordersLimit: Number(options.ordersLimit),
             });
         });
 
@@ -572,10 +572,7 @@ async function main() {
         .command("upload")
         .description("Upload a file specified by the <localPath> argument to the remote storage")
         .argument("localPath", "Path to a file for uploading")
-        .option(
-            "--filename <string>",
-            "The name of the resulting file in the storage"
-        )
+        .option("--filename <string>", "The name of the resulting file in the storage")
         .option(
             "--output <path>",
             "Path to save resource file that is used to access the uploaded file",
