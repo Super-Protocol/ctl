@@ -356,7 +356,7 @@ async function main() {
 
     ordersCommand
         .command("withdraw-deposit")
-        .description("Withdraw order deposit from completed order with <id>")
+        .description("Withdraw unspent deposit from a completed order with <id>")
         .argument("id", "Order id")
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);

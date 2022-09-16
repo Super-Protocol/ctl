@@ -18,7 +18,7 @@ export default async (params: OrderWithdrawDepositParams) => {
         actionAccountKey: params.actionAccountKey,
     });
 
-    Printer.print("Checking if order the exists");
+    Printer.print("Checking if the order exists");
     await checkOrderService({
         id: params.id,
         statuses: [OrderStatus.Canceled, OrderStatus.Done, OrderStatus.Error, OrderStatus.Canceling],
