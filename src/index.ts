@@ -227,7 +227,13 @@ async function main() {
             "sub_orders_count",
             "modified_date",
         ],
-        ordersListDefaultFields = ["id", "offer_name", "status"];
+        ordersListDefaultFields = ["id", "offer_name", "status"],
+        ordersListOfferTypes = {
+            tee: OfferType.TeeOffer,
+            storage: OfferType.Storage,
+            solution: OfferType.Solution,
+            data: OfferType.Data,
+        };
     ordersCommand
         .command("list")
         .description("Fetch list of orders")
@@ -242,7 +248,8 @@ async function main() {
             false
         )
         .addOption(
-            new Option("--type <type>", "Only show orders of the specified type").choices(Object.keys(OfferType))
+            new Option("--type <type>", "Only show orders of the specified type")
+                .choices(Object.keys(ordersListOfferTypes))
         )
         .option("--limit <number>", "Limit of records", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
@@ -266,7 +273,7 @@ async function main() {
                 limit: +options.limit,
                 cursor: options.cursor,
                 actionAccountKey,
-                offerType: options.type,
+                offerType: ordersListOfferTypes[options.type as keyof typeof ordersListOfferTypes],
             });
         });
 

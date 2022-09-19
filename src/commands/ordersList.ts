@@ -11,7 +11,7 @@ export type OrdersListParams = {
     limit: number;
     cursor?: string;
     actionAccountKey?: string;
-    offerType?: keyof OfferType;
+    offerType?: OfferType;
 };
 
 export default async (params: OrdersListParams) => {

@@ -12,7 +12,7 @@ export type FetchOrdersParams = {
     cursor?: string;
     id?: string;
     customerAddress?: string;
-    offerType?: keyof OfferType;
+    offerType?: OfferType;
 };
 
 export default async (params: FetchOrdersParams) => {
@@ -31,7 +31,7 @@ export default async (params: FetchOrdersParams) => {
                 filter: {
                     id: params.id,
                     consumer: params.customerAddress,
-                    offerType: params.offerType as unknown as TOfferType,
+                    offerType: getObjectKey(params.offerType, OfferType) as TOfferType
                 },
             },
             headers
