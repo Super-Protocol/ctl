@@ -1,4 +1,4 @@
-import { getSdk } from "../gql";
+import { getSdk, GqlListResponse } from "../gql";
 import { GraphQLClient } from "graphql-request";
 import { ErrorWithCustomMessage, formatDate, weiToEther } from "../utils";
 import getGqlHeaders from "./gqlHeaders";
@@ -12,7 +12,20 @@ export type FetchOffersParams = {
     ids?: string[];
 };
 
-export default async (params: FetchOffersParams) => {
+export type OfferDto = {
+    id: string | undefined;
+    name: string | undefined;
+    description: string | undefined;
+    type: string | undefined;
+    holdSum: string | undefined;
+    providerName: string | undefined;
+    providerAddress: string | undefined;
+    cancelable: boolean | undefined;
+    modifiedDate: string | undefined;
+    restrictions: string[];
+};
+
+export default async (params: FetchOffersParams): Promise<GqlListResponse<OfferDto>> => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
     const headers = getGqlHeaders(params.accessToken);
 

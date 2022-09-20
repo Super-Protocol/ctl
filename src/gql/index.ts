@@ -1845,8 +1845,12 @@ export const TeeOffersSelectDocument = gql`
 }
     ${PageDataDtoFragmentFragmentDoc}`;
 
-export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
+export type GqlListResponse<T> = {
+  list: T[];
+  cursor: string | null | undefined;
+}
 
+export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
 
 const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType) => action();
 

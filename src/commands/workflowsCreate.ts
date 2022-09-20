@@ -5,6 +5,7 @@ import {
     OrdersFactory,
     OrderStatus,
     Offer,
+    OfferType,
 } from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
@@ -14,12 +15,13 @@ import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
 import getTeeBalance from "../services/getTeeBalance";
-import { ErrorTxRevertedByEvm, etherToWei, weiToEther } from "../utils";
+import { ErrorTxRevertedByEvm, etherToWei, getObjectKey, weiToEther } from "../utils";
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
 import fetchOrdersCountService from "../services/fetchOrdersCount";
 import { TOfferType } from "../gql";
 import { TX_REVERTED_BY_EVM_ERROR } from "../constants";
-import fetchOffers from "../services/fetchOffers";
+import fetchOffers, { OfferDto } from "../services/fetchOffers";
+import fetchTeeOffers from "../services/fetchTeeOffers";
 
 export type WorkflowCreateParams = {
     backendUrl: string;
@@ -77,14 +79,32 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         optionsName: "data",
     });
 
-    const subOfferIds = [...solutions.ids, ...data.ids];
+    const teeOffer = await fetchTeeOffers({
+        backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
+        limit: 1,
+        id: params.tee,
+    }).then(({ list }) => list[0]);
 
+    if (!teeOffer) {
+        throw new Error(`TEE offer ${params.tee} does not exist`);
+    }
+
+    const valueOfferIds = [...solutions.ids, ...data.ids, params.storage];
     const offers = await fetchOffers({
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
-        limit: subOfferIds.length,
-        ids: subOfferIds,
+        limit: valueOfferIds.length,
+        ids: valueOfferIds,
     }).then(({ list }) => list);
+
+    const offersMap = new Map<string, OfferDto>(
+        offers.map(o => ([o.id!, o]))
+    );
+
+    checkFetchedOffers([params.storage], offersMap, OfferType.Storage);
+    checkFetchedOffers(solutions.ids, offersMap, OfferType.Solution);
+    checkFetchedOffers(data.ids, offersMap, OfferType.Data);
 
     const restrictionOffersMap = new Map<string, Offer>(
         offers.flatMap(({ restrictions }) => restrictions).map((id) => [id, new Offer(id)])
@@ -92,7 +112,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 
     Printer.print("Validating workflow configuration");
     await Promise.all(
-        subOfferIds.map(async (offerId) => {
+        [...solutions.ids, ...data.ids].map(async (offerId) => {
             const offerToCheck = offers.find((o) => o.id === offerId);
             const restrictions =
                 <Offer[]>offerToCheck?.restrictions.map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
@@ -213,3 +233,13 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 };
 
 export default workflowCreate;
+
+const checkFetchedOffers = (ids: string[], offers: Map<string, OfferDto>, type: OfferType) => {
+    ids.forEach((id) => {
+        const fetchedOffer = offers.get(id);
+
+        if (!fetchedOffer || fetchedOffer.type !== type) {
+            throw new Error(`Offer ${id} does not exist or is of the wrong type`);
+        }
+    });
+};
