@@ -13,6 +13,8 @@ query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                     consumer
                     orderHoldDeposit
                     depositSpent
+                    totalDeposit
+                    totalDepositSpent
                     parentOrder {
                         id
                     }

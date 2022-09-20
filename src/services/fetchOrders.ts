@@ -48,7 +48,11 @@ export default async (params: FetchOrdersParams) => {
                     offerId: item.node?.orderInfo.offer,
                     consumerAddress: item.node?.consumer,
                     parentOrderId: item.node?.parentOrder?.id,
-                    totalDeposit: weiToEther(item.node?.orderHoldDeposit),
+                    totalDeposit: weiToEther(item.node?.totalDeposit),
+                    totalUnspentDeposit: weiToEther(
+                        BigNumber.from(item.node?.totalDeposit).sub(item.node?.totalDepositSpent ?? 0)
+                    ),
+                    deposit: weiToEther(item.node?.orderHoldDeposit),
                     unspentDeposit: weiToEther(
                         BigNumber.from(item.node?.orderHoldDeposit).sub(item.node?.depositSpent ?? 0)
                     ),
