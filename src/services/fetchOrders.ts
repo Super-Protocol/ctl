@@ -31,7 +31,7 @@ export default async (params: FetchOrdersParams) => {
                 filter: {
                     id: params.id,
                     consumer: params.customerAddress,
-                    offerType: getObjectKey(params.offerType, OfferType) as TOfferType
+                    offerType: getObjectKey(params.offerType, OfferType) as TOfferType,
                 },
             },
             headers

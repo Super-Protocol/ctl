@@ -1718,10 +1718,10 @@
   resolved "https://registry.npmjs.org/@super-protocol/dto-js/-/dto-js-0.0.13.tgz"
   integrity sha512-xwg3oHS3gGYXrhejFlBlr1EgSXh7ACH907pd4ItjTQ4uaxbURwyDHxSE7wCALV4OT2jNIrE+xRgORVeYPSeicQ==
 
-"@super-protocol/sdk-js@^0.9.0-beta.1":
-  version "0.9.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@super-protocol/sdk-js/-/sdk-js-0.9.0-beta.1.tgz#386d0dec71cc47ae2dafd7ebbb89b92bd44d135b"
-  integrity sha512-2D74p0BJyEt+wpoQtYv6MxlP+8V7dyfrZ48NRJVfc1aEjkBuA1T4xiD/jCUmFwoYImMFxQW7j/40GlqxCDSIdg==
+"@super-protocol/sdk-js@^0.10.1-beta.0":
+  version "0.10.1-beta.0"
+  resolved "https://registry.yarnpkg.com/@super-protocol/sdk-js/-/sdk-js-0.10.1-beta.0.tgz#d1cd35a4539bcea9f280c44fd8a39906b780ec30"
+  integrity sha512-PmEzLsYX/8MYVvSs9k7+RpGSS+IuGZiGbNKRYRtzJ7Qi8/fGne5mVtyjiWaOWiJqDBhRO2GZl05rgTg4awHBDQ==
   dependencies:
     "@super-protocol/dto-js" "0.0.13"
     "@super-protocol/tee-lib" "^0.1.2"

@@ -1,31 +1,24 @@
 {
     "backend": {
-        "url": "http://localhost:3003/graphql"
+        "url": "",
+        "accessToken": ""
     },
     "blockchain": {
-        "url": "",
-        "contractAddress": ""
-    },
-    "blockchainKeys": {
-        "actionAccountKey": ""
+        "rpcUrl": "",
+        "smartContractAddress": "",
+        "accountPrivateKey": ""
     },
     "storage": {
-        "storageType": "STORJ",
-        "writeCredentials": {
-            "token": "YOUR_TOKEN_HERE",
-            "storageId": "YOUR_BUCKET_HERE"
-        },
-        "readCredentials": {
-            "token": "YOUR_TOKEN_HERE",
-            "storageId": "YOUR_BUCKET_HERE"
-        }
+        "type": "",
+        "bucket": "",
+        "writeAccessToken": "",
+        "readAccessToken": ""
     },
     "workflow": {
         "resultEncryption": {
-            "algo": "ECIES",
-            "key": "YOUR_PRIVATE_KEY_HERE",
-            "encoding": "base64"
+            "algo": "",
+            "key": "",
+            "encoding": ""
         }
-    },
-    "accessToken": "YOUR_ACCESS_TOKEN"
+    }
 }

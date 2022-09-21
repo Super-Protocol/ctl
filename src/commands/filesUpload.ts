@@ -14,8 +14,9 @@ export type FilesUploadParams = {
     outputPath: string;
     metadataPath?: string;
     storageType: StorageType;
-    writeCredentials: any;
-    readCredentials: any;
+    bucket: string;
+    writeAccessToken: string;
+    readAccessToken: string;
 };
 
 export default async (params: FilesUploadParams) => {
@@ -39,6 +40,10 @@ export default async (params: FilesUploadParams) => {
         Printer.progress("Encrypting file", total, current);
     });
     const remotePath = `${params.remotePath || generateExternalId()}.encrypted`;
+    const writeCredentials = {
+        token: params.writeAccessToken,
+        storageId: params.bucket,
+    };
 
     try {
         await uploadService(
@@ -46,7 +51,7 @@ export default async (params: FilesUploadParams) => {
             remotePath,
             {
                 storageType: params.storageType,
-                credentials: params.writeCredentials,
+                credentials: writeCredentials,
             },
             (total: number, current: number) => {
                 Printer.progress("Uploading file", total, current);
@@ -63,7 +68,7 @@ export default async (params: FilesUploadParams) => {
                 type: ResourceType.StorageProvider,
                 storageType: StorageType.StorJ,
                 filepath: remotePath,
-                credentials: params.writeCredentials,
+                credentials: writeCredentials,
             },
         };
         const outputpath = preparePath(params.outputPath);
