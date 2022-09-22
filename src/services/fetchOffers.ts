@@ -23,7 +23,7 @@ export type OfferDto = {
     providerAddress: string | undefined;
     cancelable: boolean | undefined;
     modifiedDate: string | undefined;
-    depends_on_offers: string[];
+    dependsOnOffers: string[];
 };
 
 export default async (params: FetchOffersParams) => {
@@ -56,7 +56,7 @@ export default async (params: FetchOffersParams) => {
                     providerAddress: item.node?.origins?.createdBy,
                     cancelable: item.node?.offerInfo?.cancelable,
                     modifiedDate: formatDate(item.node?.origins?.modifiedDate),
-                    depends_on_offers: item.node?.offerInfo.restrictions?.offers || [],
+                    dependsOnOffers: item.node?.offerInfo.restrictions?.offers || [],
                 })) || [],
             cursor: result.page.pageInfo!.endCursor,
         };
