@@ -98,9 +98,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         ids: valueOfferIds,
     }).then(({ list }) => list);
 
-    const offersMap = new Map<string, OfferDto>(
-        offers.map(o => ([o.id!, o]))
-    );
+    const offersMap = new Map<string, OfferDto>(offers.map((o) => [o.id!, o]));
 
     checkFetchedOffers([params.storage], offersMap, OfferType.Storage);
     checkFetchedOffers(solutions.ids, offersMap, OfferType.Solution);

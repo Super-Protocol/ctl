@@ -25,7 +25,7 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
 
     Printer.print("Creating TEE order");
     const id = generateExternalId();
-    
+
     await OrdersFactory.createOrder(
         {
             offer: params.teeOffer,
