@@ -1,7 +1,8 @@
-import { getSdk, GqlListResponse } from "../gql";
+import { getSdk } from "../gql";
 import { GraphQLClient } from "graphql-request";
-import { ErrorWithCustomMessage, formatDate, weiToEther } from "../utils";
+import { ErrorWithCustomMessage, formatDate, getObjectKey, weiToEther } from "../utils";
 import getGqlHeaders from "./gqlHeaders";
+import { OfferType } from "@super-protocol/sdk-js";
 
 export type FetchOffersParams = {
     backendUrl: string;
@@ -17,15 +18,15 @@ export type OfferDto = {
     name: string | undefined;
     description: string | undefined;
     type: string | undefined;
-    holdSum: string | undefined;
+    cost: string | undefined;
     providerName: string | undefined;
     providerAddress: string | undefined;
     cancelable: boolean | undefined;
     modifiedDate: string | undefined;
-    restrictions: string[];
+    depends_on_offers: string[];
 };
 
-export default async (params: FetchOffersParams): Promise<GqlListResponse<OfferDto>> => {
+export default async (params: FetchOffersParams) => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
     const headers = getGqlHeaders(params.accessToken);
 
@@ -49,13 +50,13 @@ export default async (params: FetchOffersParams): Promise<GqlListResponse<OfferD
                     id: item.node?.id,
                     name: item.node?.offerInfo?.name,
                     description: item.node?.offerInfo?.description,
-                    type: item.node?.offerInfo.offerType,
-                    holdSum: weiToEther(item.node?.offerInfo.holdSum),
+                    type: getObjectKey(item.node?.offerInfo.offerType, OfferType),
+                    cost: weiToEther(item.node?.offerInfo.holdSum),
                     providerName: item.node?.providerInfo.name,
                     providerAddress: item.node?.origins?.createdBy,
                     cancelable: item.node?.offerInfo?.cancelable,
                     modifiedDate: formatDate(item.node?.origins?.modifiedDate),
-                    restrictions: item.node?.offerInfo.restrictions?.offers || [],
+                    depends_on_offers: item.node?.offerInfo.restrictions?.offers || [],
                 })) || [],
             cursor: result.page.pageInfo!.endCursor,
         };

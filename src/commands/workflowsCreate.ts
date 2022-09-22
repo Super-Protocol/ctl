@@ -107,7 +107,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     checkFetchedOffers(data.ids, offersMap, OfferType.Data);
 
     const restrictionOffersMap = new Map<string, Offer>(
-        offers.flatMap(({ restrictions }) => restrictions).map((id) => [id, new Offer(id)])
+        offers.flatMap(({ depends_on_offers }) => depends_on_offers).map((id) => [id, new Offer(id)])
     );
 
     Printer.print("Validating workflow configuration");
@@ -115,7 +115,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         [...solutions.ids, ...data.ids].map(async (offerId) => {
             const offerToCheck = offers.find((o) => o.id === offerId);
             const restrictions =
-                <Offer[]>offerToCheck?.restrictions.map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
+                <Offer[]>offerToCheck?.depends_on_offers.map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
             return validateOfferWorkflowService({
                 offerId,
                 restrictions,

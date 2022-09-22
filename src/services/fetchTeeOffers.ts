@@ -39,7 +39,7 @@ export default async (params: FetchTeeOffersParams) => {
                     providerAddress: item.node?.origins?.createdBy,
                     totalCores: item.node?.teeOfferInfo.slots,
                     freeCores: item.node?.stats?.freeCores,
-                    ordersInQueue: item.node?.stats?.ordersInQueue,
+                    ordersInQueue: (item.node?.stats?.new || 0) + (item.node?.stats?.processing || 0),
                     cancelable: false,
                     modifiedDate: formatDate(item.node?.origins?.modifiedDate),
                 })) || [],
