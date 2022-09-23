@@ -10,18 +10,18 @@ import { createZodErrorMessage, ErrorWithCustomMessage } from "./utils";
 const ConfigValidators = {
     backend: z.object({
         url: z.string(),
+        accessToken: z.string(),
     }),
     blockchain: z.object({
-        blockchainUrl: z.string(),
-        contractAddress: z.string(),
-    }),
-    blockchainKeys: z.object({
-        actionAccountKey: z.string(),
+        rpcUrl: z.string(),
+        smartContractAddress: z.string(),
+        accountPrivateKey: z.string(),
     }),
     storage: z.object({
-        storageType: z.nativeEnum(StorageType),
-        writeCredentials: z.any(),
-        readCredentials: z.any(),
+        type: z.nativeEnum(StorageType),
+        bucket: z.string(),
+        writeAccessToken: z.string(),
+        readAccessToken: z.string(),
     }),
     workflow: z.object({
         resultEncryption: z.object({
@@ -30,27 +30,27 @@ const ConfigValidators = {
             encoding: z.nativeEnum(Encoding),
         }),
     }),
-    accessToken: z.string(),
 };
 
 export type Config = {
     backend: {
         url: string;
+        accessToken: string;
     };
-    blockchain: BlockchainConfig;
-    blockchainKeys: {
-        actionAccountKey: string;
+    blockchain: {
+        rpcUrl: string;
+        smartContractAddress: string;
+        accountPrivateKey: string;
     };
     storage: {
-        storageType: StorageType;
-        writeCredentials: any;
-        readCredentials: any;
-        fileEncryption: Encryption;
+        type: StorageType;
+        bucket: string;
+        writeAccessToken: string;
+        readAccessToken: string;
     };
     workflow: {
         resultEncryption: Encryption;
     };
-    accessToken: string;
 };
 
 class ConfigLoader {

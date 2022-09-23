@@ -68,15 +68,14 @@ async function main() {
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
-            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+            const backend = configLoader.loadSection("backend") as Config["backend"];
 
             validateFields(options.fields, providersGetFields);
 
             await providersList({
                 fields: options.fields,
-                backendUrl: backendAccess.url,
-                accessToken,
+                backendUrl: backend.url,
+                accessToken: backend.accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
             });
@@ -102,15 +101,14 @@ async function main() {
         )
         .action(async (address: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
-            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+            const backend = configLoader.loadSection("backend") as Config["backend"];
 
             validateFields(options.fields, providersGetFields);
 
             await providersGet({
                 fields: options.fields,
-                backendUrl: backendAccess.url,
-                accessToken,
+                backendUrl: backend.url,
+                accessToken: backend.accessToken,
                 address,
             });
         });
@@ -121,12 +119,14 @@ async function main() {
         .argument("id", "Order <id>")
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
-            const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
-
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
             await ordersCancel({
-                blockchainConfig: blockchainAccess,
-                actionAccountKey: blockchainKeys.actionAccountKey,
+                blockchainConfig,
+                actionAccountKey: blockchain.accountPrivateKey,
                 id,
             });
         });
@@ -138,12 +138,15 @@ async function main() {
         .argument("amount", "Amount of tokens")
         .action(async (id: string, amount: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
-            const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
 
             await ordersReplenishDeposit({
-                blockchainConfig: blockchainAccess,
-                actionAccountKey: blockchainKeys.actionAccountKey,
+                blockchainConfig,
+                actionAccountKey: blockchain.accountPrivateKey,
                 id,
                 amount,
             });
@@ -190,17 +193,19 @@ async function main() {
             }
 
             const configLoader = new ConfigLoader(options.config);
-            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
-            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
-            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
-            const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
+            const backend = configLoader.loadSection("backend") as Config["backend"];
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
             const workflowConfig = configLoader.loadSection("workflow") as Config["workflow"];
 
             await workflowsCreate({
-                backendUrl: backendAccess.url,
-                accessToken,
-                blockchainConfig: blockchainAccess,
-                actionAccountKey: blockchainKeys.actionAccountKey,
+                backendUrl: backend.url,
+                accessToken: backend.accessToken,
+                blockchainConfig,
+                actionAccountKey: blockchain.accountPrivateKey,
                 tee: options.tee,
                 storage: options.storage,
                 solutions: options.solution,
@@ -250,28 +255,27 @@ async function main() {
             false
         )
         .addOption(
-            new Option("--type <type>", "Only show orders of the specified type")
-                .choices(Object.keys(ordersListOfferTypes))
+            new Option("--type <type>", "Only show orders of the specified type").choices(
+                Object.keys(ordersListOfferTypes)
+            )
         )
         .option("--limit <number>", "Number of records to display", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
-            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+            const backend = configLoader.loadSection("backend") as Config["backend"];
 
             let actionAccountKey;
             if (options.myAccount) {
-                actionAccountKey = (configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"])
-                    .actionAccountKey;
+                actionAccountKey = (configLoader.loadSection("blockchain") as Config["blockchain"]).accountPrivateKey;
             }
 
             validateFields(options.fields, ordersListFields);
 
             await ordersList({
                 fields: options.fields,
-                backendUrl: backendAccess.url,
-                accessToken,
+                backendUrl: backend.url,
+                accessToken: backend.accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
                 actionAccountKey,
@@ -332,8 +336,7 @@ async function main() {
         )
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
-            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+            const backend = configLoader.loadSection("backend") as Config["backend"];
 
             validateFields(options.fields, ordersGetFields);
             if (options.suborders) validateFields(options.suborders_fields, subOrdersGetFields);
@@ -341,8 +344,8 @@ async function main() {
             await ordersGet({
                 fields: options.fields,
                 subOrdersFields: options.suborders ? options.suborders_fields : [],
-                backendUrl: backendAccess.url,
-                accessToken,
+                backendUrl: backend.url,
+                accessToken: backend.accessToken,
                 id,
             });
         });
@@ -354,11 +357,15 @@ async function main() {
         .option("--save-to <path>", "Path to save the result", "./result.tar.gz")
         .action(async (orderId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
             const workflowConfig = configLoader.loadSection("workflow") as Config["workflow"];
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
 
             await ordersDownloadResult({
-                blockchainConfig: blockchainAccess,
+                blockchainConfig,
                 orderId,
                 localPath: options.saveTo,
                 resultDecryptionKey: workflowConfig.resultEncryption.key!,
@@ -371,12 +378,15 @@ async function main() {
         .argument("id", "Order <id>")
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
-            const blockchainKeys = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
 
             await ordersWithdrawDeposit({
-                blockchainConfig: blockchainAccess,
-                actionAccountKey: blockchainKeys.actionAccountKey,
+                blockchainConfig,
+                actionAccountKey: blockchain.accountPrivateKey,
                 id,
             });
         });
@@ -388,14 +398,13 @@ async function main() {
         .option("--tee", "Request Super Protocol TEE tokens", false)
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const blockchainKeysConfig = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
-            const backendConfig = configLoader.loadSection("backend") as Config["backend"];
-            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const backend = configLoader.loadSection("backend") as Config["backend"];
 
             await tokensRequest({
-                backendUrl: backendConfig.url,
-                accessToken,
-                actionAccountPrivateKey: blockchainKeysConfig.actionAccountKey,
+                backendUrl: backend.url,
+                accessToken: backend.accessToken,
+                actionAccountPrivateKey: blockchain.accountPrivateKey,
                 requestMatic: options.matic,
                 requestTee: options.tee,
             });
@@ -406,12 +415,15 @@ async function main() {
         .description("Display the token balance of the account")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const blockchainKeysConfig = configLoader.loadSection("blockchainKeys") as Config["blockchainKeys"];
-            const blockchainConfig = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
 
             await tokensBalance({
                 blockchainConfig,
-                actionAccountPrivateKey: blockchainKeysConfig.actionAccountKey,
+                actionAccountPrivateKey: blockchain.accountPrivateKey,
             });
         });
 
@@ -440,15 +452,14 @@ async function main() {
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
-            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+            const backend = configLoader.loadSection("backend") as Config["backend"];
 
             validateFields(options.fields, offersListTeeFields);
 
             await offersListTee({
                 fields: options.fields,
-                backendUrl: backendAccess.url,
-                accessToken,
+                backendUrl: backend.url,
+                accessToken: backend.accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
             });
@@ -478,15 +489,14 @@ async function main() {
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
-            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+            const backend = configLoader.loadSection("backend") as Config["backend"];
 
             validateFields(options.fields, offersListValueFields);
 
             await offersListValue({
                 fields: options.fields,
-                backendUrl: backendAccess.url,
-                accessToken,
+                backendUrl: backend.url,
+                accessToken: backend.accessToken,
                 limit: +options.limit,
                 cursor: options.cursor,
             });
@@ -514,16 +524,15 @@ async function main() {
         )
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
-            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+            const backend = configLoader.loadSection("backend") as Config["backend"];
 
             validateFields(options.fields, teeOffersGetFields);
 
             await offersGet({
                 fields: options.fields,
-                backendUrl: backendAccess.url,
+                backendUrl: backend.url,
                 type: "tee",
-                accessToken,
+                accessToken: backend.accessToken,
                 id,
             });
         });
@@ -549,16 +558,15 @@ async function main() {
         )
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const backendAccess = configLoader.loadSection("backend") as Config["backend"];
-            const accessToken = configLoader.loadSection("accessToken") as Config["accessToken"];
+            const backend = configLoader.loadSection("backend") as Config["backend"];
 
             validateFields(options.fields, offersGetFields);
 
             await offersGet({
                 fields: options.fields,
-                backendUrl: backendAccess.url,
+                backendUrl: backend.url,
                 type: "value",
-                accessToken,
+                accessToken: backend.accessToken,
                 id,
             });
         });
@@ -570,10 +578,14 @@ async function main() {
         .option("--save-to <path>", "Path to save the content", "./offer.tar.gz")
         .action(async (offerId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const blockchainAccess = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
 
             await offersDownloadContent({
-                blockchainConfig: blockchainAccess,
+                blockchainConfig,
                 offerId,
                 localPath: options.saveTo,
             });
@@ -592,13 +604,14 @@ async function main() {
         .option("--metadata <path>", "Path to a metadata file for adding fields to the resource file")
         .action(async (localPath: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
-            const storageConfig = configLoader.loadSection("storage") as Config["storage"];
+            const storage = configLoader.loadSection("storage") as Config["storage"];
 
             await upload({
                 localPath,
-                storageType: storageConfig.storageType,
-                writeCredentials: storageConfig.writeCredentials,
-                readCredentials: storageConfig.readCredentials,
+                storageType: storage.type,
+                writeAccessToken: storage.writeAccessToken,
+                readAccessToken: storage.readAccessToken,
+                bucket: storage.bucket,
                 remotePath: options.filename,
                 outputPath: options.output,
                 metadataPath: options.metadata,

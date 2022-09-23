@@ -25,9 +25,11 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
 
     Printer.print("Creating TEE order");
     const id = generateExternalId();
+
     await OrdersFactory.createOrder(
         {
             offer: params.teeOffer,
+            externalId: id,
             status: OrderStatus.New,
             args: {
                 inputOffers: params.inputOffers,
@@ -40,7 +42,6 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
         },
         params.holdDeposit,
         suspended,
-        id,
         { from: params.consumerAddress }
     );
 
@@ -69,6 +70,7 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
                 await teeOrder.createSubOrder(
                     {
                         offer: params.inputOffers[index],
+                        externalId: id,
                         status: OrderStatus.New,
                         args: {
                             inputOffers: [],
@@ -80,7 +82,6 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
                         encryptedRequirements: "",
                     },
                     true,
-                    undefined,
                     undefined,
                     { from: params.consumerAddress }
                 );
