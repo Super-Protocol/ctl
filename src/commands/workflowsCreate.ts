@@ -87,7 +87,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     }).then(({ list }) => list[0]);
 
     if (!teeOffer) {
-        throw new Error(`TEE offer ${params.tee} does not exist`);
+        throw new Error(`TEE offer ${params.tee} does not exist or is of the wrong type`);
     }
 
     const valueOfferIds = [...solutions.ids, ...data.ids, params.storage];
@@ -188,11 +188,11 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         }
     }
 
-    Printer.print(`Creating workflow orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`);
+    Printer.print(`Creating orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`);
 
     let workflowPromises = new Array(params.workflowNumber);
 
-    Printer.print("Approve tokens for all workflows");
+    Printer.print("Approving tokens for all orders");
     try {
         await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.workflowNumber).toString(), {
             from: consumerAddress!,
@@ -202,7 +202,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         else throw error;
     }
 
-    Printer.print("Create workflows");
+    Printer.print("Creating orders");
     for (let pos = 0; pos < params.workflowNumber; pos++) {
         workflowPromises[pos] = new Promise(async (resolve, reject) => {
             try {
@@ -229,7 +229,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 
     const results = await Promise.all(workflowPromises);
 
-    Printer.print(`Workflow was created, TEE order id: ${JSON.stringify(results)}`);
+    Printer.print(`Orders were created, TEE order id: ${JSON.stringify(results)}`);
 };
 
 export default workflowCreate;
