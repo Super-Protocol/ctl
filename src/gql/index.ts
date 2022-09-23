@@ -1395,7 +1395,7 @@ export type TeeOffersQueryVariables = Exact<{
 }>;
 
 
-export type TeeOffersQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', _id: string, id: string, authority?: string | null, disabledAfter: number, providerAddress: string, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, stats?: { __typename?: 'Stats', freeCores?: number | null, ordersInQueue?: number | null } | null, teeOfferInfo: { __typename?: 'TeeOfferInfo', argsPublicKey: string, description: string, minTimeMinutes: number, name: string, properties: string, slots: number, tcb: string, teeType: string, tlb: string } } | null }> | null, pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
+export type TeeOffersQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', _id: string, id: string, authority?: string | null, disabledAfter: number, providerAddress: string, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, stats?: { __typename?: 'Stats', freeCores?: number | null, ordersInQueue?: number | null, new?: number | null, processing?: number | null } | null, teeOfferInfo: { __typename?: 'TeeOfferInfo', argsPublicKey: string, description: string, minTimeMinutes: number, name: string, properties: string, slots: number, tcb: string, teeType: string, tlb: string } } | null }> | null, pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
 
 export type TeeOffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1802,8 +1802,9 @@ export const TeeOffersDocument = gql`
             tlb
           }
           stats {
-            ordersInQueue
             freeCores
+            new
+            processing
           }
         }
       }
@@ -1845,12 +1846,8 @@ export const TeeOffersSelectDocument = gql`
 }
     ${PageDataDtoFragmentFragmentDoc}`;
 
-export type GqlListResponse<T> = {
-  list: T[];
-  cursor: string | null | undefined;
-}
-
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
+
 
 const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType) => action();
 

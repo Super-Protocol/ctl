@@ -41,8 +41,9 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                         tlb
                     }
                     stats {
-                        ordersInQueue
                         freeCores
+                        new
+                        processing
                     }
                 }
             }

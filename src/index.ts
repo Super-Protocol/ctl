@@ -472,8 +472,9 @@ async function main() {
             "type",
             "provider_address",
             "provider_name",
-            "hold_sum",
+            "cost",
             "cancelable",
+            "depends_on_offers",
             "modified_date",
         ],
         offersListValueDefaultFields = ["id", "name", "type"];
@@ -543,9 +544,10 @@ async function main() {
         "description",
         "type",
         "cancelable",
+        "provider_name",
+        "cost",
+        "depends_on_offers",
         "modified_date",
-        "hold_sum",
-        "restrictions",
     ];
     offersGetCommand
         .command("value")
