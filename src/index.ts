@@ -58,13 +58,13 @@ async function main() {
         providersListDefaultFields = ["address", "name"];
     providersCommand
         .command("list")
-        .description("Fetch list of providers")
+        .description("List providers")
         .addOption(
             new Option("--fields <fields>", `Available fields: ${providersListFields.join(", ")}`)
                 .argParser(commaSeparatedList)
                 .default(providersListDefaultFields, providersListDefaultFields.join(","))
         )
-        .option("--limit <number>", "Limit of records", "10")
+        .option("--limit <number>", "Number of records to display", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
@@ -92,7 +92,7 @@ async function main() {
         providersGetDefaultFields = ["name", "description", "authority_account", "action_account"];
     providersCommand
         .command("get")
-        .description("Fetch fields of a provider with <address>")
+        .description("Display detailed information on provider with <address>")
         .argument("address", "Provider address")
         .addOption(
             new Option("--fields <fields>", `Available fields: ${providersListFields.join(", ")}`)
@@ -116,7 +116,7 @@ async function main() {
     ordersCommand
         .command("cancel")
         .description("Cancel order with <id>")
-        .argument("id", "Order id")
+        .argument("id", "Order <id>")
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -134,7 +134,7 @@ async function main() {
     ordersCommand
         .command("replenish-deposit")
         .description("Replenish order deposit with <id> by <amount>")
-        .argument("id", "Order id")
+        .argument("id", "Order <id>")
         .argument("amount", "Amount of tokens")
         .action(async (id: string, amount: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
@@ -154,35 +154,35 @@ async function main() {
 
     workflowsCommand
         .command("generate-key")
-        .description("Generate a private key for encryption")
+        .description("Generate private key to encrypt order results")
         .action(() => {
             Printer.print(eccrypto.generatePrivate().toString("base64"));
         });
 
     workflowsCommand
         .command("create")
-        .description("Creates workflow orders")
-        .requiredOption("--tee <id>", "TEE offer id (this option is required)")
-        .requiredOption("--storage <id>", "Storage offer id (this option is required)")
+        .description("Create new orders")
+        .requiredOption("--tee <id>", "TEE offer <id> (required)")
+        .requiredOption("--storage <id>", "Storage offer <id> (required)")
         .requiredOption(
             "--solution <id> --solution <filepath>",
-            "Solution offer id or resource file path (this option is required and accepts multiple values)",
+            "Solution offer <id> or resource file path (required and accepts multiple values)",
             collectOptions,
             []
         )
         .option(
             "--data <id> --data <filepath>",
-            "Data offer id or resource file path (this option accepts multiple values)",
+            "Data offer <id> or resource file path (accepts multiple values)",
             collectOptions,
             []
         )
         .option(
             "--deposit <TEE>",
-            "Payment deposit amount in TEE tokens (if not provided, the minimum required deposit is used)"
+            "Amount of the payment deposit in TEE tokens (if not specified, the minimum deposit required is used)"
         )
         .addOption(new Option("--workflow-number <number>", "Number of workflows to create").default(1).hideHelp())
         .addOption(
-            new Option("--orders-limit <number>", "Overrides default orders limit per user")
+            new Option("--orders-limit <number>", "Override default orders limit per user")
                 .default(MAX_ORDERS_RUNNING)
                 .hideHelp()
         )
@@ -243,7 +243,7 @@ async function main() {
         };
     ordersCommand
         .command("list")
-        .description("Fetch list of orders")
+        .description("List orders")
         .addOption(
             new Option("--fields <fields>", `Available fields: ${ordersListFields.join(", ")}`)
                 .argParser(commaSeparatedList)
@@ -259,7 +259,7 @@ async function main() {
                 Object.keys(ordersListOfferTypes)
             )
         )
-        .option("--limit <number>", "Limit of records", "10")
+        .option("--limit <number>", "Number of records to display", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
@@ -321,8 +321,8 @@ async function main() {
         subOrdersGetDefaultFields = ["id", "offer_name", "offer_description", "type", "status", "modified_date"];
     ordersCommand
         .command("get")
-        .description("Fetch fields of order with <id>")
-        .argument("id", "Order id")
+        .description("Display detailed information on order with <id>")
+        .argument("id", "Order <id>")
         .addOption(
             new Option("--fields <fields>", `Available fields: ${ordersGetFields.join(", ")}`)
                 .argParser(commaSeparatedList)
@@ -353,8 +353,8 @@ async function main() {
     ordersCommand
         .command("download-result")
         .description("Downloading result of order with <id>")
-        .argument("id", "Order id")
-        .option("--save-to <path>", "Path to save result", "./result.tar.gz")
+        .argument("id", "Order <id>")
+        .option("--save-to <path>", "Path to save the result", "./result.tar.gz")
         .action(async (orderId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const workflowConfig = configLoader.loadSection("workflow") as Config["workflow"];
@@ -375,7 +375,7 @@ async function main() {
     ordersCommand
         .command("withdraw-deposit")
         .description("Withdraw unspent deposit from a completed order with <id>")
-        .argument("id", "Order id")
+        .argument("id", "Order <id>")
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -412,7 +412,7 @@ async function main() {
 
     tokensCommand
         .command("balance")
-        .description("Fetch token balance of the account")
+        .description("Display the token balance of the account")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -442,13 +442,13 @@ async function main() {
         offersListTeeDefaultFields = ["id", "name", "orders_in_queue"];
     offersListCommand
         .command("tee")
-        .description("Fetch list of offers")
+        .description("List TEE offers")
         .addOption(
             new Option("--fields <fields>", `Available fields: ${offersListTeeFields.join(", ")}`)
                 .argParser(commaSeparatedList)
                 .default(offersListTeeDefaultFields, offersListTeeDefaultFields.join(","))
         )
-        .option("--limit <number>", "Limit of records", "10")
+        .option("--limit <number>", "Number of records to display", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
@@ -479,13 +479,13 @@ async function main() {
         offersListValueDefaultFields = ["id", "name", "type"];
     offersListCommand
         .command("value")
-        .description("Fetch list of offers")
+        .description("List value offers")
         .addOption(
             new Option("--fields <fields>", `Available fields: ${offersListValueFields.join(", ")}`)
                 .argParser(commaSeparatedList)
                 .default(offersListValueDefaultFields, offersListValueDefaultFields.join(","))
         )
-        .option("--limit <number>", "Limit of records", "10")
+        .option("--limit <number>", "Number of records to display", "10")
         .option("--cursor <cursorString>", "Cursor for pagination")
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
@@ -515,7 +515,7 @@ async function main() {
     ];
     offersGetCommand
         .command("tee")
-        .description("Fetch fields of TEE offer with <id>")
+        .description("Display detailed information on TEE offer with <id>")
         .argument("id", "Offer id")
         .addOption(
             new Option("--fields <fields>", `Available fields: ${teeOffersGetFields.join(", ")}`)
@@ -549,7 +549,7 @@ async function main() {
     ];
     offersGetCommand
         .command("value")
-        .description("Fetch fields of value offer with <id>")
+        .description("Display detailed information on value offer with <id>")
         .argument("id", "Offer id")
         .addOption(
             new Option("--fields <fields>", `Available fields: ${offersGetFields.join(", ")}`)
@@ -575,7 +575,7 @@ async function main() {
         .command("download-content")
         .description("Download the content of an offer with <id> (only for offers that allows this operation)")
         .argument("id", "Offer id")
-        .option("--save-to <path>", "Path to save content", "./offer.tar.gz")
+        .option("--save-to <path>", "Path to save the content", "./offer.tar.gz")
         .action(async (offerId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -621,10 +621,10 @@ async function main() {
     filesCommand
         .command("download")
         .description(
-            "Download and decrypt a file from the remote storage to the <localPath> using resource file <resourcePath>"
+            "Download and decrypt a file from the remote storage to <localPath> using resource file <resourcePath>"
         )
         .argument("resourcePath", "Path to a resource file")
-        .argument("localDirectory", "Path to save a downloaded file")
+        .argument("localDirectory", "Path to save downloaded file")
         .action(async (resourcePath: string, localDirectory: string) => {
             await download({
                 resourcePath,
@@ -634,7 +634,7 @@ async function main() {
 
     filesCommand
         .command("delete")
-        .description("Delete file in the remote storage using resource file <resourcePath>")
+        .description("Delete a file in the remote storage using resource file <resourcePath>")
         .argument("resourcePath", "Path to a resource file")
         .action(async (resourcePath: string) => {
             await filesDelete({
@@ -644,27 +644,27 @@ async function main() {
 
     solutionsCommand
         .command("generate-key")
-        .description("Generate a solution key and save it to <outputPath>")
-        .argument("outputPath", "Path to save a solution key file")
+        .description("Generate a solution signing key")
+        .argument("outputPath", "Path to save a key file")
         .action(async (outputPath: string, options: any) => {
             await generateSolutionKey({ outputPath });
         });
 
     solutionsCommand
         .command("prepare")
-        .description("Prepare the solution and save it to <solutionPath>, sign it with <solutionKeyPath>")
-        .argument("solutionPath", "Path to the solution folder")
-        .argument("solutionKeyPath", "Path to the solution key")
+        .description("Prepare a solution for deployment")
+        .argument("solutionPath", "Path to a solution folder")
+        .argument("solutionKeyPath", "Path to a key file")
         .option("--metadata <pathToSave>", "Path to save metadata (hash and MrEnclave)", "./metadata.json")
-        .option("--pack-solution <packSolution>", "Path to the resulting tar.gz archive", "")
-        .option("--base-image-path <pathToContainerImage>", "A container image file", "")
-        .option("--base-image-resource <containerImageResource>", "A container image resource file", "")
-        .option("--write-default-manifest", "Write a default manifest for solutions with empty sgxMrEnclave", false)
+        .option("--pack-solution <packSolution>", "Path to save the resulting tar.gz archive", "")
+        .option("--base-image-path <pathToContainerImage>", "Path to a container image file (required if no --base-image-resource specified)", "")
+        .option("--base-image-resource <containerImageResource>", "Path to a container image resource file (required if no --base-image-path specified)", "")
+        .option("--write-default-manifest", "Write the default manifest for solutions with empty sgxMrEnclave", false)
         .option("--hash-algo <solutionHashAlgo>", "Hash calculation algorithm for solution", HashAlgorithm.SHA256)
         .option("--sgx-thread-num <threadNum>", "Number of enclave threads", "")
         .option(
             "--sgx-enclave-size <enclaveSize>",
-            "Entire enclave size (#M or #G), must be some value to the power of 2",
+            "Entire enclave size (#M or #G), must be a value to the power of 2",
             ""
         )
         .option("--sgx-loader-internal-size <internalSize>", "Size of the internal enclave structs (#M or #G)", "")
@@ -688,7 +688,7 @@ async function main() {
 
     // Add global options
     processSubCommands(program, (command) => {
-        command.option("--config <configPath>", "Path to configuration file", "./config.json");
+        command.option("--config <configPath>", "Path to the configuration file", "./config.json");
         command.addHelpCommand("help", "Display help for the command");
         command.helpOption("-h, --help", "Display help for the command");
     });
