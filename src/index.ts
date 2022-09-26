@@ -638,9 +638,13 @@ async function main() {
         .command("delete")
         .description("Delete a file in the remote storage using resource file <resourcePath>")
         .argument("resourcePath", "Path to a resource file")
-        .action(async (resourcePath: string) => {
+        .action(async (resourcePath: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const storage = configLoader.loadSection("storage") as Config["storage"];
+
             await filesDelete({
                 resourcePath,
+                writeAccessToken: storage.writeAccessToken,
             });
         });
 

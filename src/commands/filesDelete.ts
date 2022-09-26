@@ -7,6 +7,7 @@ import { preparePath } from "../utils";
 
 export type FilesDeleteParams = {
     resourcePath: string;
+    writeAccessToken: string;
 };
 
 export default async (params: FilesDeleteParams): Promise<void> => {
@@ -20,6 +21,7 @@ export default async (params: FilesDeleteParams): Promise<void> => {
     if (resource.type !== ResourceType.StorageProvider)
         throw Error(`Resource type ${resource.type} is not supported, use StorageProvider type for this command`);
 
+    resource.credentials.token = params.writeAccessToken;
     Printer.print("Deleting file");
     await deleteFileService({
         storageAccess: resource,

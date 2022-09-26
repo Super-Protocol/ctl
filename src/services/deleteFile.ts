@@ -1,5 +1,4 @@
 import { getStorageProvider, StorageAccess } from "@super-protocol/sdk-js";
-import { StorageType } from "@super-protocol/dto-js";
 
 export type DeleteFileParams = {
     remotePath: string;
