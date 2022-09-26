@@ -238,6 +238,7 @@ const checkFetchedOffers = (ids: string[], offers: Map<string, OfferDto>, type: 
 
         if (!fetchedOffer) {
             throw new Error(`Offer ${id} does not exist`);
+        // TODO: move prettifying of offers from fetching to separate service and remove getObjectKey here
         } else if (fetchedOffer.type !== getObjectKey(type, OfferType)) {
             throw new Error(`Offer ${id} has wrong type ${fetchedOffer.type} instead of ${getObjectKey(type, OfferType)}`);
         }
