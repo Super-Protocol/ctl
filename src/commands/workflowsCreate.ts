@@ -87,7 +87,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     }).then(({ list }) => list[0]);
 
     if (!teeOffer) {
-        throw new Error(`TEE offer ${params.tee} does not exist`);
+        throw new Error(`TEE offer ${params.tee} does not exist or is of the wrong type`);
     }
 
     const valueOfferIds = [...solutions.ids, ...data.ids, params.storage];
@@ -98,16 +98,14 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         ids: valueOfferIds,
     }).then(({ list }) => list);
 
-    const offersMap = new Map<string, OfferDto>(
-        offers.map(o => ([o.id!, o]))
-    );
+    const offersMap = new Map<string, OfferDto>(offers.map((o) => [o.id!, o]));
 
     checkFetchedOffers([params.storage], offersMap, OfferType.Storage);
     checkFetchedOffers(solutions.ids, offersMap, OfferType.Solution);
     checkFetchedOffers(data.ids, offersMap, OfferType.Data);
 
     const restrictionOffersMap = new Map<string, Offer>(
-        offers.flatMap(({ restrictions }) => restrictions).map((id) => [id, new Offer(id)])
+        offers.flatMap(({ dependsOnOffers }) => dependsOnOffers).map((id) => [id, new Offer(id)])
     );
 
     Printer.print("Validating workflow configuration");
@@ -115,7 +113,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         [...solutions.ids, ...data.ids].map(async (offerId) => {
             const offerToCheck = offers.find((o) => o.id === offerId);
             const restrictions =
-                <Offer[]>offerToCheck?.restrictions.map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
+                <Offer[]>offerToCheck?.dependsOnOffers.map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
             return validateOfferWorkflowService({
                 offerId,
                 restrictions,
@@ -188,11 +186,11 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         }
     }
 
-    Printer.print(`Creating workflow orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`);
+    Printer.print(`Creating orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`);
 
     let workflowPromises = new Array(params.workflowNumber);
 
-    Printer.print("Approve tokens for all workflows");
+    Printer.print("Approving tokens for all orders");
     try {
         await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.workflowNumber).toString(), {
             from: consumerAddress!,
@@ -202,7 +200,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         else throw error;
     }
 
-    Printer.print("Create workflows");
+    Printer.print("Creating orders");
     for (let pos = 0; pos < params.workflowNumber; pos++) {
         workflowPromises[pos] = new Promise(async (resolve, reject) => {
             try {
@@ -229,7 +227,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 
     const results = await Promise.all(workflowPromises);
 
-    Printer.print(`Workflow was created, TEE order id: ${JSON.stringify(results)}`);
+    Printer.print(`Orders were created, TEE order id: ${JSON.stringify(results)}`);
 };
 
 export default workflowCreate;
