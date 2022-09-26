@@ -1,3 +1,4 @@
+import { promises as fs } from "fs";
 import downloadService from "../services/downloadFile";
 import Printer from "../printer";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
@@ -12,7 +13,7 @@ import getOfferContent from "../services/getOfferContent";
 export type OfferDownloadParamsParams = {
     blockchainConfig: BlockchainConfig;
     offerId: string;
-    localPath: string;
+    localDir: string;
 };
 
 export default async (params: OfferDownloadParamsParams): Promise<void> => {
@@ -29,12 +30,20 @@ export default async (params: OfferDownloadParamsParams): Promise<void> => {
     }
 
     Printer.print("Offer content is available for download");
-    const localPath = preparePath(params.localPath).replace(/\/$/, "");
+    const localDir = preparePath(params.localDir).replace(/\/$/, "");
+    let info = await fs.stat(localDir);
+    if (!info.isDirectory()) {
+        throw new Error("Save path must be the path to a folder");
+    }
+    const defaultFilename = "/offer.tar.gz";
+    let localPath: string;
+
     switch (resource.type) {
         case ResourceType.Url:
+            localPath = localDir + defaultFilename;
             await downloadFileByUrl({
                 url: (resource as UrlResource).url,
-                savePath: path.join(process.cwd(), params.localPath),
+                savePath: localDir + defaultFilename,
                 progressListener: (total, current) => {
                     Printer.progress("Downloading file", total, current);
                 },
@@ -45,6 +54,7 @@ export default async (params: OfferDownloadParamsParams): Promise<void> => {
             if (!isCommandSupported()) return;
 
             const storageProviderResource: StorageProviderResource = resource as StorageProviderResource;
+            localPath = `${localDir}/${storageProviderResource.filepath}`;
             await downloadService(
                 storageProviderResource.filepath,
                 localPath,
@@ -59,5 +69,5 @@ export default async (params: OfferDownloadParamsParams): Promise<void> => {
     }
 
     Printer.stopProgress();
-    Printer.print(`Offer content was saved to ${params.localPath}`);
+    Printer.print(`Offer content was saved to ${localPath}`);
 };

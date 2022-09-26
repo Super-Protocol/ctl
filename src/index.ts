@@ -577,7 +577,7 @@ async function main() {
         .command("download-content")
         .description("Download the content of an offer with <id> (only for offers that allows this operation)")
         .argument("id", "Offer id")
-        .option("--save-to <path>", "Path to save the content", "./offer.tar.gz")
+        .option("--save-to <path>", "Directory to save the content to", "./")
         .action(async (offerId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -589,7 +589,7 @@ async function main() {
             await offersDownloadContent({
                 blockchainConfig,
                 offerId,
-                localPath: options.saveTo,
+                localDir: options.saveTo,
             });
         });
 
