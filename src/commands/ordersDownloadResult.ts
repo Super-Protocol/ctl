@@ -16,11 +16,12 @@ import checkOrderService from "../services/checkOrder";
 export type FilesDownloadParams = {
     blockchainConfig: BlockchainConfig;
     orderId: string;
-    localPath: string;
+    localPath?: string;
     resultDecryptionKey: string;
 };
 
 export const localTxtPath = "./result.txt";
+export const localTarPath = "./result.tar.gz";
 
 export default async (params: FilesDownloadParams): Promise<void> => {
     // Validate decryption key
@@ -100,10 +101,12 @@ export default async (params: FilesDownloadParams): Promise<void> => {
 
     Printer.print("Result was decrypted, downloading file");
     const resource: Resource = decrypted.resource!;
-    const localPath = `${preparePath(params.localPath).replace(/\/$/, "")}.encrypted`;
+    let localPath;
 
     switch (resource.type) {
         case ResourceType.Url:
+            localPath = getResultPath(params.localPath);
+
             await downloadFileByUrl({
                 url: (resource as UrlResource).url,
                 savePath: localPath,
@@ -115,8 +118,8 @@ export default async (params: FilesDownloadParams): Promise<void> => {
 
         case ResourceType.StorageProvider:
             if (!isCommandSupported()) return;
-
             const storageProviderResource = resource as StorageProviderResource;
+            localPath = getResultPath(params.localPath, storageProviderResource.filepath);
             await downloadService(
                 storageProviderResource.filepath,
                 localPath,
@@ -167,4 +170,19 @@ async function writeResult(localPath: string, content: string, message: string) 
     Printer.print(message);
     await fs.writeFile(path.join(process.cwd(), localPath), content);
     Printer.print(`Order result metadata was saved to ${localPath}`);
+}
+
+function getResultPath (customPath?: string, sourcePath?: string) {
+    console.log(customPath, sourcePath);
+    if (customPath) {
+        return `${preparePath(customPath).replace(/\/$/, "")}.encrypted`;
+    }
+
+    if (sourcePath) {
+        sourcePath = preparePath(sourcePath);
+        if (!/\.encrypted$/.test(sourcePath)) sourcePath += ".encrypted";
+        return sourcePath;
+    }
+
+    return `${preparePath(localTarPath)}.encrypted`;
 }

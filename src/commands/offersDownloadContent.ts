@@ -2,7 +2,6 @@ import { promises as fs } from "fs";
 import downloadService from "../services/downloadFile";
 import Printer from "../printer";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
-import path from "path";
 import { ResourceType, StorageProviderResource, UrlResource } from "@super-protocol/dto-js";
 import downloadFileByUrl from "../services/downloadFileByUrl";
 import initBlockchainConnector from "../services/initBlockchainConnector";
