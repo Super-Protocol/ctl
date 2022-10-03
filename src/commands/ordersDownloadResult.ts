@@ -101,15 +101,15 @@ export default async (params: FilesDownloadParams): Promise<void> => {
 
     Printer.print("Result was decrypted, downloading file");
     const resource: Resource = decrypted.resource!;
-    let localPath;
+    let localPathEncrypted;
 
     switch (resource.type) {
         case ResourceType.Url:
-            localPath = getResultPath(params.localPath);
+            localPathEncrypted = getEncryptedResultPath(params.localPath);
 
             await downloadFileByUrl({
                 url: (resource as UrlResource).url,
-                savePath: localPath,
+                savePath: localPathEncrypted,
                 progressListener: (total, current) => {
                     Printer.progress("Downloading file", total, current);
                 },
@@ -119,10 +119,10 @@ export default async (params: FilesDownloadParams): Promise<void> => {
         case ResourceType.StorageProvider:
             if (!isCommandSupported()) return;
             const storageProviderResource = resource as StorageProviderResource;
-            localPath = getResultPath(params.localPath, storageProviderResource.filepath);
+            localPathEncrypted = getEncryptedResultPath(params.localPath, storageProviderResource.filepath);
             await downloadService(
                 storageProviderResource.filepath,
-                localPath,
+                localPathEncrypted,
                 storageProviderResource,
                 (total: number, current: number) => {
                     Printer.progress("Downloading file", total, current);
@@ -135,18 +135,19 @@ export default async (params: FilesDownloadParams): Promise<void> => {
 
     if (!decrypted.encryption) {
         Printer.stopProgress();
-        Printer.print(`File encryption data could not be found, encrypted result was saved to ${localPath}`);
+        Printer.print(`File encryption data could not be found, encrypted result was saved to ${localPathEncrypted}`);
         return;
     }
 
-    await decryptFileService(localPath, decrypted.encryption, (total: number, current: number) => {
+    const localPath = localPathEncrypted.replace(/\.encrypted$/, '');
+    await decryptFileService(localPathEncrypted, localPath, decrypted.encryption, (total: number, current: number) => {
         Printer.progress("Decrypting file", total, current);
     });
 
     Printer.stopProgress();
     Printer.print("Deleting temp files");
-    await fs.unlink(localPath);
-    Printer.print(`Order result was saved to ${params.localPath}`);
+    await fs.unlink(localPathEncrypted);
+    Printer.print(`Order result was saved to ${localPath}`);
 };
 
 async function tryDecrypt(encryption: Encryption, decryptionKey: string): Promise<string | undefined> {
@@ -172,9 +173,16 @@ async function writeResult(localPath: string, content: string, message: string) 
     Printer.print(`Order result metadata was saved to ${localPath}`);
 }
 
-function getResultPath (customPath?: string, sourcePath?: string) {
-    console.log(customPath, sourcePath);
+function getEncryptedResultPath (customPath?: string, sourcePath?: string) {
     if (customPath) {
+        if (sourcePath) {
+            const sourceExtension = /\..+$/.exec(sourcePath.replace(/\.encrypted$/, ''));
+            const customExtension = /\..+$/.exec(customPath);
+            if (sourceExtension && customExtension && sourceExtension[0] !== customExtension[0]) {
+                Printer.print(`WARNING: provided file extension (${customExtension[0]}) doesn't match extension in order result (${sourceExtension[0]})`);
+            }
+        }
+
         return `${preparePath(customPath).replace(/\/$/, "")}.encrypted`;
     }
 
