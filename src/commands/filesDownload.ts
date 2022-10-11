@@ -23,30 +23,37 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     if (resource.type !== ResourceType.StorageProvider)
         throw Error(`Resource type ${resource.type} is not supported, use StorageProvider type for this command`);
 
-    let localPath = preparePath(params.localDirectory).replace(/\/$/, "");
-    let info = await fs.stat(localPath);
+    let localPathEncrypted = preparePath(params.localDirectory).replace(/\/$/, "");
+    let info = await fs.stat(localPathEncrypted);
     if (!info.isDirectory()) {
         throw new Error("localDirectory argument must be the path to a folder");
     }
-    localPath += `/${resource.filepath}`;
+    localPathEncrypted += `/${resource.filepath}`;
+    let localPath;
+    if (/\.encrypted$/.test(localPathEncrypted)) {
+        localPath = localPathEncrypted.replace(/\.encrypted$/, '');
+    } else {
+        localPath = localPathEncrypted;
+        localPathEncrypted += '.encrypted';
+    }
 
     const storageAccess = {
         storageType: resource.storageType,
         credentials: resource.credentials,
     };
 
-    await downloadService(resource.filepath, localPath, storageAccess, (total: number, current: number) => {
+    await downloadService(resource.filepath, localPathEncrypted, storageAccess, (total: number, current: number) => {
         Printer.progress("Downloading file", total, current);
     });
 
     if (resourceFile.encryption) {
-        await decryptFileService(localPath, resourceFile.encryption, (total: number, current: number) => {
+        await decryptFileService(localPathEncrypted, localPath, resourceFile.encryption, (total: number, current: number) => {
             Printer.progress("Decrypting file", total, current);
         });
 
         Printer.stopProgress();
         Printer.print("Deleting temp files");
-        await fs.unlink(localPath);
+        await fs.unlink(localPathEncrypted);
     } else {
         Printer.stopProgress();
     }

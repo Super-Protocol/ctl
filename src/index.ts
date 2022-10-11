@@ -354,7 +354,7 @@ async function main() {
         .command("download-result")
         .description("Downloading result of order with <id>")
         .argument("id", "Order <id>")
-        .option("--save-to <path>", "Path to save the result", "./result.tar.gz")
+        .option("--save-to <path>", "Path to save the result")
         .action(async (orderId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const workflowConfig = configLoader.loadSection("workflow") as Config["workflow"];

@@ -16,11 +16,12 @@ import checkOrderService from "../services/checkOrder";
 export type FilesDownloadParams = {
     blockchainConfig: BlockchainConfig;
     orderId: string;
-    localPath: string;
+    localPath?: string;
     resultDecryptionKey: string;
 };
 
 export const localTxtPath = "./result.txt";
+export const localTarPath = "./result.tar.gz";
 
 export default async (params: FilesDownloadParams): Promise<void> => {
     // Validate decryption key
@@ -100,13 +101,15 @@ export default async (params: FilesDownloadParams): Promise<void> => {
 
     Printer.print("Result was decrypted, downloading file");
     const resource: Resource = decrypted.resource!;
-    const localPath = `${preparePath(params.localPath).replace(/\/$/, "")}.encrypted`;
+    let localPathEncrypted;
 
     switch (resource.type) {
         case ResourceType.Url:
+            localPathEncrypted = getEncryptedResultPath(params.localPath);
+
             await downloadFileByUrl({
                 url: (resource as UrlResource).url,
-                savePath: localPath,
+                savePath: localPathEncrypted,
                 progressListener: (total, current) => {
                     Printer.progress("Downloading file", total, current);
                 },
@@ -115,11 +118,11 @@ export default async (params: FilesDownloadParams): Promise<void> => {
 
         case ResourceType.StorageProvider:
             if (!isCommandSupported()) return;
-
             const storageProviderResource = resource as StorageProviderResource;
+            localPathEncrypted = getEncryptedResultPath(params.localPath, storageProviderResource.filepath);
             await downloadService(
                 storageProviderResource.filepath,
-                localPath,
+                localPathEncrypted,
                 storageProviderResource,
                 (total: number, current: number) => {
                     Printer.progress("Downloading file", total, current);
@@ -132,18 +135,19 @@ export default async (params: FilesDownloadParams): Promise<void> => {
 
     if (!decrypted.encryption) {
         Printer.stopProgress();
-        Printer.print(`File encryption data could not be found, encrypted result was saved to ${localPath}`);
+        Printer.print(`File encryption data could not be found, encrypted result was saved to ${localPathEncrypted}`);
         return;
     }
 
-    await decryptFileService(localPath, decrypted.encryption, (total: number, current: number) => {
+    const localPath = localPathEncrypted.replace(/\.encrypted$/, '');
+    await decryptFileService(localPathEncrypted, localPath, decrypted.encryption, (total: number, current: number) => {
         Printer.progress("Decrypting file", total, current);
     });
 
     Printer.stopProgress();
     Printer.print("Deleting temp files");
-    await fs.unlink(localPath);
-    Printer.print(`Order result was saved to ${params.localPath}`);
+    await fs.unlink(localPathEncrypted);
+    Printer.print(`Order result was saved to ${localPath}`);
 };
 
 async function tryDecrypt(encryption: Encryption, decryptionKey: string): Promise<string | undefined> {
@@ -167,4 +171,26 @@ async function writeResult(localPath: string, content: string, message: string) 
     Printer.print(message);
     await fs.writeFile(path.join(process.cwd(), localPath), content);
     Printer.print(`Order result metadata was saved to ${localPath}`);
+}
+
+function getEncryptedResultPath (customPath?: string, sourcePath?: string) {
+    if (customPath) {
+        if (sourcePath) {
+            const sourceExtension = /\..+$/.exec(sourcePath.replace(/\.encrypted$/, ''));
+            const customExtension = /\..+$/.exec(customPath);
+            if (sourceExtension && customExtension && sourceExtension[0] !== customExtension[0]) {
+                Printer.print(`WARNING: provided file extension (${customExtension[0]}) doesn't match extension in order result (${sourceExtension[0]})`);
+            }
+        }
+
+        return `${preparePath(customPath).replace(/\/$/, "")}.encrypted`;
+    }
+
+    if (sourcePath) {
+        sourcePath = preparePath(sourcePath);
+        if (!/\.encrypted$/.test(sourcePath)) sourcePath += ".encrypted";
+        return sourcePath;
+    }
+
+    return `${preparePath(localTarPath)}.encrypted`;
 }
