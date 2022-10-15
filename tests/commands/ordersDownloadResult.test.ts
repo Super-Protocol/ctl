@@ -66,17 +66,14 @@ const decryptedTextMessage = "text message!";
 const orderResults: { [id: string]: OrderResult } = {
     "1": {
         encryptedResult: JSON.stringify(encryptedResultObj),
-        encryptedError: "",
         orderPrice: "1",
     },
     "2": {
         encryptedResult: JSON.stringify(encryptedTextMessage),
-        encryptedError: "",
         orderPrice: "1",
     },
     "3": {
         encryptedResult: "Error is not encrypted, because resultPublicKey is invalid.",
-        encryptedError: "",
         orderPrice: "1",
     },
 };

@@ -124,7 +124,6 @@ query Order($id: String!) {
             description
         }
         orderResult {
-            encryptedError
             encryptedResult
         }
     }

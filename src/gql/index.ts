@@ -652,13 +652,11 @@ export type OrderPageInfo = {
 
 export type OrderResult = {
   __typename?: 'OrderResult';
-  encryptedError?: Maybe<Scalars['String']>;
   encryptedResult?: Maybe<Scalars['String']>;
   orderPrice?: Maybe<Scalars['String']>;
 };
 
 export type OrderResultInput = {
-  encryptedError?: InputMaybe<Scalars['String']>;
   encryptedResult?: InputMaybe<Scalars['String']>;
   orderPrice?: InputMaybe<Scalars['String']>;
 };
@@ -1371,7 +1369,7 @@ export type OrderQueryVariables = Exact<{
 }>;
 
 
-export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offer: string }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedError?: string | null, encryptedResult?: string | null } } };
+export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offer: string }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null } } };
 
 export type SubOrdersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1664,7 +1662,6 @@ export const OrderDocument = gql`
       description
     }
     orderResult {
-      encryptedError
       encryptedResult
     }
   }
