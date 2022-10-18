@@ -1723,10 +1723,10 @@
   resolved "https://registry.yarnpkg.com/@super-protocol/dto-js/-/dto-js-0.0.13.tgz#476b0b223d8f722b9a770f7f8cf6ae59ae93219a"
   integrity sha512-xwg3oHS3gGYXrhejFlBlr1EgSXh7ACH907pd4ItjTQ4uaxbURwyDHxSE7wCALV4OT2jNIrE+xRgORVeYPSeicQ==
 
-"@super-protocol/sdk-js@^0.10.2-beta.1":
-  version "0.10.2-beta.4"
-  resolved "https://registry.yarnpkg.com/@super-protocol/sdk-js/-/sdk-js-0.10.2-beta.4.tgz#40670984f2d9697353cde629354e8d27e1241e64"
-  integrity sha512-TyaWkHnYFzMAaN4KTxe193fk76/ALKt5JzJZRTqK2Yq64katvqbGW0C+BX9ZDF8JoKUnCG1o1Kjjla1VdyURdA==
+"@super-protocol/sdk-js@^0.11.1-beta.0":
+  version "0.11.1-beta.0"
+  resolved "https://registry.yarnpkg.com/@super-protocol/sdk-js/-/sdk-js-0.11.1-beta.0.tgz#fde36651d10eefd3b26919026b7ac18aca11c199"
+  integrity sha512-Qi+iTV4maKdCfMS3FRABLLmhOajCXGsAx1EwJnIwmqJYeeEYvqN/OIJbkW5l8uUrf35BLLj7ykvaihlIAWsugA==
   dependencies:
     "@super-protocol/dto-js" "0.0.13"
     "@super-protocol/tee-lib" "^0.1.2"
