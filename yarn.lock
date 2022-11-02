@@ -1718,17 +1718,17 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@super-protocol/dto-js@0.0.13", "@super-protocol/dto-js@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@super-protocol/dto-js/-/dto-js-0.0.13.tgz#476b0b223d8f722b9a770f7f8cf6ae59ae93219a"
-  integrity sha512-xwg3oHS3gGYXrhejFlBlr1EgSXh7ACH907pd4ItjTQ4uaxbURwyDHxSE7wCALV4OT2jNIrE+xRgORVeYPSeicQ==
+"@super-protocol/dto-js@0.0.14", "@super-protocol/dto-js@^0.0.14":
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/@super-protocol/dto-js/-/dto-js-0.0.14.tgz#c08adf500443a8677d135a1b6adff4a660ab0724"
+  integrity sha512-vtg9KUwE6SbrvZp2TOY+yFIhl4DGDHe+8LlCfQm7C77U9I0zclwiZTXaceEOaFJoH+940WFVLHzCTNj5iDWJzw==
 
-"@super-protocol/sdk-js@^0.11.1-beta.0":
-  version "0.11.1-beta.0"
-  resolved "https://registry.yarnpkg.com/@super-protocol/sdk-js/-/sdk-js-0.11.1-beta.0.tgz#fde36651d10eefd3b26919026b7ac18aca11c199"
-  integrity sha512-Qi+iTV4maKdCfMS3FRABLLmhOajCXGsAx1EwJnIwmqJYeeEYvqN/OIJbkW5l8uUrf35BLLj7ykvaihlIAWsugA==
+"@super-protocol/sdk-js@^0.11.8-beta.0":
+  version "0.11.8-beta.0"
+  resolved "https://registry.yarnpkg.com/@super-protocol/sdk-js/-/sdk-js-0.11.8-beta.0.tgz#1616ecd033af1879d03d61d9c423b107d1696e38"
+  integrity sha512-HJvQYFHo4cmx3OtXOsqqZMlWuJGTVlyJlwFbUJoDBtwzZ/YZP7Y/uUv/dxhbExgoo7GmzJdKKuK12gxEAXVimQ==
   dependencies:
-    "@super-protocol/dto-js" "0.0.13"
+    "@super-protocol/dto-js" "0.0.14"
     "@super-protocol/tee-lib" "^0.1.2"
     "@super-protocol/uplink-nodejs" "1.2.12"
     eccrypto "^1.1.6"

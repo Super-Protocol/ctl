@@ -6,7 +6,7 @@ export type GetMumbaiBalanceParams = {
 };
 
 const getMumbaiBalance = async (params: GetMumbaiBalanceParams) => {
-    const weiString = await BlockchainConnector.getBalance(params.address);
+    const weiString = await BlockchainConnector.getInstance().getBalance(params.address);
     return BigNumber.from(weiString);
 };
 

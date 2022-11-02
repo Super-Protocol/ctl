@@ -5,7 +5,7 @@ import { isCommandSupported } from "../services/uplinkSetupHelper";
 import { ResourceType, StorageProviderResource, UrlResource } from "@super-protocol/dto-js";
 import downloadFileByUrl from "../services/downloadFileByUrl";
 import initBlockchainConnector from "../services/initBlockchainConnector";
-import { Config as BlockchainConfig } from "@super-protocol/sdk-js/build/BlockchainConnector";
+import { Config as BlockchainConfig } from "@super-protocol/sdk-js";
 import { preparePath } from "../utils";
 import getOfferContent from "../services/getOfferContent";
 

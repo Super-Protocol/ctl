@@ -9,10 +9,10 @@ export type InitBlockchainConnectorParams = {
 };
 
 const pendingStatusChecker = async (pk: string): Promise<number> => {
-    const address = BlockchainConnector.getAddressByKey(pk);
+    const address = BlockchainConnector.getInstance().getAddressByKey(pk);
     return (
-        (await BlockchainConnector.getTransactionCount(address, "pending")) -
-        (await BlockchainConnector.getTransactionCount(address, "latest"))
+        (await BlockchainConnector.getInstance().getTransactionCount(address, "pending")) -
+        (await BlockchainConnector.getInstance().getTransactionCount(address, "latest"))
     );
 };
 
@@ -40,10 +40,10 @@ const checkPendingLoop = async (pk: string): Promise<void> => {
 };
 
 export default async (params: InitBlockchainConnectorParams): Promise<string | void> => {
-    await BlockchainConnector.init(params.blockchainConfig);
+    await BlockchainConnector.getInstance().initialize(params.blockchainConfig);
 
     if (params.actionAccountKey) {
         await checkPendingLoop(params.actionAccountKey);
-        return BlockchainConnector.initActionAccount(params.actionAccountKey);
+        return BlockchainConnector.getInstance().initializeActionAccount(params.actionAccountKey);
     }
 };
