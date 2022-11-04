@@ -1,4 +1,4 @@
-import { Crypto, Order, OrdersFactory, OrderStatus, TeeOffer } from "@super-protocol/sdk-js";
+import { Crypto, OrderInfo, OrdersFactory, OrderStatus, TeeOffer } from "@super-protocol/sdk-js";
 import { Encryption } from "@super-protocol/dto-js";
 import Printer from "../printer";
 import { generateExternalId, sleep } from "../utils";
@@ -21,28 +21,42 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
 
     Printer.print("Encrypting arguments");
     const encryptedArgs = await Crypto.encrypt(params.argsToEncrypt, JSON.parse(offerInfo.argsPublicKey));
-    const suspended = !!params.inputOffers.length;
 
-    Printer.print("Creating TEE order");
     const id = generateExternalId();
 
-    await OrdersFactory.createOrder(
-        {
-            offer: params.teeOffer,
-            externalId: id,
-            status: OrderStatus.New,
-            args: {
-                inputOffers: params.inputOffers,
-                selectedOffers: [params.storageOffer],
-                slots: 4,
-            },
-            encryptedArgs: JSON.stringify(encryptedArgs),
-            resultPublicKey: JSON.stringify(params.resultPublicKey),
-            encryptedRequirements: "",
+    const parentOrderInfo: OrderInfo = {
+        offer: params.teeOffer,
+        externalId: id,
+        status: OrderStatus.New,
+        args: {
+            inputOffers: params.inputOffers,
+            selectedOffers: [params.storageOffer],
+            slots: 4,
         },
+        encryptedArgs: JSON.stringify(encryptedArgs),
+        resultPublicKey: JSON.stringify(params.resultPublicKey),
+        encryptedRequirements: "",
+    };
+    const subOrdersInfo: OrderInfo[] = params.inputOffers.map(offerId => ({
+        offer: offerId,
+        externalId: generateExternalId(),
+        status: OrderStatus.New,
+        args: {
+            inputOffers: [],
+            selectedOffers: (params.storageOffer ? [params.storageOffer] : [])
+            .concat(params.teeOffer),
+            slots: 0,
+        },
+        resultPublicKey: "",
+        encryptedArgs: "",
+        encryptedRequirements: "",
+    }));
+
+    await OrdersFactory.createWorkflow(
+        parentOrderInfo,
+        subOrdersInfo,
         params.holdDeposit,
-        suspended,
-        { from: params.consumerAddress }
+        { from: params.consumerAddress },
     );
 
     let { orderId } = await OrdersFactory.getOrder(params.consumerAddress, id);
@@ -60,66 +74,6 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
             );
         }
     }
-    Printer.print("TEE order created successfully, fetching created order...");
-    const teeOrder = new Order(orderId.toString());
 
-    try {
-        if (suspended) {
-            Printer.print(`Creating ${params.inputOffers.length} sub-orders`);
-            for (let index in params.inputOffers) {
-                await teeOrder.createSubOrder(
-                    {
-                        offer: params.inputOffers[index],
-                        externalId: id,
-                        status: OrderStatus.New,
-                        args: {
-                            inputOffers: [],
-                            selectedOffers: [],
-                            slots: 4,
-                        },
-                        resultPublicKey: offerInfo.argsPublicKey,
-                        encryptedArgs: "",
-                        encryptedRequirements: "",
-                    },
-                    true,
-                    undefined,
-                    { from: params.consumerAddress }
-                );
-            }
-
-            Printer.print("Starting TEE order");
-            await teeOrder.start({ from: params.consumerAddress });
-        }
-    } catch (e) {
-        Printer.error("Error occurred during the creation of sub-orders, canceling all created orders");
-        try {
-            const subOrders = await teeOrder.getSubOrders();
-
-            for (let index in subOrders) {
-                try {
-                    const subOrder = new Order(subOrders[index]);
-                    await subOrder.cancelOrder({ from: params.consumerAddress });
-                } catch (error) {
-                    Printer.error(
-                        `Error occurred when canceling created order ${subOrders[index]}, the order was not canceled`
-                    );
-                }
-            }
-
-            try {
-                await teeOrder.cancelOrder({ from: params.consumerAddress });
-            } catch (error) {
-                Printer.error(
-                    `Error occurred when canceling created TEE order ${params.consumerAddress}, the order was not canceled`
-                );
-            }
-
-            Printer.error("Created orders were canceled");
-        } catch (e) {
-            Printer.error("Error occurred when canceling created orders, no orders were canceled");
-        }
-        throw e;
-    }
-
-    return teeOrder.id;
+    return orderId;
 };

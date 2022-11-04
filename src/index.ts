@@ -161,7 +161,7 @@ async function main() {
 
     workflowsCommand
         .command("create")
-        .description("Create new orders")
+        .description("Create workflow")
         .requiredOption("--tee <id>", "TEE offer <id> (required)")
         .requiredOption("--storage <id>", "Storage offer <id> (required)")
         .requiredOption(

@@ -22,6 +22,7 @@ import { TOfferType } from "../gql";
 import { TX_REVERTED_BY_EVM_ERROR } from "../constants";
 import fetchOffers, { OfferDto } from "../services/fetchOffers";
 import fetchTeeOffers from "../services/fetchTeeOffers";
+import { BigNumber } from "ethers";
 
 export type WorkflowCreateParams = {
     backendUrl: string;
@@ -186,21 +187,27 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
         }
     }
 
-    Printer.print(`Creating orders with the deposit of ${weiToEther(holdDeposit)} TEE tokens`);
+    Printer.print(`Total deposit is ${weiToEther(holdDeposit.mul(params.workflowNumber))} TEE tokens`);
 
     let workflowPromises = new Array(params.workflowNumber);
 
-    Printer.print("Approving tokens for all orders");
-    try {
-        await SuperproToken.approve(OrdersFactory.address, holdDeposit.mul(params.workflowNumber).toString(), {
-            from: consumerAddress!,
-        });
-    } catch (error: any) {
-        if (error.message?.includes(TX_REVERTED_BY_EVM_ERROR)) throw ErrorTxRevertedByEvm(error);
-        else throw error;
+    const allowance = await SuperproToken.allowance(consumerAddress!, OrdersFactory.address);
+    if (holdDeposit.gt(allowance)) {
+        Printer.print("Approving TEE tokens");
+        try {
+            await SuperproToken.approve(
+                OrdersFactory.address,
+                etherToWei(BigNumber.from(1e10).toString()).toString(),
+                { from: consumerAddress! },
+            );
+        } catch (error: any) {
+            if (error.message?.includes(TX_REVERTED_BY_EVM_ERROR)) throw ErrorTxRevertedByEvm(error);
+            else throw error;
+        }   
     }
 
-    Printer.print("Creating orders");
+    Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
+
     for (let pos = 0; pos < params.workflowNumber; pos++) {
         workflowPromises[pos] = new Promise(async (resolve, reject) => {
             try {
@@ -227,7 +234,7 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
 
     const results = await Promise.all(workflowPromises);
 
-    Printer.print(`Orders were created, TEE order id: ${JSON.stringify(results)}`);
+    Printer.print(`Workflow was created, TEE order id: ${JSON.stringify(results)}`);
 };
 
 export default workflowCreate;
