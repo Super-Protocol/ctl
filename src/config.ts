@@ -16,6 +16,7 @@ const ConfigValidators = {
         rpcUrl: z.string(),
         smartContractAddress: z.string(),
         accountPrivateKey: z.string(),
+        authorityAccountPrivateKey: z.string(),
     }),
     storage: z.object({
         type: z.nativeEnum(StorageType),
@@ -41,6 +42,7 @@ export type Config = {
         rpcUrl: string;
         smartContractAddress: string;
         accountPrivateKey: string;
+        authorityAccountPrivateKey: string;
     };
     storage: {
         type: StorageType;

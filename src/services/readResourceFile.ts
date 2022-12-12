@@ -1,4 +1,4 @@
-import z, { ZodError } from "zod";
+import z from "zod";
 import {
     CryptoAlgorithm,
     Encoding,
@@ -11,7 +11,6 @@ import {
     StorageType,
 } from "@super-protocol/dto-js";
 import readJsonFile from "./readJsonFile";
-import { createZodErrorMessage, ErrorWithCustomMessage } from "../utils";
 
 export type ReadResourceFileParams = {
     path: string;
@@ -24,28 +23,29 @@ export type ResourceFile = {
     hash?: Hash;
     args?: any;
 };
+export const ResourceValidator = z
+    .object({
+        type: z.enum([ResourceType.Url]),
+        url: z.string().min(1),
+    })
+    .or(
+        z.object({
+            type: z.enum([ResourceType.StorageProvider]),
+            storageType: z.nativeEnum(StorageType),
+            filepath: z.string(),
+            credentials: z.any(),
+        })
+    );
+
+export const EncryptionValidator = z.object({
+    algo: z.nativeEnum(CryptoAlgorithm),
+    encoding: z.nativeEnum(Encoding),
+    key: z.string(),
+});
 
 const ResourceFileValidator = z.object({
-    resource: z
-        .object({
-            type: z.enum([ResourceType.Url]),
-            url: z.string().min(1),
-        })
-        .or(
-            z.object({
-                type: z.enum([ResourceType.StorageProvider]),
-                storageType: z.nativeEnum(StorageType),
-                filepath: z.string(),
-                credentials: z.any(),
-            })
-        ),
-    encryption: z
-        .object({
-            algo: z.nativeEnum(CryptoAlgorithm),
-            encoding: z.nativeEnum(Encoding),
-            key: z.string(),
-        })
-        .optional(),
+    resource: ResourceValidator,
+    encryption: EncryptionValidator.optional(),
     linkage: z
         .object({
             encoding: z.nativeEnum(Encoding),
@@ -63,17 +63,7 @@ const ResourceFileValidator = z.object({
 });
 
 const readResourceFile = async (params: ReadResourceFileParams): Promise<ResourceFile> => {
-    let resourceFile = await readJsonFile(params);
-
-    try {
-        await ResourceFileValidator.parseAsync(resourceFile);
-    } catch (error) {
-        const errorMessage = createZodErrorMessage((error as ZodError).issues);
-        throw ErrorWithCustomMessage(
-            `Invalid Resource format of file ${params.path}:\n${errorMessage}`,
-            error as Error
-        );
-    }
+    let resourceFile = await readJsonFile({ path: params.path, validator: ResourceFileValidator });
 
     return resourceFile;
 };
