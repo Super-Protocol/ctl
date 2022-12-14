@@ -30,19 +30,7 @@ export default async (params: FetchTeeOffersParams) => {
         );
 
         return {
-            list:
-                result.page.edges?.map((item) => ({
-                    id: item.node?.id,
-                    name: item.node?.teeOfferInfo?.name,
-                    description: item.node?.teeOfferInfo?.description,
-                    providerName: item.node?.providerInfo.name,
-                    providerAddress: item.node?.origins?.createdBy,
-                    totalCores: item.node?.teeOfferInfo.slots,
-                    freeCores: item.node?.stats?.freeCores,
-                    ordersInQueue: (item.node?.stats?.new || 0) + (item.node?.stats?.processing || 0),
-                    cancelable: false,
-                    modifiedDate: formatDate(item.node?.origins?.modifiedDate),
-                })) || [],
+            list: result.page.edges?.map((item) => item) || [],
             cursor: result.page.pageInfo!.endCursor,
         };
     } catch (error: any) {

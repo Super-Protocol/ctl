@@ -25,18 +25,19 @@ const OfferInfoFileValidator = z.object({
     allowedArgs: z.string(),
     allowedAccounts: z.array(z.string()),
     argsPublicKey: EncryptionValidator,
-    resultResource: ResourceValidator,
+    resultResource: ResourceValidator.nullable(),
     linkage: z.string(),
     hash: z.string(),
 });
 
 export default async (params: ReadValueOfferInfoFileParams) => {
-    let resourceFile = await readJsonFile({ path: params.path, validator: OfferInfoFileValidator });
-    
+    const resourceFile = await readJsonFile({ path: params.path, validator: OfferInfoFileValidator });
+    const resultResource = resourceFile.resultResource ? JSON.stringify(resourceFile.resultResource) : "";
+
     const offerInfo: OfferInfo = {
         ...resourceFile,
         argsPublicKey: JSON.stringify(resourceFile.argsPublicKey),
-        resultResource: JSON.stringify(resourceFile.resultResource),
+        resultResource,
     };
 
     return offerInfo;

@@ -34,6 +34,7 @@ import { MAX_ORDERS_RUNNING } from "./constants";
 import offersGet from "./commands/offersGet";
 import offersCreate from "./commands/offersCreate";
 import offersUpdate from "./commands/offersUpdate";
+import offersGetInfo from "./commands/offersGetInfo";
 
 async function main() {
     const program = new Command();
@@ -576,6 +577,23 @@ async function main() {
         });
 
     offersCommand
+        .command("get-info")
+        .description("Get offer info property")
+        .addArgument(new Argument("type", "Offer <type>").choices(["tee", "value"]))
+        .argument("id", "Offer id")
+        .action(async (type: "tee" | "value", id: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const backend = configLoader.loadSection("backend") as Config["backend"];
+
+            await offersGetInfo({
+                backendUrl: backend.url,
+                type,
+                accessToken: backend.accessToken,
+                id,
+            });
+        });
+
+    offersCommand
         .command("download-content")
         .description("Download the content of an offer with <id> (only for offers that allows this operation)")
         .argument("id", "Offer id")
@@ -653,6 +671,7 @@ async function main() {
             "Path to save resource file that is used to access the uploaded file",
             "./resource.json"
         )
+        .option("--skip-encryption", "Skip file encryption before upload")
         .option("--metadata <path>", "Path to a metadata file for adding fields to the resource file")
         .action(async (localPath: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
@@ -667,6 +686,7 @@ async function main() {
                 remotePath: options.filename,
                 outputPath: options.output,
                 metadataPath: options.metadata,
+                withEncryption: !options.skipEncryption,
             });
         });
 
