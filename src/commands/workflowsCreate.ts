@@ -39,7 +39,7 @@ export type WorkflowCreateParams = {
     ordersLimit: number;
 };
 
-const workflowCreate = async (params: WorkflowCreateParams) => {
+const workflowCreate = async (params: WorkflowCreateParams): Promise<string | void> => {
     if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
         throw Error("Only ECIES result encryption is supported");
     if (params.resultEncryption.encoding !== Encoding.base64)
@@ -233,8 +233,11 @@ const workflowCreate = async (params: WorkflowCreateParams) => {
     }
 
     const results = await Promise.all(workflowPromises);
+    const id = JSON.stringify(results);
 
-    Printer.print(`Workflow was created, TEE order id: ${JSON.stringify(results)}`);
+    Printer.print(`Workflow was created, TEE order id: ${id}`);
+
+    return id;
 };
 
 export default workflowCreate;
