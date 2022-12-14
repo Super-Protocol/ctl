@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import encryptFileService from "../services/encryptFile";
 import uploadService from "../services/uploadFile";
-import { ResourceType, StorageType } from "@super-protocol/dto-js";
+import { Encryption, ResourceType, StorageType } from "@super-protocol/dto-js";
 import Printer from "../printer";
 import { isCommandSupported } from "../services/uplinkSetupHelper";
 import { generateExternalId, preparePath } from "../utils";
@@ -17,6 +17,7 @@ export type FilesUploadParams = {
     bucket: string;
     writeAccessToken: string;
     readAccessToken: string;
+    withEncryption: boolean;
 };
 
 export default async (params: FilesUploadParams) => {
@@ -27,8 +28,6 @@ export default async (params: FilesUploadParams) => {
         metadata = await readJsonFileService({ path: preparePath(params.metadataPath) });
     }
 
-    const encryption = await generateEncryptionService();
-
     let localPath = preparePath(params.localPath).replace(/\/$/, "");
 
     let info = await fs.stat(localPath);
@@ -36,22 +35,30 @@ export default async (params: FilesUploadParams) => {
         throw new Error("Uploading a folder is not supported, please use a tar.gz archive");
     }
 
-    let encryptedFileData = await encryptFileService(localPath, encryption, (total: number, current: number) => {
-        Printer.progress("Encrypting file", total, current);
-    });
-    const remotePath = `${params.remotePath || generateExternalId()}.encrypted`;
+    let remotePath = `${params.remotePath || generateExternalId()}`;
+    let fileEncryption: Encryption | undefined;
+    if (params.withEncryption) {
+        remotePath += ".encrypted";
+        const encryption = await generateEncryptionService();
+        const encryptionResult = await encryptFileService(localPath, encryption, (total: number, current: number) => {
+            Printer.progress("Encrypting file", total, current);
+        });
+        localPath = encryptionResult.encryptedFilePath;
+        fileEncryption = encryptionResult.encryption;
+    }
+
     const writeCredentials = {
-            token: params.writeAccessToken,
-            storageId: params.bucket,
-        },
-        readCredentials = {
-            token: params.readAccessToken,
-            storageId: params.bucket,
-        };
+        token: params.writeAccessToken,
+        storageId: params.bucket,
+    };
+    const readCredentials = {
+        token: params.readAccessToken,
+        storageId: params.bucket,
+    };
 
     try {
         await uploadService(
-            encryptedFileData.encryptedFilePath,
+            localPath,
             remotePath,
             {
                 storageType: params.storageType,
@@ -67,7 +74,7 @@ export default async (params: FilesUploadParams) => {
 
         const result = {
             ...metadata,
-            encryption: encryptedFileData.encryption,
+            encryption: fileEncryption,
             resource: {
                 type: ResourceType.StorageProvider,
                 storageType: StorageType.StorJ,
@@ -79,7 +86,9 @@ export default async (params: FilesUploadParams) => {
         await fs.writeFile(outputpath, JSON.stringify(result, null, 2));
         Printer.print(`Resource file was created in ${outputpath}`);
     } finally {
-        Printer.print("Deleting temp files");
-        await fs.unlink(encryptedFileData.encryptedFilePath);
+        if (params.withEncryption) {
+            Printer.print("Deleting temp files");
+            await fs.unlink(localPath);
+        }
     }
 };
