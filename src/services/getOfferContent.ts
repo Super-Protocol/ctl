@@ -7,10 +7,10 @@ export type GetOfferResultParams = {
 };
 
 const getOfferResult = async (params: GetOfferResultParams): Promise<Resource | null> => {
-    const order = new Offer(params.offerId);
-    if (!(await order.isOfferExists())) throw Error(`Offer ${params.offerId} was not found`);
+    const offer = new Offer(params.offerId);
+    if (!(await offer.isOfferExists())) throw Error(`Offer ${params.offerId} was not found`);
 
-    const info = await order.getInfo();
+    const info = await offer.getInfo();
     if (!info.resultResource?.trim()) return null;
 
     try {

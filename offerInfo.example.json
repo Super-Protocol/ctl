@@ -1,0 +1,34 @@
+{
+    "name": "",
+    "group": "0",
+    "offerType": "2",
+    "cancelable": false,
+    "description": "<a href=\"https://github.com/Super-Protocol/solutions/tree/main/Python\" target=\"_blank\">Solution description</a>",
+    "holdSum": "1000000000000000000",
+    "restrictions": {
+        "offers": [],
+        "types": []
+    },
+    "properties": "",
+    "maxDurationTimeMinutes": 15,
+    "input": "",
+    "output": "",
+    "allowedArgs": "",
+    "allowedAccounts": [],
+    "argsPublicKey": {
+        "algo": "ECIES",
+        "encoding": "base64",
+        "key":"BGwjYkiqrUHAOpmNJhKB/ZMJrJCQjWEoiOEv+EWeha1JTfwa+jQnITer6jyi78yvdieaJ4hUhRDPAl/omkojTuQ="
+    },
+    "resultResource": {
+        "type": "STORAGE_PROVIDER",
+        "storageType": "STORJ",
+        "filepath": "",
+        "credentials": {
+            "token": "",
+            "storageId": ""
+        }
+    },
+    "linkage": "",
+    "hash": ""
+}

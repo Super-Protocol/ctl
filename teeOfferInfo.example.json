@@ -1,0 +1,16 @@
+{
+    "name": "",
+    "description": "cores: 24, \nram: 123 Gb, \nstorage: 830 Gb, \nnetwork: 1GBit",
+    "teeType": "0",
+    "slots": 24,
+    "minTimeMinutes": 15,
+    "properties": "",
+    "tcb": "",
+    "tlb": "",
+    "argsPublicKey": {
+        "algo": "ECIES",
+        "encoding": "base64",
+        "key": ""
+    },
+    "maxDurationTimeMinutes": 120
+}

@@ -13,6 +13,8 @@
 # misc
 .env
 config.json
+offerInfo.json
+teeOfferInfo.json
 encryption.json
 error.log
 keys

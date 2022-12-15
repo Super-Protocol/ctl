@@ -1,6 +1,6 @@
 {
     "name": "@super-protocol/ctl",
-    "version": "0.4.0-beta.1",
+    "version": "0.4.0-beta.5",
     "description": "A tool for publishing values in a secure and reliable way.",
     "main": "build/index.js",
     "author": "SuperProtocol",
@@ -28,7 +28,7 @@
         "@amplitude/node": "^1.10.2",
         "@iarna/toml": "^2.2.5",
         "@super-protocol/dto-js": "^0.0.14",
-        "@super-protocol/sdk-js": "^0.11.9-beta.0",
+        "@super-protocol/sdk-js": "^0.11.9-beta.6",
         "axios": "^0.27.2",
         "cli-progress": "^3.9.1",
         "colors": "^1.4.0",

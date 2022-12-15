@@ -9,7 +9,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [ubuntu-latest, macos-latest]
+                os: [ubuntu-20.04, macos-latest]
         steps:
             - name: Checkout repository
               uses: actions/checkout@v2
@@ -46,7 +46,7 @@ jobs:
                   path: dist/spctl-*
                   retention-days: 1
     create-release:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-20.04
         needs: [build]
         steps:
             - name: "Download artifacts"
