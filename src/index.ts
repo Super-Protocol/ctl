@@ -48,14 +48,16 @@ async function trackEvent(
     const shouldSendAnalytics = amplitudeApiKey !== '';
 
     if (shouldSendAnalytics) {
-        const amplitudeClient = Amplitude.init(amplitudeApiKey ? amplitudeApiKey : defaultAmplitudeApiKey);
+        try {
+            const amplitudeClient = Amplitude.init(amplitudeApiKey ? amplitudeApiKey : defaultAmplitudeApiKey);
 
-        await amplitudeClient.logEvent({
-            event_type: eventType,
-            user_id: userId,
-            event_properties: eventProperties,
-            time: Date.now()
-        });
+            await amplitudeClient.logEvent({
+                event_type: eventType,
+                user_id: userId,
+                event_properties: eventProperties,
+                time: Date.now()
+            });
+        } catch {}
     }
 }
 
