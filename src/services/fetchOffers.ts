@@ -45,19 +45,7 @@ export default async (params: FetchOffersParams) => {
         );
 
         return {
-            list:
-                result.page.edges?.map((item) => ({
-                    id: item.node?.id,
-                    name: item.node?.offerInfo?.name,
-                    description: item.node?.offerInfo?.description,
-                    type: getObjectKey(item.node?.offerInfo.offerType, OfferType),
-                    cost: weiToEther(item.node?.offerInfo.holdSum),
-                    providerName: item.node?.providerInfo.name,
-                    providerAddress: item.node?.origins?.createdBy,
-                    cancelable: item.node?.offerInfo?.cancelable,
-                    modifiedDate: formatDate(item.node?.origins?.modifiedDate),
-                    dependsOnOffers: item.node?.offerInfo.restrictions?.offers || [],
-                })) || [],
+            list: result.page.edges?.map((item) => item) || [],
             cursor: result.page.pageInfo!.endCursor,
         };
     } catch (error: any) {

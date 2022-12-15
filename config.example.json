@@ -6,7 +6,8 @@
     "blockchain": {
         "rpcUrl": "",
         "smartContractAddress": "",
-        "accountPrivateKey": ""
+        "accountPrivateKey": "",
+        "authorityAccountPrivateKey": ""
     },
     "storage": {
         "type": "",

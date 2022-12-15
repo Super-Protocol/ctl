@@ -6,6 +6,7 @@ import {
     OrderStatus,
     Offer,
     OfferType,
+    OfferInfo,
 } from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
@@ -15,12 +16,12 @@ import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
 import getTeeBalance from "../services/getTeeBalance";
-import { ErrorTxRevertedByEvm, etherToWei, getObjectKey, weiToEther } from "../utils";
+import { ErrorTxRevertedByEvm, etherToWei, formatDate, getObjectKey, weiToEther } from "../utils";
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
 import fetchOrdersCountService from "../services/fetchOrdersCount";
 import { TOfferType } from "../gql";
 import { TX_REVERTED_BY_EVM_ERROR } from "../constants";
-import fetchOffers, { OfferDto } from "../services/fetchOffers";
+import fetchOffers from "../services/fetchOffers";
 import fetchTeeOffers from "../services/fetchTeeOffers";
 import { BigNumber } from "ethers";
 
@@ -38,6 +39,8 @@ export type WorkflowCreateParams = {
     workflowNumber: number;
     ordersLimit: number;
 };
+
+type FethchedOffer = Partial<OfferInfo> & { id: string; };
 
 const workflowCreate = async (params: WorkflowCreateParams): Promise<string | void> => {
     if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
@@ -97,16 +100,27 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         accessToken: params.accessToken,
         limit: valueOfferIds.length,
         ids: valueOfferIds,
-    }).then(({ list }) => list);
+    }).then(({ list }) => <FethchedOffer[]>list
+        .map((item) => {
+            if (item.node) {
+                return {
+                    ...item.node.offerInfo,
+                    id: item.node.id,
+                }
+            }
+            return undefined;
+        })
+        .filter(item => Boolean(item))
+    );
 
-    const offersMap = new Map<string, OfferDto>(offers.map((o) => [o.id!, o]));
+    const offersMap = new Map<string, FethchedOffer>(offers.map((o) => [o.id, o]));
 
     checkFetchedOffers([params.storage], offersMap, OfferType.Storage);
     checkFetchedOffers(solutions.ids, offersMap, OfferType.Solution);
     checkFetchedOffers(data.ids, offersMap, OfferType.Data);
 
     const restrictionOffersMap = new Map<string, Offer>(
-        offers.flatMap(({ dependsOnOffers }) => dependsOnOffers).map((id) => [id, new Offer(id)])
+        offers.flatMap(({ restrictions }) => restrictions?.offers || []).map((id) => [id, new Offer(id)])
     );
 
     Printer.print("Validating workflow configuration");
@@ -114,7 +128,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         [...solutions.ids, ...data.ids].map(async (offerId) => {
             const offerToCheck = offers.find((o) => o.id === offerId);
             const restrictions =
-                <Offer[]>offerToCheck?.dependsOnOffers.map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
+                <Offer[]>(offerToCheck?.restrictions?.offers || []).map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
             return validateOfferWorkflowService({
                 offerId,
                 restrictions,
@@ -203,7 +217,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         } catch (error: any) {
             if (error.message?.includes(TX_REVERTED_BY_EVM_ERROR)) throw ErrorTxRevertedByEvm(error);
             else throw error;
-        }   
+        }
     }
 
     Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
@@ -242,15 +256,15 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
 export default workflowCreate;
 
-const checkFetchedOffers = (ids: string[], offers: Map<string, OfferDto>, type: OfferType) => {
+const checkFetchedOffers = (ids: string[], offers: Map<string, FethchedOffer>, type: OfferType) => {
     ids.forEach((id) => {
         const fetchedOffer = offers.get(id);
 
         if (!fetchedOffer) {
             throw new Error(`Offer ${id} does not exist`);
-        // TODO: move prettifying of offers from fetching to separate service and remove getObjectKey here
-        } else if (fetchedOffer.type !== getObjectKey(type, OfferType)) {
-            throw new Error(`Offer ${id} has wrong type ${fetchedOffer.type} instead of ${getObjectKey(type, OfferType)}`);
+            // TODO: move prettifying of offers from fetching to separate service and remove getObjectKey here
+        } else if (fetchedOffer.offerType !== getObjectKey(type, OfferType)) {
+            throw new Error(`Offer ${id} has wrong type ${fetchedOffer.offerType} instead of ${getObjectKey(type, OfferType)}`);
         }
     });
 };

@@ -26,7 +26,13 @@ class Printer {
 
     static printObject(object: { [key: string]: unknown }) {
         Object.keys(object).forEach((key) => {
-            Printer.print(`${key}: ${object[key]}`);
+            if (object[key] && typeof object[key] === "object" && !Array.isArray(object[key])) {
+                Printer.print(`${key}: {`);
+                Printer.printObject(object[key] as any);
+                Printer.print(`}`);
+            } else {
+                Printer.print(`${key}: ${object[key]}`);
+            }
         });
     }
 

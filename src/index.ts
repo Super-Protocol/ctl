@@ -5,7 +5,7 @@ import { Wallet } from 'ethers';
 
 const packageJson = require("../package.json");
 
-import { Command, Option } from "commander";
+import { Argument, Command, Option } from "commander";
 import fs from "fs";
 import path from "path";
 import eccrypto from "eccrypto";
@@ -34,6 +34,9 @@ import offersDownloadContent from "./commands/offersDownloadContent";
 import ordersWithdrawDeposit from "./commands/ordersWithdrawDeposit";
 import { MAX_ORDERS_RUNNING } from "./constants";
 import offersGet from "./commands/offersGet";
+import offersCreate from "./commands/offersCreate";
+import offersUpdate from "./commands/offersUpdate";
+import offersGetInfo from "./commands/offersGetInfo";
 
 const defaultAmplitudeApiKey = '322ed6bd9a802109e1e9692be0a825c6';
 
@@ -74,13 +77,13 @@ async function main() {
     const offersGetCommand = offersCommand.command("get");
 
     const providersListFields = [
-            "address",
-            "name",
-            "description",
-            "authority_account",
-            "action_account",
-            "modified_date",
-        ],
+        "address",
+        "name",
+        "description",
+        "authority_account",
+        "action_account",
+        "modified_date",
+    ],
         providersListDefaultFields = ["address", "name"];
     providersCommand
         .command("list")
@@ -108,13 +111,13 @@ async function main() {
         });
 
     const providersGetFields = [
-            "address",
-            "name",
-            "description",
-            "authority_account",
-            "action_account",
-            "modified_date",
-        ],
+        "address",
+        "name",
+        "description",
+        "authority_account",
+        "action_account",
+        "modified_date",
+    ],
         providersGetDefaultFields = ["name", "description", "authority_account", "action_account"];
     providersCommand
         .command("get")
@@ -279,22 +282,22 @@ async function main() {
         });
 
     const ordersListFields = [
-            "id",
-            "offer_name",
-            "offer_description",
-            "type",
-            "status",
-            "offer_id",
-            "consumer_address",
-            "parent_order_id",
-            "total_deposit",
-            "total_unspent_deposit",
-            "deposit",
-            "unspent_deposit",
-            "cancelable",
-            "sub_orders_count",
-            "modified_date",
-        ],
+        "id",
+        "offer_name",
+        "offer_description",
+        "type",
+        "status",
+        "offer_id",
+        "consumer_address",
+        "parent_order_id",
+        "total_deposit",
+        "total_unspent_deposit",
+        "deposit",
+        "unspent_deposit",
+        "cancelable",
+        "sub_orders_count",
+        "modified_date",
+    ],
         ordersListDefaultFields = ["id", "offer_name", "status"],
         ordersListOfferTypes = {
             tee: OfferType.TeeOffer,
@@ -345,21 +348,21 @@ async function main() {
         });
 
     const ordersGetFields = [
-            "id",
-            "offer_name",
-            "offer_description",
-            "type",
-            "status",
-            "offer_id",
-            "consumer_address",
-            "parent_order_id",
-            "total_deposit",
-            "total_unspent_deposit",
-            "deposit",
-            "unspent_deposit",
-            "cancelable",
-            "modified_date",
-        ],
+        "id",
+        "offer_name",
+        "offer_description",
+        "type",
+        "status",
+        "offer_id",
+        "consumer_address",
+        "parent_order_id",
+        "total_deposit",
+        "total_unspent_deposit",
+        "deposit",
+        "unspent_deposit",
+        "cancelable",
+        "modified_date",
+    ],
         ordersGetDefaultFields = [
             "offer_name",
             "offer_description",
@@ -529,17 +532,17 @@ async function main() {
         });
 
     const offersListTeeFields = [
-            "id",
-            "name",
-            "description",
-            "provider_address",
-            "provider_name",
-            "total_cores",
-            "free_cores",
-            "orders_in_queue",
-            "cancelable",
-            "modified_date",
-        ],
+        "id",
+        "name",
+        "description",
+        "provider_address",
+        "provider_name",
+        "total_cores",
+        "free_cores",
+        "orders_in_queue",
+        "cancelable",
+        "modified_date",
+    ],
         offersListTeeDefaultFields = ["id", "name", "orders_in_queue"];
     offersListCommand
         .command("tee")
@@ -567,17 +570,17 @@ async function main() {
         });
 
     const offersListValueFields = [
-            "id",
-            "name",
-            "description",
-            "type",
-            "provider_address",
-            "provider_name",
-            "cost",
-            "cancelable",
-            "depends_on_offers",
-            "modified_date",
-        ],
+        "id",
+        "name",
+        "description",
+        "type",
+        "provider_address",
+        "provider_name",
+        "cost",
+        "cancelable",
+        "depends_on_offers",
+        "modified_date",
+    ],
         offersListValueDefaultFields = ["id", "name", "type"];
     offersListCommand
         .command("value")
@@ -675,6 +678,23 @@ async function main() {
         });
 
     offersCommand
+        .command("get-info")
+        .description("Get offer info property")
+        .addArgument(new Argument("type", "Offer <type>").choices(["tee", "value"]))
+        .argument("id", "Offer id")
+        .action(async (type: "tee" | "value", id: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const backend = configLoader.loadSection("backend") as Config["backend"];
+
+            await offersGetInfo({
+                backendUrl: backend.url,
+                type,
+                accessToken: backend.accessToken,
+                id,
+            });
+        });
+
+    offersCommand
         .command("download-content")
         .description("Download the content of an offer with <id> (only for offers that allows this operation)")
         .argument("id", "Offer id")
@@ -694,6 +714,54 @@ async function main() {
             });
         });
 
+    offersCommand
+        .command("create")
+        .description("Create offer")
+        .addArgument(new Argument("type", "Offer <type>").choices(["tee", "value"]))
+        .option("--path <filepath>", "path to offer info json file", "./offerInfo.json")
+        .action(async (type: "tee" | "value", options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+            const authorityAccountKey = blockchain.authorityAccountPrivateKey;
+            const actionAccountKey = blockchain.accountPrivateKey;
+
+            await offersCreate({
+                type,
+                blockchainConfig,
+                authorityAccountKey,
+                actionAccountKey,
+                offerInfoPath: options.path,
+            });
+        });
+
+    offersCommand
+        .command("update")
+        .description("Update TEE offer info")
+        .addArgument(new Argument("type", "Offer <type>").choices(["tee", "value"]))
+        .argument("id", "Offer <id>")
+        .requiredOption("--path <filepath>", "path to TEE offer info", "./offerInfo.json")
+        .action(async (type: "tee" | "value", id: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+            const actionAccountKey = blockchain.accountPrivateKey;
+
+            await offersUpdate({
+                id,
+                type,
+                actionAccountKey,
+                blockchainConfig,
+                offerInfoPath: options.path,
+            });
+        });
+
     filesCommand
         .command("upload")
         .description("Upload a file specified by the <localPath> argument to the remote storage")
@@ -704,6 +772,7 @@ async function main() {
             "Path to save resource file that is used to access the uploaded file",
             "./resource.json"
         )
+        .option("--skip-encryption", "Skip file encryption before upload")
         .option("--metadata <path>", "Path to a metadata file for adding fields to the resource file")
         .action(async (localPath: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
@@ -718,6 +787,7 @@ async function main() {
                 remotePath: options.filename,
                 outputPath: options.output,
                 metadataPath: options.metadata,
+                withEncryption: !options.skipEncryption,
             });
         });
 
