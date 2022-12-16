@@ -31,6 +31,9 @@ const ConfigValidators = {
             encoding: z.nativeEnum(Encoding),
         }),
     }),
+    analytics: z.object({
+        amplitudeApiKey: z.string(),
+    }),
 };
 
 export type Config = {
@@ -53,6 +56,9 @@ export type Config = {
     workflow: {
         resultEncryption: Encryption;
     };
+    analytics?: {
+        amplitudeApiKey?: string;
+    }
 };
 
 class ConfigLoader {

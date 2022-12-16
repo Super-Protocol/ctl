@@ -1,5 +1,7 @@
 import { HashAlgorithm } from "@super-protocol/dto-js";
 import { OfferType } from "@super-protocol/sdk-js";
+import * as Amplitude from '@amplitude/node';
+import { Wallet } from 'ethers';
 
 const packageJson = require("../package.json");
 
@@ -35,6 +37,32 @@ import offersGet from "./commands/offersGet";
 import offersCreate from "./commands/offersCreate";
 import offersUpdate from "./commands/offersUpdate";
 import offersGetInfo from "./commands/offersGetInfo";
+
+const defaultAmplitudeApiKey = '322ed6bd9a802109e1e9692be0a825c6';
+
+async function trackEvent(
+    amplitudeApiKey: string | undefined,
+    eventType: string,
+    userId: string,
+    eventProperties?: {
+        [key: string]: any;
+    }
+): Promise<void> {
+    const shouldSendAnalytics = amplitudeApiKey !== '';
+
+    if (shouldSendAnalytics) {
+        try {
+            const amplitudeClient = Amplitude.init(amplitudeApiKey ? amplitudeApiKey : defaultAmplitudeApiKey);
+
+            await amplitudeClient.logEvent({
+                event_type: eventType,
+                user_id: userId,
+                event_properties: eventProperties,
+                time: Date.now()
+            });
+        } catch {}
+    }
+}
 
 async function main() {
     const program = new Command();
@@ -127,11 +155,24 @@ async function main() {
                 contractAddress: blockchain.smartContractAddress,
                 blockchainUrl: blockchain.rpcUrl,
             };
-            await ordersCancel({
+            const wallet = new Wallet(blockchain.accountPrivateKey);
+            const userId = wallet.address;
+            const requestParams = {
                 blockchainConfig,
                 actionAccountKey: blockchain.accountPrivateKey,
                 id,
-            });
+            };
+            const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+
+            try {
+                await ordersCancel(requestParams);
+                await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, {result: 'success', ...requestParams});
+            } catch (error) {
+                await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, {result: 'error', error, ...requestParams});
+                throw error;
+            }
+            
+            
         });
 
     ordersCommand
@@ -146,13 +187,24 @@ async function main() {
                 contractAddress: blockchain.smartContractAddress,
                 blockchainUrl: blockchain.rpcUrl,
             };
-
-            await ordersReplenishDeposit({
+            const wallet = new Wallet(blockchain.accountPrivateKey);
+            const userId = wallet.address;
+            const requestParams = {
                 blockchainConfig,
                 actionAccountKey: blockchain.accountPrivateKey,
                 id,
                 amount,
-            });
+            };
+            const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+
+            try {
+                await ordersReplenishDeposit(requestParams);
+                await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, {result: 'success', ...requestParams});
+            } catch (error) {
+                await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, {result: 'error', error, ...requestParams});
+                throw error;
+            }
+            
         });
 
     workflowsCommand
@@ -203,8 +255,9 @@ async function main() {
                 blockchainUrl: blockchain.rpcUrl,
             };
             const workflowConfig = configLoader.loadSection("workflow") as Config["workflow"];
-
-            await workflowsCreate({
+            const wallet = new Wallet(blockchain.accountPrivateKey);
+            const userId = wallet.address;
+            const requestParams = {
                 backendUrl: backend.url,
                 accessToken: backend.accessToken,
                 blockchainConfig,
@@ -217,7 +270,17 @@ async function main() {
                 userDepositAmount: options.deposit,
                 workflowNumber: Number(options.workflowNumber),
                 ordersLimit: Number(options.ordersLimit),
-            });
+            };
+            const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+
+            try {
+                const id = await workflowsCreate(requestParams);
+                await trackEvent(analytics?.amplitudeApiKey, 'order_created_cli', userId, {id, ...requestParams});
+            } catch (error) {
+                await trackEvent(analytics?.amplitudeApiKey, 'order_create_cli', userId, {result: 'error', error, ...requestParams});
+                throw error;
+            }
+            
         });
 
     const ordersListFields = [
@@ -366,13 +429,23 @@ async function main() {
                 contractAddress: blockchain.smartContractAddress,
                 blockchainUrl: blockchain.rpcUrl,
             };
-
-            await ordersDownloadResult({
+            const wallet = new Wallet(blockchain.accountPrivateKey);
+            const userId = wallet.address;
+            const requestParams = {
                 blockchainConfig,
                 orderId,
                 localPath: options.saveTo,
                 resultDecryptionKey: workflowConfig.resultEncryption.key!,
-            });
+            };
+            const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+
+            try {
+                await ordersDownloadResult(requestParams);
+                await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, {result: 'success', ...requestParams});
+            } catch (error) {
+                await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, {result: 'error', error, ...requestParams});
+                throw error;
+            }
         });
 
     ordersCommand
@@ -386,12 +459,22 @@ async function main() {
                 contractAddress: blockchain.smartContractAddress,
                 blockchainUrl: blockchain.rpcUrl,
             };
-
-            await ordersWithdrawDeposit({
+            const wallet = new Wallet(blockchain.accountPrivateKey);
+            const userId = wallet.address;
+            const requestParams = {
                 blockchainConfig,
                 actionAccountKey: blockchain.accountPrivateKey,
                 id,
-            });
+            };
+            const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+
+            try {
+                await ordersWithdrawDeposit(requestParams);
+                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, {result: 'success', ...requestParams});
+            } catch (error) {
+                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, {result: 'error', error, ...requestParams});
+                throw error;
+            }
         });
 
     tokensCommand
@@ -403,14 +486,34 @@ async function main() {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
             const backend = configLoader.loadSection("backend") as Config["backend"];
-
-            await tokensRequest({
+            const wallet = new Wallet(blockchain.accountPrivateKey);
+            const userId = wallet.address;
+            const requestParams = {
                 backendUrl: backend.url,
                 accessToken: backend.accessToken,
                 actionAccountPrivateKey: blockchain.accountPrivateKey,
                 requestMatic: options.matic,
                 requestTee: options.tee,
-            });
+            };
+            const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+
+            try {
+                await tokensRequest(requestParams);
+                if (options.tee) {
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, {result: 'success', ...requestParams});
+                }
+                if (options.matic) {
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, {result: 'success', ...requestParams});
+                }
+            } catch (error) {
+                if (options.tee) {
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, {result: 'error', error, ...requestParams});
+                }
+                if (options.matic) {
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, {result: 'error', error, ...requestParams});
+                }
+                throw error;
+            }
         });
 
     tokensCommand

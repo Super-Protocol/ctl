@@ -25,6 +25,7 @@
     "license": "MIT",
     "private": true,
     "dependencies": {
+        "@amplitude/node": "^1.10.2",
         "@iarna/toml": "^2.2.5",
         "@super-protocol/dto-js": "^0.0.14",
         "@super-protocol/sdk-js": "^0.11.9-beta.6",
@@ -42,6 +43,7 @@
         "luxon": "^2.4.0",
         "prettier": "^2.5.1",
         "tar": "^6.1.11",
+        "uplink-nodejs": "^1.2.6",
         "zlib": "^1.0.5",
         "zod": "^3.11.6",
         "zod-error": "^1.0.3"
