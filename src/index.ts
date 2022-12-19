@@ -46,21 +46,31 @@ async function trackEvent(
     userId: string,
     eventProperties?: {
         [key: string]: any;
-    }
+    },
+    showDebug = false,
 ): Promise<void> {
     const shouldSendAnalytics = amplitudeApiKey !== '';
 
     if (shouldSendAnalytics) {
         try {
             const amplitudeClient = Amplitude.init(amplitudeApiKey ? amplitudeApiKey : defaultAmplitudeApiKey);
-
-            await amplitudeClient.logEvent({
+            const event = {
                 event_type: eventType,
                 user_id: userId,
                 event_properties: eventProperties,
                 time: Date.now()
-            });
-        } catch {}
+            };
+
+            await amplitudeClient.logEvent(event);
+
+            if (showDebug) {
+                console.log(`Event logged to amplitude: ${JSON.stringify(event)}`);
+            }
+        } catch (error) {
+            if (showDebug) {
+                console.log(`Error while sending event to amplitude: ${JSON.stringify(error)}`);
+            }
+        }
     }
 }
 
@@ -148,6 +158,7 @@ async function main() {
         .command("cancel")
         .description("Cancel order with <id>")
         .argument("id", "Order <id>")
+        .option("--debug", "Display debug information", false)
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -166,9 +177,9 @@ async function main() {
 
             try {
                 await ordersCancel(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, {result: 'success', ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, {result: 'success', ...requestParams}, options.debug);
             } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, {result: 'error', error, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, {result: 'error', error, ...requestParams}, options.debug);
                 throw error;
             }
             
@@ -180,6 +191,7 @@ async function main() {
         .description("Replenish order deposit with <id> by <amount>")
         .argument("id", "Order <id>")
         .argument("amount", "Amount of tokens")
+        .option("--debug", "Display debug information", false)
         .action(async (id: string, amount: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -199,9 +211,9 @@ async function main() {
 
             try {
                 await ordersReplenishDeposit(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, {result: 'success', ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, {result: 'success', ...requestParams}, options.debug);
             } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, {result: 'error', error, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, {result: 'error', error, ...requestParams}, options.debug);
                 throw error;
             }
             
@@ -235,6 +247,7 @@ async function main() {
             "--deposit <TEE>",
             "Amount of the payment deposit in TEE tokens (if not specified, the minimum deposit required is used)"
         )
+        .option("--debug", "Display debug information", false)
         .addOption(new Option("--workflow-number <number>", "Number of workflows to create").default(1).hideHelp())
         .addOption(
             new Option("--orders-limit <number>", "Override default orders limit per user")
@@ -275,9 +288,9 @@ async function main() {
 
             try {
                 const id = await workflowsCreate(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'order_created_cli', userId, {id, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_created_cli', userId, {id, ...requestParams}, options.debug);
             } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'order_create_cli', userId, {result: 'error', error, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_create_cli', userId, {result: 'error', error, ...requestParams}, options.debug);
                 throw error;
             }
             
@@ -421,6 +434,7 @@ async function main() {
         .description("Downloading result of order with <id>")
         .argument("id", "Order <id>")
         .option("--save-to <path>", "Path to save the result")
+        .option("--debug", "Display debug information", false)
         .action(async (orderId: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const workflowConfig = configLoader.loadSection("workflow") as Config["workflow"];
@@ -441,9 +455,9 @@ async function main() {
 
             try {
                 await ordersDownloadResult(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, {result: 'success', ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, {result: 'success', ...requestParams}, options.debug);
             } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, {result: 'error', error, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, {result: 'error', error, ...requestParams}, options.debug);
                 throw error;
             }
         });
@@ -452,6 +466,7 @@ async function main() {
         .command("withdraw-deposit")
         .description("Withdraw unspent deposit from a completed order with <id>")
         .argument("id", "Order <id>")
+        .option("--debug", "Display debug information", false)
         .action(async (id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -470,9 +485,9 @@ async function main() {
 
             try {
                 await ordersWithdrawDeposit(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, {result: 'success', ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, {result: 'success', ...requestParams}, options.debug);
             } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, {result: 'error', error, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, {result: 'error', error, ...requestParams}, options.debug);
                 throw error;
             }
         });
@@ -482,6 +497,7 @@ async function main() {
         .description("Request tokens for the account")
         .option("--matic", "Request Polygon Mumbai MATIC tokens", false)
         .option("--tee", "Request Super Protocol TEE tokens", false)
+        .option("--debug", "Display debug information", false)
         .action(async (options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -500,17 +516,17 @@ async function main() {
             try {
                 await tokensRequest(requestParams);
                 if (options.tee) {
-                    await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, {result: 'success', ...requestParams});
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, {result: 'success', ...requestParams}, options.debug);
                 }
                 if (options.matic) {
-                    await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, {result: 'success', ...requestParams});
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, {result: 'success', ...requestParams}, options.debug);
                 }
             } catch (error) {
                 if (options.tee) {
-                    await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, {result: 'error', error, ...requestParams});
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, {result: 'error', error, ...requestParams}, options.debug);
                 }
                 if (options.matic) {
-                    await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, {result: 'error', error, ...requestParams});
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, {result: 'error', error, ...requestParams}, options.debug);
                 }
                 throw error;
             }
