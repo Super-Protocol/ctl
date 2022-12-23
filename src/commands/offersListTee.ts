@@ -1,4 +1,4 @@
-import fetchTeeOffersService from "../services/fetchTeeOffers";
+import fetchTeeOffersService, { formatFetchedTeeOffer } from "../services/fetchTeeOffers";
 import Printer from "../printer";
 import { prepareObjectToPrint } from "../utils";
 
@@ -16,7 +16,10 @@ export default async (params: OffersListTeeParams) => {
         accessToken: params.accessToken,
         limit: params.limit,
         cursor: params.cursor,
-    });
+    }).then((offers) => ({
+        ...offers,
+        list: offers.list.map((item) => formatFetchedTeeOffer(item)),
+    }));
 
     if (!offers.list.length) {
         Printer.print("No tee offers found");

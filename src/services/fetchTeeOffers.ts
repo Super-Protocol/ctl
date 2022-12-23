@@ -11,6 +11,21 @@ export type FetchTeeOffersParams = {
     id?: string;
 };
 
+export const formatFetchedTeeOffer = (item: any) => {
+    return {
+        id: item.node?.id,
+        name: item.node?.teeOfferInfo?.name,
+        description: item.node?.teeOfferInfo?.description,
+        providerName: item.node?.providerInfo.name,
+        providerAddress: item.node?.origins?.createdBy,
+        totalCores: item.node?.teeOfferInfo.slots,
+        freeCores: item.node?.stats?.freeCores,
+        ordersInQueue: (item.node?.stats?.new || 0) + (item.node?.stats?.processing || 0),
+        cancelable: false,
+        modifiedDate: formatDate(item.node?.origins?.modifiedDate),
+    }
+};
+
 export default async (params: FetchTeeOffersParams) => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
     const headers = getGqlHeaders(params.accessToken);

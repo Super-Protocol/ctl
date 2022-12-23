@@ -10,6 +10,7 @@
         "build:prepare": "tsc",
         "build:linux": "npm run build:prepare && pkg --target linux-x64 -o dist/spctl .",
         "build:mac": "npm run build:prepare  && pkg --target macos-x64 -o dist/spctl .",
+        "build:mac:arm": "npm run build:prepare  && pkg --target macos-arm64 -o dist/spctl .",
         "format": "prettier --tab-width 4 --print-width 120 --write ./src/**/* ./src/* ./tests/**/*",
         "generate:gql": "graphql-codegen --config gql-codegen.yml",
         "test": "jest",

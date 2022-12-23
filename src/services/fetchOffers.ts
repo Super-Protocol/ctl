@@ -26,6 +26,21 @@ export type OfferDto = {
     dependsOnOffers: string[];
 };
 
+export const formatFetchedOffer = (item: any): OfferDto => {
+    return {
+        id: item.node?.id,
+        name: item.node?.offerInfo?.name,
+        description: item.node?.offerInfo?.description,
+        type: getObjectKey(item.node?.offerInfo.offerType, OfferType),
+        cost: weiToEther(item.node?.offerInfo.holdSum),
+        providerName: item.node?.providerInfo.name,
+        providerAddress: item.node?.origins?.createdBy,
+        cancelable: item.node?.offerInfo?.cancelable,
+        modifiedDate: formatDate(item.node?.origins?.modifiedDate),
+        dependsOnOffers: item.node?.offerInfo.restrictions?.offers || [],
+    };
+}
+
 export default async (params: FetchOffersParams) => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
     const headers = getGqlHeaders(params.accessToken);

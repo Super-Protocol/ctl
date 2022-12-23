@@ -1,8 +1,7 @@
-import { OfferType } from "@super-protocol/sdk-js";
 import Printer from "../printer";
-import fetchOffers from "../services/fetchOffers";
-import fetchTeeOffers from "../services/fetchTeeOffers";
-import { formatDate, getObjectKey, prepareObjectToPrint, weiToEther } from "../utils";
+import fetchOffers, { formatFetchedOffer } from "../services/fetchOffers";
+import fetchTeeOffers, { formatFetchedTeeOffer } from "../services/fetchTeeOffers";
+import { prepareObjectToPrint } from "../utils";
 
 export type OffersGetParams = {
     backendUrl: string;
@@ -21,18 +20,7 @@ export default async (params: OffersGetParams) => {
                 accessToken: params.accessToken,
                 limit: 1,
                 id: params.id,
-            }).then(({ list }) => list.map((item) => ({
-                id: item.node?.id,
-                name: item.node?.teeOfferInfo?.name,
-                description: item.node?.teeOfferInfo?.description,
-                providerName: item.node?.providerInfo.name,
-                providerAddress: item.node?.origins?.createdBy,
-                totalCores: item.node?.teeOfferInfo.slots,
-                freeCores: item.node?.stats?.freeCores,
-                ordersInQueue: (item.node?.stats?.new || 0) + (item.node?.stats?.processing || 0),
-                cancelable: false,
-                modifiedDate: formatDate(item.node?.origins?.modifiedDate),
-            })));
+            }).then(({ list }) => list.map((item) => formatFetchedTeeOffer(item)));
             break;
         case "value":
             offers = await fetchOffers({
@@ -40,18 +28,7 @@ export default async (params: OffersGetParams) => {
                 accessToken: params.accessToken,
                 limit: 1,
                 id: params.id,
-            }).then(({ list }) => list.map((item) => ({
-                id: item.node?.id,
-                name: item.node?.offerInfo?.name,
-                description: item.node?.offerInfo?.description,
-                type: getObjectKey(item.node?.offerInfo.offerType, OfferType),
-                cost: weiToEther(item.node?.offerInfo.holdSum),
-                providerName: item.node?.providerInfo.name,
-                providerAddress: item.node?.origins?.createdBy,
-                cancelable: item.node?.offerInfo?.cancelable,
-                modifiedDate: formatDate(item.node?.origins?.modifiedDate),
-                dependsOnOffers: item.node?.offerInfo.restrictions?.offers || [],
-            })));
+            }).then(({ list }) => list.map((item) => formatFetchedOffer(item)));
             break;
 
         default:

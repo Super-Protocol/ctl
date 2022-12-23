@@ -16,7 +16,7 @@ import createWorkflowService from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
 import getTeeBalance from "../services/getTeeBalance";
-import { ErrorTxRevertedByEvm, etherToWei, formatDate, getObjectKey, weiToEther } from "../utils";
+import { ErrorTxRevertedByEvm, etherToWei, getObjectKey, weiToEther } from "../utils";
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
 import fetchOrdersCountService from "../services/fetchOrdersCount";
 import { TOfferType } from "../gql";
@@ -223,7 +223,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
 
     for (let pos = 0; pos < params.workflowNumber; pos++) {
-        workflowPromises[pos] = new Promise(async (resolve, reject) => {
+        workflowPromises[pos] = new Promise(async (resolve) => {
             try {
                 resolve(
                     await createWorkflowService({
@@ -263,8 +263,8 @@ const checkFetchedOffers = (ids: string[], offers: Map<string, FethchedOffer>, t
         if (!fetchedOffer) {
             throw new Error(`Offer ${id} does not exist`);
             // TODO: move prettifying of offers from fetching to separate service and remove getObjectKey here
-        } else if (fetchedOffer.offerType !== getObjectKey(type, OfferType)) {
-            throw new Error(`Offer ${id} has wrong type ${fetchedOffer.offerType} instead of ${getObjectKey(type, OfferType)}`);
+        } else if (fetchedOffer.offerType !== type) {
+            throw new Error(`Offer ${id} has wrong type ${getObjectKey(fetchedOffer.offerType, OfferType)} instead of ${getObjectKey(type, OfferType)}`);
         }
     });
 };
