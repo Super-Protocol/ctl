@@ -32,7 +32,7 @@ const ConfigValidators = {
         }),
     }),
     analytics: z.object({
-        amplitudeApiKey: z.string().optional(),
+        amplitudeApiKey: z.string(),
     }).optional(),
 };
 
