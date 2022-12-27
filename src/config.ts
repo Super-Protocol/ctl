@@ -33,7 +33,7 @@ const ConfigValidators = {
     }),
     analytics: z.object({
         amplitudeApiKey: z.string(),
-    }),
+    }).optional(),
 };
 
 export type Config = {
@@ -56,8 +56,8 @@ export type Config = {
     workflow: {
         resultEncryption: Encryption;
     };
-    analytics?: {
-        amplitudeApiKey?: string;
+    analytics: {
+        amplitudeApiKey: string;
     }
 };
 
@@ -87,9 +87,6 @@ class ConfigLoader {
 
         const validator = ConfigValidators[sectionName],
             rawSection = this.rawConfig[sectionName];
-
-        if (!rawSection)
-            throw Error(`${sectionName} not specified\nPlease configure ${sectionName} section in ${this.configPath}`);
 
         try {
             // @ts-ignore validation result matches one of config keys
