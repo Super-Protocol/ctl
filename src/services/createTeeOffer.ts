@@ -15,9 +15,12 @@ export default async (params: CreateTeeOfferParams): Promise<string> => {
     const actionAddress = await BlockchainConnector.getInstance().initializeActionAccount(params.action);
     const authorityAddress = await BlockchainConnector.getInstance().initializeActionAccount(params.authority);
 
+    // TODO: make as option parameter with possibility to enable/disable by update command
+    const enable = true;
+
     Printer.print("Creating TEE offer");
 
-    TeeOffersFactory.createTeeOffer(authorityAddress, params.offerInfo, externalId, { from: actionAddress });
+    TeeOffersFactory.createTeeOffer(authorityAddress, params.offerInfo, externalId, enable, { from: actionAddress });
 
     let attempt = 0;
     let offerId = "-1";

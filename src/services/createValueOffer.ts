@@ -14,10 +14,12 @@ export default async (params: CreateOfferParams): Promise<string> => {
     const externalId = crypto.randomBytes(8).toString("hex");
     const actionAddress = await BlockchainConnector.getInstance().initializeActionAccount(params.action);
     const authorityAddress = await BlockchainConnector.getInstance().initializeActionAccount(params.authority);
+    // TODO: make as option parameter with possibility to enable/disable by update command
+    const enable = true;
 
     Printer.print("Creating value offer");
 
-    OffersFactory.createOffer(authorityAddress, params.offerInfo, externalId, { from: actionAddress });
+    OffersFactory.createOffer(authorityAddress, params.offerInfo, externalId, enable,{ from: actionAddress });
 
     let attempt = 0;
     let offerId = "-1";
