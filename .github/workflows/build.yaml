@@ -1,8 +1,7 @@
 name: Create binary files for every supported platform
 on:
-    push:
-        tags:
-            - "v*.*.*"
+    release:
+        types: [published]
 
 jobs:
     build:

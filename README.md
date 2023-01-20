@@ -37,6 +37,11 @@ yarn build:mac
 IMPORTANT: to make `upload` and `download` commands works correctly, requires to make this build on MacOS only</br>
 Result will be saved at `./dist/spctl`
 
+## Develop and Release
+
+Before making a release, please decide what version tag this release should have - major, minor or patch. Then create a new `release/vX.X.X` branch with new version. Then run one of the next commands: `yarn patch:beta` or `yarn minor:beta` or `yarn major:beta`. This command will make commit, create new tag and push all of this to remote. 
+Then you need to make PR to master and merge it with `Rebase and Merge` after approve. Then go the Releases Page and create new release with the name as new tag. 
+
 ## Commands
 `yarn build` – compiles typescript with tcs.</br>
 `yarn build:linux` – builds a linux binary file ready for distribution</br>
