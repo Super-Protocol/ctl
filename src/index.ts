@@ -37,6 +37,10 @@ import offersGet from "./commands/offersGet";
 import offersCreate from "./commands/offersCreate";
 import offersUpdate from "./commands/offersUpdate";
 import offersGetInfo from "./commands/offersGetInfo";
+import offersEnable from "./commands/offersEnable";
+import offersEnableAll from "./commands/offersEnableAll";
+import offersDisable from "./commands/offersDisable";
+import offersDisableAll from "./commands/offersDisableAll";
 
 const defaultAmplitudeApiKey = '322ed6bd9a802109e1e9692be0a825c6';
 
@@ -169,13 +173,11 @@ async function main() {
 
             try {
                 await ordersCancel(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, {result: 'success', ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, { result: 'success', ...requestParams });
             } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, {result: 'error', error, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, { result: 'error', error, ...requestParams });
                 throw error;
             }
-            
-            
         });
 
     ordersCommand
@@ -203,12 +205,11 @@ async function main() {
 
             try {
                 await ordersReplenishDeposit(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, {result: 'success', ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, { result: 'success', ...requestParams });
             } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, {result: 'error', error, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, { result: 'error', error, ...requestParams });
                 throw error;
             }
-            
         });
 
     workflowsCommand
@@ -280,12 +281,11 @@ async function main() {
 
             try {
                 const id = await workflowsCreate(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'order_created_cli', userId, {id, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_created_cli', userId, { id, ...requestParams });
             } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'order_create_cli', userId, {result: 'error', error, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_create_cli', userId, { result: 'error', error, ...requestParams });
                 throw error;
             }
-            
         });
 
     const ordersListFields = [
@@ -447,9 +447,9 @@ async function main() {
 
             try {
                 await ordersDownloadResult(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, {result: 'success', ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, { result: 'success', ...requestParams });
             } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, {result: 'error', error, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, { result: 'error', error, ...requestParams });
                 throw error;
             }
         });
@@ -477,9 +477,9 @@ async function main() {
 
             try {
                 await ordersWithdrawDeposit(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, {result: 'success', ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, { result: 'success', ...requestParams });
             } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, {result: 'error', error, ...requestParams});
+                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, { result: 'error', error, ...requestParams });
                 throw error;
             }
         });
@@ -508,17 +508,17 @@ async function main() {
             try {
                 await tokensRequest(requestParams);
                 if (options.tee) {
-                    await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, {result: 'success', ...requestParams});
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, { result: 'success', ...requestParams });
                 }
                 if (options.matic) {
-                    await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, {result: 'success', ...requestParams});
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, { result: 'success', ...requestParams });
                 }
             } catch (error) {
                 if (options.tee) {
-                    await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, {result: 'error', error, ...requestParams});
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, { result: 'error', error, ...requestParams });
                 }
                 if (options.matic) {
-                    await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, {result: 'error', error, ...requestParams});
+                    await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, { result: 'error', error, ...requestParams });
                 }
                 throw error;
             }
@@ -769,6 +769,82 @@ async function main() {
                 actionAccountKey,
                 blockchainConfig,
                 offerInfoPath: options.path,
+            });
+        });
+
+    offersCommand
+        .command("enable")
+        .description("Enable offer")
+        .argument("id", "Offer <id>")
+        .action(async (id: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+            const actionAccountKey = blockchain.accountPrivateKey;
+
+            await offersEnable({
+                id,
+                blockchainConfig,
+                actionAccountKey,
+            });
+        });
+
+    offersCommand
+        .command("disable")
+        .description("Disable offer")
+        .argument("id", "Offer <id>")
+        .action(async (id: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+            const actionAccountKey = blockchain.accountPrivateKey;
+
+            await offersDisable({
+                id,
+                blockchainConfig,
+                actionAccountKey,
+            });
+        });
+
+    offersCommand
+        .command("enable-all", { hidden: true })
+        .description("Enable all providers' offers")
+        .requiredOption("--by-providers <filepath>", "path to providers list", "./providers.json")
+        .action(async (options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+
+            await offersEnableAll({
+                blockchainConfig,
+                providersPath: options.byProviders,
+            });
+        });
+
+    offersCommand
+        .command("disable-all", { hidden: true })
+        .description("Disables all providers' offers")
+        .requiredOption("--by-providers <filepath>", "path to providers list", "./providers.json")
+        .action(async (options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+
+            await offersDisableAll({
+                blockchainConfig,
+                providersPath: options.byProviders,
             });
         });
 
