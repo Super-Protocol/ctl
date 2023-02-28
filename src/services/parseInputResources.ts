@@ -1,6 +1,7 @@
 import readResourceFile, { ResourceFile } from "./readResourceFile";
 import { AESEncryption, Cipher, CryptoAlgorithm, Encoding } from "@super-protocol/dto-js";
 import { preparePath } from "../utils";
+import readJsonFile from "./readJsonFile";
 
 export type ParseInputResourcesParams = {
     options: string[];
@@ -11,11 +12,19 @@ const idRegexp = /^\d+$/;
 
 export default async (params: ParseInputResourcesParams) => {
     const resourceFiles: ResourceFile[] = [],
-        ids: string[] = [];
+        ids: string[] = [],
+        tiis: string[] = [];
     await Promise.all(
         params.options.map(async (param, index) => {
             if (idRegexp.test(param)) {
                 ids.push(param);
+                return;
+            }
+
+            // TODO: optimize double file reading
+            const file = await readJsonFile({ path: preparePath(param) });
+            if (file.tri) {
+                tiis.push(JSON.stringify(file));
                 return;
             }
 
@@ -42,5 +51,6 @@ export default async (params: ParseInputResourcesParams) => {
     return {
         resourceFiles,
         ids,
+        tiis,
     };
 };

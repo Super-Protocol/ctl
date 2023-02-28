@@ -41,6 +41,7 @@ import offersEnable from "./commands/offersEnable";
 import offersEnableAll from "./commands/offersEnableAll";
 import offersDisable from "./commands/offersDisable";
 import offersDisableAll from "./commands/offersDisableAll";
+import generateTii from "./commands/generateTii";
 
 const defaultAmplitudeApiKey = '322ed6bd9a802109e1e9692be0a825c6';
 
@@ -79,6 +80,7 @@ async function main() {
     const workflowsCommand = program.command("workflows");
     const filesCommand = program.command("files");
     const solutionsCommand = program.command("solutions");
+    const tiiCommand = program.command("tii");
     const tokensCommand = program.command("tokens");
     const offersCommand = program.command("offers");
     const offersListCommand = offersCommand.command("list");
@@ -948,6 +950,29 @@ async function main() {
                 writeDefaultManifest: options.writeDefaultManifest,
             });
         });
+
+    tiiCommand
+        .command("generate")
+        .description("Generate TII")
+        .argument("resourcePath", "Path to a resource of an uploaded file")
+        .requiredOption("--offer <id>", "TEE offer id")
+        .option("--output <path>", "Path to write the result into", "tii.json")
+        .action(async (resourcePath: string, options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+
+            await generateTii({
+                blockchainConfig,
+                teeOfferId: options.offer,
+                resoursePath: resourcePath,
+                outputPath: options.output,
+            });
+        })
+
 
     // Add global options
     processSubCommands(program, (command) => {

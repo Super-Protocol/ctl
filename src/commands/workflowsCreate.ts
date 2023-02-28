@@ -172,6 +172,13 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         ),
     ]);
 
+    if (solutions.tiis.length) {
+        solutionTIIs.push(...solutions.tiis);
+    }
+    if (data.tiis.length) {
+        dataTIIs.push(...data.tiis);
+    }
+
     Printer.print("Calculating payment deposit");
     let holdDeposit = await calcWorkflowDepositService({
         tee: params.tee,

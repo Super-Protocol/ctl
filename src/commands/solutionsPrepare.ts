@@ -6,7 +6,7 @@ import Printer from "../printer";
 import { extractManifest, signManifest } from "../services/prepareSolution";
 import packFolderService from "../services/packFolder";
 import { assertNumber, assertSize } from "../utils";
-import { Encoding, HashAlgorithm } from "@super-protocol/dto-js";
+import { Encoding, Hash, HashAlgorithm, Linkage } from "@super-protocol/dto-js";
 import { promises as fs } from "fs";
 import path from "path";
 import { tmpdir } from "os";
@@ -140,14 +140,14 @@ export default async (params: PrepareSolutionParams) => {
 
         Printer.print("Saving metadata to file");
         const metadataPath = path.join(process.cwd(), params.metadataPath);
-        const metadata = {
+        const metadata: { linkage: Linkage; hash: Hash } = {
             linkage: {
                 encoding: Encoding.base64,
                 mrenclave: Buffer.from(result.mrenclave, "hex").toString(Encoding.base64),
             },
             hash: {
                 encoding: Encoding.base64,
-                hashAlgo: solutionHashAlgo,
+                algo: solutionHashAlgo as HashAlgorithm,
                 hash: Buffer.from(solutionHash, "hex").toString(Encoding.base64),
             },
         };
