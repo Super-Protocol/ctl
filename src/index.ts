@@ -425,7 +425,7 @@ async function main() {
 
     ordersCommand
         .command("download-result")
-        .description("Downloading result of order with <id>")
+        .description("Download result of order with <id>")
         .argument("id", "Order <id>")
         .option("--save-to <path>", "Path to save the result")
         .option("--debug", "Display debug information", false)
@@ -752,10 +752,10 @@ async function main() {
 
     offersCommand
         .command("update")
-        .description("Update TEE offer info")
+        .description("Update offer info")
         .addArgument(new Argument("type", "Offer <type>").choices(["tee", "value"]))
         .argument("id", "Offer <id>")
-        .requiredOption("--path <filepath>", "path to TEE offer info", "./offerInfo.json")
+        .requiredOption("--path <filepath>", "path to offer info", "./offerInfo.json")
         .action(async (type: "tee" | "value", id: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
@@ -968,7 +968,7 @@ async function main() {
             await generateTii({
                 blockchainConfig,
                 teeOfferId: options.offer,
-                resoursePath: resourcePath,
+                resourcePath: resourcePath,
                 outputPath: options.output,
             });
         })

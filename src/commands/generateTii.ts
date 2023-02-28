@@ -8,13 +8,13 @@ import initBlockchainConnector from "../services/initBlockchainConnector";
 export type GenerateTiiParams = {
     blockchainConfig: BlockchainConfig
     teeOfferId: string;
-    resoursePath: string;
+    resourcePath: string;
     outputPath: string;
 }
 
 export default async (params: GenerateTiiParams) => {
     const resourceFile = await readResourceFile({
-        path: preparePath(params.resoursePath),
+        path: preparePath(params.resourcePath),
     });
 
     const { resource, encryption, hash, linkage, args } = resourceFile;
