@@ -8,7 +8,7 @@ const packageJson = require("../package.json");
 import { Argument, Command, Option } from "commander";
 import fs from "fs";
 import path from "path";
-import eccrypto from "eccrypto";
+import crypto from "crypto";
 
 import ConfigLoader, { Config } from "./config";
 import download from "./commands/filesDownload";
@@ -218,7 +218,9 @@ async function main() {
         .command("generate-key")
         .description("Generate private key to encrypt order results")
         .action(() => {
-            Printer.print(eccrypto.generatePrivate().toString("base64"));
+            const ecdh = crypto.createECDH("secp256k1");
+            ecdh.generateKeys();
+            Printer.print(ecdh.getPrivateKey().toString("base64"));
         });
 
     workflowsCommand
@@ -918,7 +920,7 @@ async function main() {
     solutionsCommand
         .command("prepare")
         .description("Prepare a solution for deployment")
-        .argument("solutionPath", "Path to a solution folder")
+        .argument("solutionPath", "Non-relative path to a solution folder")
         .argument("solutionKeyPath", "Path to a key file")
         .option("--metadata <pathToSave>", "Path to save metadata (hash and MrEnclave)", "./metadata.json")
         .option("--pack-solution <packSolution>", "Path to save the resulting tar.gz archive", "")
