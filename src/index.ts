@@ -920,7 +920,7 @@ async function main() {
     solutionsCommand
         .command("prepare")
         .description("Prepare a solution for deployment")
-        .argument("solutionPath", "Non-relative path to a solution folder")
+        .argument("solutionPath", "Path to a solution folder")
         .argument("solutionKeyPath", "Path to a key file")
         .option("--metadata <pathToSave>", "Path to save metadata (hash and MrEnclave)", "./metadata.json")
         .option("--pack-solution <packSolution>", "Path to save the resulting tar.gz archive", "")
