@@ -5,7 +5,7 @@ import toml from "@iarna/toml";
 import Printer from "../printer";
 import { extractManifest, signManifest } from "../services/prepareSolution";
 import packFolderService from "../services/packFolder";
-import { assertNumber, assertSize } from "../utils";
+import { assertNumber, assertSize, preparePath } from "../utils";
 import { Encoding, Hash, HashAlgorithm, Linkage } from "@super-protocol/dto-js";
 import { promises as fs } from "fs";
 import path from "path";
@@ -45,7 +45,8 @@ export default async (params: PrepareSolutionParams) => {
     assertSize(params.sysStackSize, "Invalid stack size");
     assertSize(params.sgxEnclaveSize, "Invalid enclave size");
 
-    await mkdir(params.solutionPath, { recursive: true });
+    const solutionPath = preparePath(params.solutionPath);
+    await mkdir(solutionPath, { recursive: true });
 
     const workingPath = path.join(tmpdir(), "spctl" + String(Date.now()));
     try {
@@ -84,7 +85,7 @@ export default async (params: PrepareSolutionParams) => {
             dockerImage,
             keyPath: params.keyPath,
             manifest: toml.stringify(manifestObject),
-            solutionPath: params.solutionPath,
+            solutionPath,
             writeDefaultManifest: params.writeDefaultManifest,
             workingPath: workingPath,
         });
@@ -105,12 +106,13 @@ export default async (params: PrepareSolutionParams) => {
             if (ext.slice(-tarGzExt.length) !== tarGzExt && ext.slice(-tgzExt.length) !== tgzExt) {
                 params.solutionOutputPath += tarGzExt;
             }
+            const solutionOutputPath = preparePath(params.solutionOutputPath);
 
             const hashStream = createHash(solutionHashAlgo);
 
             await packFolderService(
-                params.solutionPath,
-                params.solutionOutputPath,
+                solutionPath,
+                solutionOutputPath,
                 (total: number, current: number) => {
                     Printer.progress("Packing", total, current);
                 },
@@ -139,7 +141,7 @@ export default async (params: PrepareSolutionParams) => {
         Printer.print("MRSIGNER: " + result.mrsigner);
 
         Printer.print("Saving metadata to file");
-        const metadataPath = path.join(process.cwd(), params.metadataPath);
+        const metadataPath = preparePath(params.metadataPath);
         const metadata: { linkage: Linkage; hash: Hash } = {
             linkage: {
                 encoding: Encoding.base64,

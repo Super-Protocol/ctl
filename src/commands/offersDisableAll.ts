@@ -31,11 +31,11 @@ export default async (params: OffersDisableAllParams) => {
 
             if (valueOffers.length) {
                 const results = await Promise.allSettled(valueOffers.map(offer => new Offer(offer).disable({ from: actionAccount })));
-                results.forEach((res, index) => Printer.print(`Value offer ${valueOffers[index]} was ${res.status === "fulfilled" ? "" : "not "}enabled`))
+                results.forEach((res, index) => Printer.print(`Value offer ${valueOffers[index]} was ${res.status === "fulfilled" ? "" : "not "}disabled`))
             }
             if (teeOffers.length) {
                 const results = await Promise.allSettled(teeOffers.map(offer => new TeeOffer(offer).disable({ from: actionAccount })));
-                results.forEach((res, index) => Printer.print(`Tee offer ${teeOffers[index]} was ${res.status === "fulfilled" ? "" : "not "}enabled`))
+                results.forEach((res, index) => Printer.print(`Tee offer ${teeOffers[index]} was ${res.status === "fulfilled" ? "" : "not "}disabled`))
             }
         }
     } catch (error: any) {
