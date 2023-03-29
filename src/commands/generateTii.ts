@@ -37,5 +37,9 @@ export default async (params: GenerateTiiParams) => {
         encryption,
     );
 
-    await fs.writeFile(params.outputPath, tii);
+    const outputPath = preparePath(params.outputPath);
+
+    await fs.writeFile(outputPath, tii);
+
+    Printer.print(`TII file was created in ${outputPath}`);
 }
