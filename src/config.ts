@@ -21,6 +21,7 @@ const ConfigValidators = {
     storage: z.object({
         type: z.nativeEnum(StorageType),
         bucket: z.string(),
+        prefix: z.string().default(""),
         writeAccessToken: z.string(),
         readAccessToken: z.string(),
     }),
@@ -50,6 +51,7 @@ export type Config = {
     storage: {
         type: StorageType;
         bucket: string;
+        prefix: string;
         writeAccessToken: string;
         readAccessToken: string;
     };

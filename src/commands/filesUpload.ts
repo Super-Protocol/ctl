@@ -15,6 +15,7 @@ export type FilesUploadParams = {
     metadataPath?: string;
     storageType: StorageType;
     bucket: string;
+    prefix: string;
     writeAccessToken: string;
     readAccessToken: string;
     withEncryption: boolean;
@@ -49,11 +50,13 @@ export default async (params: FilesUploadParams) => {
 
     const writeCredentials = {
         token: params.writeAccessToken,
-        storageId: params.bucket,
+        bucket: params.bucket,
+        prefix: params.prefix
     };
     const readCredentials = {
         token: params.readAccessToken,
-        storageId: params.bucket,
+        bucket: params.bucket,
+        prefix: params.prefix
     };
 
     try {

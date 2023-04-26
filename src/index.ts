@@ -874,6 +874,7 @@ async function main() {
                 writeAccessToken: storage.writeAccessToken,
                 readAccessToken: storage.readAccessToken,
                 bucket: storage.bucket,
+                prefix: storage.prefix,
                 remotePath: options.filename,
                 outputPath: options.output,
                 metadataPath: options.metadata,
