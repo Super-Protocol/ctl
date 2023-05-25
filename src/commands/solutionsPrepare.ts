@@ -21,6 +21,7 @@ export type PrepareSolutionParams = {
     baseImageResource?: string;
     keyPath: string;
     sgxThreadNum?: string;
+    sgxMaxThreads?: string;
     sgxEnclaveSize?: string;
     loaderPalInternalMemSize?: string;
     sysStackSize?: string;
@@ -71,6 +72,12 @@ export default async (params: PrepareSolutionParams) => {
                 throw new Error("Value for the number of threads is too low, the minimum value is 4");
             }
             setValue(manifestObject, params.sgxThreadNum, "sgx", "thread_num");
+        }
+        if(params.sgxMaxThreads) {
+            if (parseInt(params.sgxMaxThreads, 10) < 4) {
+                throw new Error("Value for the number of max threads is too low, the minimum value is 4");
+            }
+            setValue(manifestObject, params.sgxThreadNum, "sgx", "max_threads");
         }
         if (params.loaderPalInternalMemSize) {
             setValue(manifestObject, params.loaderPalInternalMemSize, "loader", "pal_internal_mem_size");
