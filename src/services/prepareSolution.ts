@@ -71,7 +71,16 @@ export PYTHONPATH="\${PYTHONPATH}:$(find /gramine/meson_build_output/lib -type d
 export PKG_CONFIG_PATH="\${PKG_CONFIG_PATH}:$(find /gramine/meson_build_output/lib -type d -path '*/pkgconfig')"
 gramine-sgx-sign -k "/sign.key" -m "/entrypoint.manifest" -o "/entrypoint.manifest.sgx" -s "/entrypoint.sig"
 echo "${splitter}"
-gramine-sgx-get-token --sig /entrypoint.sig --output /entrypoint.token
+echo "from graminelibos import Sigstruct
+import hashlib
+f = open(\\"/entrypoint.sig\\", \\"rb\\")
+sig = Sigstruct.from_bytes(f.read())
+mrsigner = hashlib.sha256()
+mrsigner.update(sig['modulus'])
+mrsigner = mrsigner.hexdigest()
+print(f'    mr_enclave:  {sig[\\"enclave_hash\\"].hex()}')
+print(f'    mr_signer:   {mrsigner}')" > /parse_sigstruct.py
+python3 /parse_sigstruct.py
 `;
 
     await mkdir(opts.solutionPath, { recursive: true });
