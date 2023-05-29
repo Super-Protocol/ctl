@@ -77,7 +77,7 @@ export default async (params: PrepareSolutionParams) => {
             if (parseInt(params.sgxMaxThreads, 10) < 4) {
                 throw new Error("Value for the number of max threads is too low, the minimum value is 4");
             }
-            setValue(manifestObject, params.sgxThreadNum, "sgx", "max_threads");
+            setValue(manifestObject, params.sgxMaxThreads, "sgx", "max_threads");
         }
         if (params.loaderPalInternalMemSize) {
             setValue(manifestObject, params.loaderPalInternalMemSize, "loader", "pal_internal_mem_size");
