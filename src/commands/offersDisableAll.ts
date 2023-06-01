@@ -1,4 +1,4 @@
-import BlockchainConnector, { Config as BlockchainConfig, Offer, OffersFactory, Order, Provider, TeeOffer } from "@super-protocol/sdk-js";
+import BlockchainConnector, { Config as BlockchainConfig, Offer, Provider, TeeOffer } from "@super-protocol/sdk-js";
 import { TX_REVERTED_BY_EVM_ERROR } from "../constants";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";

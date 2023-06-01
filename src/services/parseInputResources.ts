@@ -1,23 +1,29 @@
 import readResourceFile, { ResourceFile } from "./readResourceFile";
-import { AESEncryption, Cipher, CryptoAlgorithm, Encoding } from "@super-protocol/dto-js";
+import {
+    AESEncryption,
+    Cipher,
+    CryptoAlgorithm,
+    Encoding,
+} from "@super-protocol/dto-js";
 import { preparePath } from "../utils";
 import readJsonFile from "./readJsonFile";
+import { ValueOfferParams } from "./createWorkflow";
 
 export type ParseInputResourcesParams = {
     options: string[];
-    optionsName: string;
 };
 
-const idRegexp = /^\d+$/;
+const idRegexp = /^(?:\d+,)?\d+$/;
 
 export default async (params: ParseInputResourcesParams) => {
     const resourceFiles: ResourceFile[] = [],
-        ids: string[] = [],
+        offers: ValueOfferParams[] = [],
         tiis: string[] = [];
     await Promise.all(
-        params.options.map(async (param, index) => {
+        params.options.map(async (param) => {
             if (idRegexp.test(param)) {
-                ids.push(param);
+                const [offerId, slotId] = param.split(",");
+                offers.push({ id: offerId, slotId });
                 return;
             }
 
@@ -50,7 +56,7 @@ export default async (params: ParseInputResourcesParams) => {
 
     return {
         resourceFiles,
-        ids,
+        offers,
         tiis,
     };
 };

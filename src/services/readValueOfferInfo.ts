@@ -13,13 +13,11 @@ const OfferInfoFileValidator = z.object({
     offerType: z.nativeEnum(OfferType),
     cancelable: z.boolean(),
     description: z.string(),
-    holdSum: z.string(),
     restrictions: z.object({
         offers: z.array(z.string()),
         types: z.array(z.nativeEnum(OfferType))
     }),
-    properties: z.string(),
-    maxDurationTimeMinutes: z.number(),
+    metadata: z.string(),
     input: z.string(),
     output: z.string(),
     allowedArgs: z.string(),

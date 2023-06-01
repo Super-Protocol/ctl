@@ -2,22 +2,25 @@ import { TeeOfferInfo } from "@super-protocol/sdk-js";
 import z from "zod";
 import readJsonFile from "./readJsonFile";
 import { EncryptionValidator } from "./readResourceFile";
+import { OptionInfoValidator, SlotInfoValidator } from "./baseValidators";
 
 export type ReadTeeOfferInfoFileParams = {
     path: string;
 };
 
+const HardwareInfoValidator = z.object({
+    slotInfo: SlotInfoValidator,
+    optionInfo: OptionInfoValidator,
+});
+
 const TeeOfferInfoFileValidator = z.object({
     name: z.string(),
     description: z.string(),
     teeType: z.string(),
-    slots: z.number(),
-    minTimeMinutes: z.number(),
     properties: z.string(),
-    tcb: z.string(),
     tlb: z.string(),
     argsPublicKey: EncryptionValidator,
-    maxDurationTimeMinutes: z.number(),
+    hardwareInfo: HardwareInfoValidator,
 });
 
 export default async (params: ReadTeeOfferInfoFileParams) => {

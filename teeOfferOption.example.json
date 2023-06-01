@@ -1,0 +1,13 @@
+{
+    "optionInfo": {
+        "bandwidth": "0",
+        "traffic": "0",
+        "externalPort": "0"
+    },
+    "optionUsage": {
+        "priceType": "0",
+        "price": "0",
+        "minTimeMinutes": 0,
+        "maxTimeMinutes": 0
+    }
+}

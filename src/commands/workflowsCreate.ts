@@ -2,7 +2,7 @@ import {
     Config as BlockchainConfig,
     TIIGenerator,
     SuperproToken,
-    OrdersFactory,
+    Orders,
     OrderStatus,
     Offer,
     OfferType,
@@ -12,7 +12,7 @@ import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import validateOfferWorkflowService from "../services/validateOfferWorkflow";
 import { CryptoAlgorithm, Encoding, Encryption } from "@super-protocol/dto-js";
-import createWorkflowService from "../services/createWorkflow";
+import createWorkflowService, { TeeOfferParams } from "../services/createWorkflow";
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
 import getTeeBalance from "../services/getTeeBalance";
@@ -24,15 +24,21 @@ import { TX_REVERTED_BY_EVM_ERROR } from "../constants";
 import fetchOffers from "../services/fetchOffers";
 import fetchTeeOffers from "../services/fetchTeeOffers";
 import { BigNumber } from "ethers";
+import { ValueOfferSlot } from "@super-protocol/sdk-js/build/types/ValueOfferSlot";
 
 export type WorkflowCreateParams = {
     backendUrl: string;
     accessToken: string;
     blockchainConfig: BlockchainConfig;
     actionAccountKey: string;
+
     tee: string;
+    teeSlotCount: string;
+    teeOptionsIds: string[];
+    teeOptionsCount: string[];
+
     storage: string;
-    solutions: string[];
+    solution: string[];
     data: string[];
     resultEncryption: Encryption;
     userDepositAmount: string;
@@ -40,7 +46,7 @@ export type WorkflowCreateParams = {
     ordersLimit: number;
 };
 
-type FethchedOffer = Partial<OfferInfo> & { id: string; };
+type FethchedOffer =  { id: string; offerInfo: Partial<OfferInfo>, slots: Partial<ValueOfferSlot>[] };
 
 const workflowCreate = async (params: WorkflowCreateParams): Promise<string | void> => {
     if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
@@ -73,75 +79,82 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         encoding: params.resultEncryption.encoding,
         key: getPublicFromPrivate(params.resultEncryption.key!),
     };
+    const tee = await parseInputResourcesService({
+        options: [params.tee],
+    })
+    .then(({ offers }) => offers[0]);
+
+    const storage = await parseInputResourcesService({
+        options: [params.storage],
+    })
+    .then(({ offers }) => offers[0]);
 
     const solutions = await parseInputResourcesService({
-        options: params.solutions,
-        optionsName: "solution",
+        options: params.solution,
     });
+    const solutionIds = solutions.offers.map((offer) => offer.id);
+
     const data = await parseInputResourcesService({
         options: params.data,
-        optionsName: "data",
     });
+    const dataIds = data.offers.map((offer) => offer.id);
 
-    const teeOffer = await fetchTeeOffers({
+    const fetchedTeeOffer = await fetchTeeOffers({
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
         limit: 1,
-        id: params.tee,
+        id: tee.id,
     }).then(({ list }) => list[0]);
 
-    if (!teeOffer) {
-        throw new Error(`TEE offer ${params.tee} does not exist or is of the wrong type`);
+    if (!fetchedTeeOffer) {
+        throw new Error(`TEE offer ${tee.id} does not exist or is of the wrong type`);
     }
 
-    const valueOfferIds = [...solutions.ids, ...data.ids, params.storage];
-    const offers = await fetchOffers({
+    const valueOfferIds = [...solutionIds, ...dataIds, storage.id];
+
+    const fetchedValueOffers = await fetchOffers({
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
         limit: valueOfferIds.length,
         ids: valueOfferIds,
     }).then(({ list }) => <FethchedOffer[]>list
-        .map((item) => {
-            if (item.node) {
-                return {
-                    ...item.node.offerInfo,
-                    id: item.node.id,
-                }
-            }
-            return undefined;
-        })
-        .filter(item => Boolean(item))
+        .filter(item => Boolean(item.node))
+        .map((item) => ({
+            offerInfo: item.node?.offerInfo || {},
+            slots: item.node?.slots || [],
+            id: item.node?.id,
+        }))
     );
 
-    const offersMap = new Map<string, FethchedOffer>(offers.map((o) => [o.id, o]));
+    const offersMap = new Map<string, FethchedOffer>(fetchedValueOffers.map((o) => [o.id, o]));
 
-    checkFetchedOffers([params.storage], offersMap, OfferType.Storage);
-    checkFetchedOffers(solutions.ids, offersMap, OfferType.Solution);
-    checkFetchedOffers(data.ids, offersMap, OfferType.Data);
+    checkFetchedOffers([storage.id], offersMap, OfferType.Storage);
+    checkFetchedOffers(solutionIds, offersMap, OfferType.Solution);
+    checkFetchedOffers(dataIds, offersMap, OfferType.Data);
 
     const restrictionOffersMap = new Map<string, Offer>(
-        offers.flatMap(({ restrictions }) => restrictions?.offers || []).map((id) => [id, new Offer(id)])
+        fetchedValueOffers.flatMap(({ offerInfo }) => offerInfo.restrictions?.offers || []).map((id) => [id, new Offer(id)])
     );
 
     Printer.print("Validating workflow configuration");
     await Promise.all(
-        [...solutions.ids, ...data.ids].map(async (offerId) => {
-            const offerToCheck = offers.find((o) => o.id === offerId);
+        [...solutionIds, ...dataIds].map(async (offerId) => {
+            const offerToCheck = fetchedValueOffers.find((o) => o.id === offerId);
             const restrictions =
-                <Offer[]>(offerToCheck?.restrictions?.offers || []).map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
+                <Offer[]>(offerToCheck?.offerInfo?.restrictions?.offers || []).map((o) => restrictionOffersMap.get(o)).filter(Boolean) ?? [];
             return validateOfferWorkflowService({
                 offerId,
                 restrictions,
-                tee: params.tee,
-                solutions: solutions.ids,
-                data: data.ids,
+                tee: tee.id,
+                solutions: solutionIds,
+                data: dataIds,
                 solutionArgs: solutions.resourceFiles,
                 dataArgs: data.resourceFiles,
             });
         })
     );
 
-    let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(solutions.ids.concat(data.ids));
+    let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(solutionIds.concat(dataIds));
 
     [...solutions.resourceFiles, ...data.resourceFiles].forEach((resource) => {
         if (resource.hash) hashes.push(resource.hash);
@@ -156,7 +169,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         Promise.all(
             solutions.resourceFiles.map((solution) =>
                 TIIGenerator.generateByOffer(
-                    params.tee,
+                    tee.id,
                     hashes,
                     linkage,
                     solution.resource,
@@ -167,7 +180,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         ),
         await Promise.all(
             data.resourceFiles.map((data) =>
-                TIIGenerator.generateByOffer(params.tee, hashes, linkage, data.resource, data.args, data.encryption!)
+                TIIGenerator.generateByOffer(tee.id, hashes, linkage, data.resource, data.args, data.encryption!)
             )
         ),
     ]);
@@ -180,11 +193,20 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     }
 
     Printer.print("Calculating payment deposit");
+
+    const teeOfferParams: TeeOfferParams = {
+        id: tee.id,
+        slotId: tee.slotId,
+        slotCount: params.teeSlotCount,
+        optionsIds: params.teeOptionsIds,
+        optionsCount: params.teeOptionsCount
+    };
+
     let holdDeposit = await calcWorkflowDepositService({
-        tee: params.tee,
-        storage: params.storage,
-        solutions: solutions.ids,
-        data: data.ids,
+        tee: teeOfferParams,
+        storage: storage,
+        solutions: solutions.offers,
+        data: data.offers,
     });
 
     if (params.userDepositAmount) {
@@ -212,12 +234,12 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
     let workflowPromises = new Array(params.workflowNumber);
 
-    const allowance = await SuperproToken.allowance(consumerAddress!, OrdersFactory.address);
+    const allowance = await SuperproToken.allowance(consumerAddress!, Orders.address);
     if (holdDeposit.gt(allowance)) {
         Printer.print("Approving TEE tokens");
         try {
             await SuperproToken.approve(
-                OrdersFactory.address,
+                Orders.address,
                 etherToWei(BigNumber.from(1e10).toString()).toString(),
                 { from: consumerAddress! },
             );
@@ -227,6 +249,8 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         }
     }
 
+    const inputOffersParams = [...solutions.offers, ...data.offers];
+
     Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
 
     for (let pos = 0; pos < params.workflowNumber; pos++) {
@@ -234,9 +258,9 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
             try {
                 resolve(
                     await createWorkflowService({
-                        teeOffer: params.tee,
-                        storageOffer: params.storage,
-                        inputOffers: solutions.ids.concat(data.ids),
+                        teeOffer: teeOfferParams,
+                        storageOffer: storage,
+                        inputOffers: inputOffersParams,
                         argsToEncrypt: JSON.stringify({
                             data: dataTIIs,
                             solution: solutionTIIs,
@@ -270,8 +294,8 @@ const checkFetchedOffers = (ids: string[], offers: Map<string, FethchedOffer>, t
         if (!fetchedOffer) {
             throw new Error(`Offer ${id} does not exist`);
             // TODO: move prettifying of offers from fetching to separate service and remove getObjectKey here
-        } else if (fetchedOffer.offerType !== type) {
-            throw new Error(`Offer ${id} has wrong type ${getObjectKey(fetchedOffer.offerType, OfferType)} instead of ${getObjectKey(type, OfferType)}`);
+        } else if (fetchedOffer.offerInfo.offerType !== type) {
+            throw new Error(`Offer ${id} has wrong type ${getObjectKey(fetchedOffer.offerInfo.offerType, OfferType)} instead of ${getObjectKey(type, OfferType)}`);
         }
     });
 };

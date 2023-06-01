@@ -24,15 +24,32 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         cancelable
                         description
                         hash
-                        holdSum
                         linkage
-                        maxDurationTimeMinutes
                         name
-                        properties
+                        metadata
                         resultResource
                         restrictions {
                             offers
                             types
+                        }
+                    }
+                    slots {
+                        id
+                        info {
+                            cpuCores
+                            diskUsage
+                            ram
+                        }
+                        usage {
+                            maxTimeMinutes
+                            minTimeMinutes
+                            price
+                            priceType
+                        }
+                        option {
+                            bandwidth
+                            externalPort
+                            traffic
                         }
                     }
                     origins {

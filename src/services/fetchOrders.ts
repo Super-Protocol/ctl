@@ -45,7 +45,7 @@ export default async (params: FetchOrdersParams) => {
                     offerDescription: item.node?.offerInfo?.description || item.node?.teeOfferInfo?.description,
                     type: item.node?.offerType,
                     status: getObjectKey(item.node?.orderInfo.status, OrderStatus),
-                    offerId: item.node?.orderInfo.offer,
+                    offerId: item.node?.orderInfo.offerId,
                     consumerAddress: item.node?.consumer,
                     parentOrderId: item.node?.parentOrder?.id,
                     totalDeposit: weiToEther(item.node?.totalDeposit),

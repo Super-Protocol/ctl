@@ -14,7 +14,10 @@
 .env
 config.json
 offerInfo.json
+valueOfferSlot.json
 teeOfferInfo.json
+teeOfferSlot.json
+teeOfferOption.json
 encryption.json
 providers.json
 error.log

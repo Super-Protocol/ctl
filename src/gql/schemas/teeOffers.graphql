@@ -25,23 +25,49 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                         name
                         tokenReceiver
                     }
-                    stats {
-                        freeCores
-                        ordersInQueue
-                    }
                     teeOfferInfo {
                         argsPublicKey
                         description
-                        minTimeMinutes
                         name
-                        properties
-                        slots
-                        tcb
                         teeType
                         tlb
+                        hardwareInfo {
+                            slotInfo {
+                                cpuCores
+                            }
+                        }
+                    }
+                    slots {
+                        id
+                        info {
+                            cpuCores
+                            diskUsage
+                            ram
+                        }
+                        usage {
+                            maxTimeMinutes
+                            minTimeMinutes
+                            price
+                            priceType
+                        }
+                    }
+                    options {
+                        id
+                        info {
+                            bandwidth
+                            externalPort
+                            traffic
+                        }
+                        usage {
+                            maxTimeMinutes
+                            minTimeMinutes
+                            price
+                            priceType
+                        }
                     }
                     stats {
                         freeCores
+                        ordersInQueue
                         new
                         processing
                     }

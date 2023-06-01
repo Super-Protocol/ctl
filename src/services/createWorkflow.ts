@@ -1,13 +1,26 @@
-import { Crypto, OrderInfo, OrdersFactory, OrderStatus, TeeOffer } from "@super-protocol/sdk-js";
+import { Crypto, OrderInfo, Orders, OrderStatus, TeeOffer } from "@super-protocol/sdk-js";
 import { Encryption } from "@super-protocol/dto-js";
 import Printer from "../printer";
 import { generateExternalId, sleep } from "../utils";
 import { MAX_ATTEMPT_WAITING_NEW_TX, ATTEMPT_PERIOD_MS } from "../constants";
 
+export type TeeOfferParams = {
+    id: string;
+    slotId: string;
+    slotCount: string;
+    optionsIds: string[];
+    optionsCount: string[];
+}
+
+export type ValueOfferParams = {
+    id: string;
+    slotId: string;
+}
+
 export type CreateWorkflowParams = {
-    teeOffer: string;
-    storageOffer: string;
-    inputOffers: string[];
+    teeOffer: TeeOfferParams;
+    storageOffer: ValueOfferParams;
+    inputOffers: ValueOfferParams[];
     resultPublicKey: Encryption;
     argsToEncrypt: string;
     holdDeposit: string;
@@ -16,54 +29,60 @@ export type CreateWorkflowParams = {
 
 export default async (params: CreateWorkflowParams): Promise<string> => {
     Printer.print("Fetching TEE offer");
-    const teeOffer = new TeeOffer(params.teeOffer);
+    const teeOffer = new TeeOffer(params.teeOffer.id);
     const offerInfo = await teeOffer.getInfo();
 
     Printer.print("Encrypting arguments");
     const encryptedArgs = await Crypto.encrypt(params.argsToEncrypt, JSON.parse(offerInfo.argsPublicKey));
 
-    const id = generateExternalId();
+    const externalId = generateExternalId();
 
     const parentOrderInfo: OrderInfo = {
-        offer: params.teeOffer,
-        externalId: id,
+        offerId: params.teeOffer.id,
+        externalId: externalId,
         status: OrderStatus.New,
         args: {
-            inputOffers: params.inputOffers,
-            selectedOffers: [params.storageOffer],
-            slots: 4,
+            inputOffers: params.inputOffers.map((offer) => offer.id),
+            outputOffer: params.storageOffer.id
         },
         encryptedArgs: JSON.stringify(encryptedArgs),
         resultPublicKey: JSON.stringify(params.resultPublicKey),
         encryptedRequirements: "",
+        slotId: params.teeOffer.slotId,
+        slotCount: params.teeOffer.slotCount,
+        optionsIds: params.teeOffer.optionsIds,
+        optionsCount: params.teeOffer.optionsCount,
     };
-    const subOrdersInfo: OrderInfo[] = params.inputOffers.map(offerId => ({
-        offer: offerId,
+
+    const subOrdersInfo: OrderInfo[] = params.inputOffers.map(subOrderParams => ({
+        offerId: subOrderParams.id,
         externalId: generateExternalId(),
         status: OrderStatus.New,
         args: {
             inputOffers: [],
-            selectedOffers: (params.storageOffer ? [params.storageOffer] : [])
-            .concat(params.teeOffer),
-            slots: 0,
+            outputOffer: params.storageOffer.id,
         },
         resultPublicKey: "",
         encryptedArgs: "",
         encryptedRequirements: "",
+        slotId: subOrderParams.slotId,
+        slotCount: "0",
+        optionsIds: [],
+        optionsCount: [],
     }));
 
-    await OrdersFactory.createWorkflow(
+    await Orders.createWorkflow(
         parentOrderInfo,
         subOrdersInfo,
         params.holdDeposit,
         { from: params.consumerAddress },
     );
 
-    let { orderId } = await OrdersFactory.getOrder(params.consumerAddress, id);
+    let { orderId } = await Orders.getByExternalId(params.consumerAddress, externalId);
     let attempt = 0;
     while (orderId === "-1") {
-        sleep(ATTEMPT_PERIOD_MS);
-        const events = await OrdersFactory.getOrder(params.consumerAddress, id);
+        await sleep(ATTEMPT_PERIOD_MS);
+        const events = await Orders.getByExternalId(params.consumerAddress, externalId);
         orderId = events.orderId;
 
         if (orderId == "-1" && attempt == MAX_ATTEMPT_WAITING_NEW_TX) {

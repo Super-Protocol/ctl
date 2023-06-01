@@ -1,0 +1,13 @@
+{
+    "slotInfo": {
+        "cpuCores": 0,
+        "ram": 0,
+        "diskUsage": 0
+    },
+    "slotUsage": {
+        "priceType": "0",
+        "price": "0",
+        "minTimeMinutes": 0,
+        "maxTimeMinutes": 0
+    }
+}

@@ -20,7 +20,7 @@ import ordersList from "./commands/ordersList";
 import ordersGet from "./commands/ordersGet";
 import ordersCancel from "./commands/ordersCancel";
 import ordersReplenishDeposit from "./commands/ordersReplenishDeposit";
-import workflowsCreate from "./commands/workflowsCreate";
+import workflowsCreate, { WorkflowCreateParams } from "./commands/workflowsCreate";
 import Printer from "./printer";
 import { collectOptions, commaSeparatedList, processSubCommands, validateFields } from "./utils";
 import generateSolutionKey from "./commands/solutionsGenerateKey";
@@ -31,7 +31,6 @@ import tokensBalance from "./commands/tokensBalance";
 import offersListTee from "./commands/offersListTee";
 import offersListValue from "./commands/offersListValue";
 import offersDownloadContent from "./commands/offersDownloadContent";
-import ordersWithdrawDeposit from "./commands/ordersWithdrawDeposit";
 import { MAX_ORDERS_RUNNING } from "./constants";
 import offersGet from "./commands/offersGet";
 import offersCreate from "./commands/offersCreate";
@@ -42,6 +41,12 @@ import offersEnableAll from "./commands/offersEnableAll";
 import offersDisable from "./commands/offersDisable";
 import offersDisableAll from "./commands/offersDisableAll";
 import generateTii from "./commands/generateTii";
+import offersUpdateSlot from "./commands/offersUpdateSlot";
+import offersAddSlot from "./commands/offersAddSlot";
+import offersDeleteSlot from "./commands/offersDeleteSlot";
+import offersAddOption from "./commands/offersAddOption";
+import offersUpdateOption from "./commands/offersUpdateOption";
+import offersDeleteOption from "./commands/offersDeleteOption";
 
 const defaultAmplitudeApiKey = '322ed6bd9a802109e1e9692be0a825c6';
 
@@ -226,17 +231,20 @@ async function main() {
     workflowsCommand
         .command("create")
         .description("Create workflow")
-        .requiredOption("--tee <id>", "TEE offer <id> (required)")
-        .requiredOption("--storage <id>", "Storage offer <id> (required)")
+        .requiredOption("--tee <id,slot>", "TEE offer <id,slot> (required)")
+        .option("--tee-slot-count <id>", "TEE slot count")
+        .option("--tee-options <id...>", "TEE options <id> (accepts multiple values)", collectOptions, [])
+        .option("--tee-options-count <value...>", "TEE options count <id> (accepts multiple values)", collectOptions, [])
+        .requiredOption("--storage <id,slot>", "Storage offer <id> (required)")
         .requiredOption(
-            "--solution <id> --solution <filepath>",
-            "Solution offer <id> or resource file path (required and accepts multiple values)",
+            "--solution <id,slot> --solution <filepath>",
+            "Solution offer <id,slot> or resource file path (required and accepts multiple values)",
             collectOptions,
             []
         )
         .option(
-            "--data <id> --data <filepath>",
-            "Data offer <id> or resource file path (accepts multiple values)",
+            "--data <id,slot> --data <filepath>",
+            "Data offer <id,slot> or resource file path (accepts multiple values)",
             collectOptions,
             []
         )
@@ -267,14 +275,17 @@ async function main() {
             const workflowConfig = configLoader.loadSection("workflow") as Config["workflow"];
             const wallet = new Wallet(blockchain.accountPrivateKey);
             const userId = wallet.address;
-            const requestParams = {
+            const requestParams: WorkflowCreateParams = {
                 backendUrl: backend.url,
                 accessToken: backend.accessToken,
                 blockchainConfig,
                 actionAccountKey: blockchain.accountPrivateKey,
                 tee: options.tee,
+                teeSlotCount: options.teeSlotCount,
+                teeOptionsIds: options.teeOptions,
+                teeOptionsCount: options.teeOptionsCount,
                 storage: options.storage,
-                solutions: options.solution,
+                solution: options.solution,
                 data: options.data,
                 resultEncryption: workflowConfig.resultEncryption,
                 userDepositAmount: options.deposit,
@@ -458,36 +469,6 @@ async function main() {
             }
         });
 
-    ordersCommand
-        .command("withdraw-deposit")
-        .description("Withdraw unspent deposit from a completed order with <id>")
-        .argument("id", "Order <id>")
-        .option("--debug", "Display debug information", false)
-        .action(async (id: string, options: any) => {
-            const configLoader = new ConfigLoader(options.config);
-            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
-            const blockchainConfig = {
-                contractAddress: blockchain.smartContractAddress,
-                blockchainUrl: blockchain.rpcUrl,
-            };
-            const wallet = new Wallet(blockchain.accountPrivateKey);
-            const userId = wallet.address;
-            const requestParams = {
-                blockchainConfig,
-                actionAccountKey: blockchain.accountPrivateKey,
-                id,
-            };
-            const analytics = configLoader.loadSection('analytics') as Config['analytics'];
-
-            try {
-                await ordersWithdrawDeposit(requestParams);
-                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, { result: 'success', ...requestParams });
-            } catch (error) {
-                await trackEvent(analytics?.amplitudeApiKey, 'order_withdraw_deposit_cli', userId, { result: 'error', error, ...requestParams });
-                throw error;
-            }
-        });
-
     tokensCommand
         .command("request")
         .description("Request tokens for the account")
@@ -631,6 +612,7 @@ async function main() {
         "orders_in_queue",
         "cancelable",
         "modified_date",
+        "slots",
     ];
     offersGetCommand
         .command("tee")
@@ -666,6 +648,7 @@ async function main() {
         "cost",
         "depends_on_offers",
         "modified_date",
+        "slots",
     ];
     offersGetCommand
         .command("value")
@@ -849,6 +832,148 @@ async function main() {
             await offersDisableAll({
                 blockchainConfig,
                 providersPath: options.byProviders,
+            });
+        });
+
+    offersCommand
+        .command("add-slot")
+        .description("Add slot to offer")
+        .addArgument(new Argument("type", "Offer <type>").choices(["tee", "value"]))
+        .requiredOption("--offer <id>", "Offer <id>")
+        .requiredOption("--path <filepath>", "path to offer info", "./offerSlot.json")
+        .action(async (type: "tee" | "value", options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+            const actionAccountKey = blockchain.accountPrivateKey;
+
+            await offersAddSlot({
+                blockchainConfig,
+                actionAccountKey,
+                type,
+                offerId: options.offer,
+                slotPath: options.path,
+            });
+        });
+
+    offersCommand
+        .command("update-slot")
+        .description("Add slot to offer")
+        .addArgument(new Argument("type", "Offer <type>").choices(["tee", "value"]))
+        .requiredOption("--offer <id>", "Offer <id>")
+        .requiredOption("--slot <id>", "Slot <id>")
+        .requiredOption("--path <filepath>", "path to offer info", "./slotInfo.json")
+        .action(async (type: "tee" | "value", options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+            const actionAccountKey = blockchain.accountPrivateKey;
+
+            await offersUpdateSlot({
+                blockchainConfig,
+                actionAccountKey,
+                type,
+                offerId: options.offer,
+                slotId: options.slot,
+                slotPath: options.path,
+            });
+        });
+
+    offersCommand
+        .command("delete-slot")
+        .description("Delete slot by id")
+        .addArgument(new Argument("type", "Offer <type>").choices(["tee", "value"]))
+        .requiredOption("--offer <id>", "Offer <id>")
+        .requiredOption("--slot <id>", "Slot <id>")
+        .action(async (type: "tee" | "value", options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+            const actionAccountKey = blockchain.accountPrivateKey;
+
+            await offersDeleteSlot({
+                blockchainConfig,
+                actionAccountKey,
+                type,
+                offerId: options.offer,
+                slotId: options.slot,
+            });
+        });
+
+    offersCommand
+        .command("add-option")
+        .description("Add option to offer (TEE offers only)")
+        .requiredOption("--offer <id>", "Offer <id>")
+        .requiredOption("--path <filepath>", "path to option info", "./offerOption.json")
+        .action(async (options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+            const actionAccountKey = blockchain.accountPrivateKey;
+
+            await offersAddOption({
+                blockchainConfig,
+                actionAccountKey,
+                offerId: options.offer,
+                optionPath: options.path,
+            });
+        });
+
+    offersCommand
+        .command("update-option")
+        .description("Update option by id (TEE offers only)")
+        .requiredOption("--offer <id>", "Offer <id>")
+        .requiredOption("--option <id>", "Offer <id>")
+        .requiredOption("--path <filepath>", "path to option info", "./offerOption.json")
+        .action(async (options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+            const actionAccountKey = blockchain.accountPrivateKey;
+
+            await offersUpdateOption({
+                blockchainConfig,
+                actionAccountKey,
+                offerId: options.offer,
+                optionId: options.option,
+                optionPath: options.path,
+            });
+        });
+
+    offersCommand
+        .command("delete-option")
+        .description("Delete option to id (TEE offers only)")
+        .requiredOption("--offer <id>", "Offer <id>")
+        .requiredOption("--path <filepath>", "path to option info", "./offerOption.json")
+        .action(async (options: any) => {
+            const configLoader = new ConfigLoader(options.config);
+            const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
+            const blockchainConfig = {
+                contractAddress: blockchain.smartContractAddress,
+                blockchainUrl: blockchain.rpcUrl,
+            };
+            const actionAccountKey = blockchain.accountPrivateKey;
+
+            await offersDeleteOption({
+                blockchainConfig,
+                actionAccountKey,
+                offerId: options.offer,
+                optionId: options.option,
             });
         });
 

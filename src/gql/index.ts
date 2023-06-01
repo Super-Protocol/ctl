@@ -22,6 +22,7 @@ export type BaseOrder = {
   _id: Scalars['String'];
   authority?: Maybe<Scalars['String']>;
   consumer: Scalars['String'];
+  depositReserved?: Maybe<Scalars['String']>;
   depositSpent?: Maybe<Scalars['String']>;
   /** blockchain id */
   id: Scalars['String'];
@@ -34,10 +35,12 @@ export type BaseOrder = {
   teeOfferInfo?: Maybe<TeeOfferInfo>;
   totalDeposit?: Maybe<Scalars['String']>;
   totalDepositSpent?: Maybe<Scalars['String']>;
+  totalDepositUnspent?: Maybe<Scalars['String']>;
 };
 
 export type BaseOrderInputType = {
   consumer: Scalars['String'];
+  depositReserved?: InputMaybe<Scalars['String']>;
   depositSpent?: InputMaybe<Scalars['String']>;
   offerInfo?: InputMaybe<OfferInfoInput>;
   offerType: TOfferType;
@@ -47,6 +50,7 @@ export type BaseOrderInputType = {
   teeOfferInfo?: InputMaybe<TeeOfferInfoInput>;
   totalDeposit?: InputMaybe<Scalars['String']>;
   totalDepositSpent?: InputMaybe<Scalars['String']>;
+  totalDepositUnspent?: InputMaybe<Scalars['String']>;
 };
 
 export type Config = {
@@ -211,6 +215,17 @@ export type EventSource = {
   source?: InputMaybe<SubscriptionSource>;
 };
 
+export type HardwareInfo = {
+  __typename?: 'HardwareInfo';
+  optionInfo: OptionInfo;
+  slotInfo: SlotInfo;
+};
+
+export type HardwareInfoInput = {
+  optionInfo: OptionInfoInput;
+  slotInfo: SlotInfoInput;
+};
+
 export type ListConfigResponse = {
   __typename?: 'ListConfigResponse';
   page: ConfigConnection;
@@ -220,12 +235,6 @@ export type ListConfigResponse = {
 export type ListErc20Response = {
   __typename?: 'ListErc20Response';
   page: Erc20Connection;
-  pageData?: Maybe<PageDataDto>;
-};
-
-export type ListLockingResponse = {
-  __typename?: 'ListLockingResponse';
-  page: LockingConnection;
   pageData?: Maybe<PageDataDto>;
 };
 
@@ -247,12 +256,6 @@ export type ListProvidersResponse = {
   pageData?: Maybe<PageDataDto>;
 };
 
-export type ListStakingResponse = {
-  __typename?: 'ListStakingResponse';
-  page: StakingConnection;
-  pageData?: Maybe<PageDataDto>;
-};
-
 export type ListTeeOffersResponse = {
   __typename?: 'ListTeeOffersResponse';
   page: TeeOfferConnection;
@@ -263,67 +266,6 @@ export type ListTransactionResponse = {
   __typename?: 'ListTransactionResponse';
   page: TransactionConnection;
   pageData?: Maybe<PageDataDto>;
-};
-
-export type LockInfo = {
-  __typename?: 'LockInfo';
-  amount: Scalars['String'];
-  contract: TLockInfoSource;
-  fromDate: Scalars['Float'];
-  toDate: Scalars['Float'];
-};
-
-export type LockInfoInput = {
-  amount: Scalars['String'];
-  contract: TLockInfoSource;
-  fromDate: Scalars['Float'];
-  toDate: Scalars['Float'];
-};
-
-export type Locking = {
-  __typename?: 'Locking';
-  /** system identifier */
-  _id: Scalars['String'];
-  lockInfo: LockInfo;
-  /** owner address */
-  owner: Scalars['String'];
-  providerName?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['DateTime']>;
-};
-
-export type LockingConnection = {
-  __typename?: 'LockingConnection';
-  edges?: Maybe<Array<LockingEdge>>;
-  pageInfo?: Maybe<LockingPageInfo>;
-};
-
-export type LockingEdge = {
-  __typename?: 'LockingEdge';
-  cursor?: Maybe<Scalars['String']>;
-  node?: Maybe<Locking>;
-};
-
-export type LockingFilter = {
-  /** filter by owner address */
-  owner?: InputMaybe<Scalars['String']>;
-};
-
-export type LockingInputType = {
-  /** system identifier */
-  _id: Scalars['String'];
-  lockInfo: LockInfoInput;
-  /** owner address */
-  owner: Scalars['String'];
-  providerName?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['DateTime']>;
-};
-
-export type LockingPageInfo = {
-  __typename?: 'LockingPageInfo';
-  endCursor?: Maybe<Scalars['String']>;
-  hasNextPage: Scalars['Boolean'];
-  hasPreviousPage: Scalars['Boolean'];
-  startCursor?: Maybe<Scalars['String']>;
 };
 
 export type Mutation = {
@@ -345,6 +287,7 @@ export type Offer = {
   offerInfo: OfferInfo;
   origins?: Maybe<Origins>;
   providerInfo: ProviderInformation;
+  slots: Array<OfferSlot>;
   stats?: Maybe<OfferStats>;
 };
 
@@ -375,17 +318,20 @@ export type OfferFilter = {
   name?: InputMaybe<Scalars['String']>;
   /** filter by offerInfo -> type */
   offerType?: InputMaybe<TOfferType>;
+  /** filter by providerInfo → actionAccount */
+  providerActionAccounts?: InputMaybe<Array<Scalars['String']>>;
   /** filter by offerInfo -> restrictions -> offers */
   restrictions?: InputMaybe<Array<Scalars['String']>>;
 };
 
 export type OfferInfo = {
   __typename?: 'OfferInfo';
-  allowedAccounts?: Maybe<Array<Scalars['String']>>;
+  allowedAccounts: Array<Scalars['String']>;
   allowedArgs?: Maybe<Scalars['String']>;
   argsPublicKey: Scalars['String'];
   cancelable: Scalars['Boolean'];
   description: Scalars['String'];
+  enabled: Scalars['Boolean'];
   /**
    * The supported offers group.
    *
@@ -400,10 +346,9 @@ export type OfferInfo = {
    */
   group: Scalars['String'];
   hash: Scalars['String'];
-  holdSum: Scalars['String'];
   input: Scalars['String'];
   linkage: Scalars['String'];
-  maxDurationTimeMinutes: Scalars['Float'];
+  metadata: Scalars['String'];
   name: Scalars['String'];
   /**
    * The supported offers type.
@@ -415,17 +360,17 @@ export type OfferInfo = {
    */
   offerType: Scalars['String'];
   output: Scalars['String'];
-  properties: Scalars['String'];
   restrictions?: Maybe<OfferRestrictions>;
   resultResource: Scalars['String'];
 };
 
 export type OfferInfoInput = {
-  allowedAccounts?: InputMaybe<Array<Scalars['String']>>;
+  allowedAccounts: Array<Scalars['String']>;
   allowedArgs?: InputMaybe<Scalars['String']>;
   argsPublicKey: Scalars['String'];
   cancelable: Scalars['Boolean'];
   description: Scalars['String'];
+  enabled: Scalars['Boolean'];
   /**
    * The supported offers group.
    *
@@ -440,10 +385,9 @@ export type OfferInfoInput = {
    */
   group: Scalars['String'];
   hash: Scalars['String'];
-  holdSum: Scalars['String'];
   input: Scalars['String'];
   linkage: Scalars['String'];
-  maxDurationTimeMinutes: Scalars['Float'];
+  metadata: Scalars['String'];
   name: Scalars['String'];
   /**
    * The supported offers type.
@@ -455,7 +399,6 @@ export type OfferInfoInput = {
    */
   offerType: Scalars['String'];
   output: Scalars['String'];
-  properties: Scalars['String'];
   restrictions?: InputMaybe<OfferRestrictionsInput>;
   resultResource: Scalars['String'];
 };
@@ -464,6 +407,7 @@ export type OfferInputType = {
   disabledAfter: Scalars['Float'];
   offerInfo: OfferInfoInput;
   providerInfo: ProviderInformationInput;
+  slots: Array<OfferSlotInput>;
   stats?: InputMaybe<OfferStatsInput>;
 };
 
@@ -478,12 +422,27 @@ export type OfferPageInfo = {
 export type OfferRestrictions = {
   __typename?: 'OfferRestrictions';
   offers?: Maybe<Array<Scalars['String']>>;
-  types?: Maybe<Array<TOfferType>>;
+  types?: Maybe<Array<OfferType>>;
 };
 
 export type OfferRestrictionsInput = {
   offers?: InputMaybe<Array<Scalars['String']>>;
-  types?: InputMaybe<Array<TOfferType>>;
+  types?: InputMaybe<Array<OfferType>>;
+};
+
+export type OfferSlot = {
+  __typename?: 'OfferSlot';
+  id: Scalars['String'];
+  info: SlotInfo;
+  option: OptionInfo;
+  usage: SlotUsage;
+};
+
+export type OfferSlotInput = {
+  id: Scalars['String'];
+  info: SlotInfoInput;
+  option: OptionInfoInput;
+  usage: SlotUsageInput;
 };
 
 export type OfferStats = {
@@ -513,12 +472,34 @@ export type OfferStatsInput = {
   suspended?: InputMaybe<Scalars['Float']>;
 };
 
+/** The supported offers type. */
+export enum OfferType {
+  Data = 'Data',
+  Solution = 'Solution',
+  Storage = 'Storage',
+  TeeOffer = 'TeeOffer'
+}
+
+export type OptionInfo = {
+  __typename?: 'OptionInfo';
+  bandwidth: Scalars['String'];
+  externalPort: Scalars['String'];
+  traffic: Scalars['String'];
+};
+
+export type OptionInfoInput = {
+  bandwidth: Scalars['String'];
+  externalPort: Scalars['String'];
+  traffic: Scalars['String'];
+};
+
 export type Order = {
   __typename?: 'Order';
   /** system identifier */
   _id: Scalars['String'];
   authority?: Maybe<Scalars['String']>;
   consumer: Scalars['String'];
+  depositReserved?: Maybe<Scalars['String']>;
   depositSpent?: Maybe<Scalars['String']>;
   /** blockchain id */
   id: Scalars['String'];
@@ -534,19 +515,18 @@ export type Order = {
   teeOfferInfo?: Maybe<TeeOfferInfo>;
   totalDeposit?: Maybe<Scalars['String']>;
   totalDepositSpent?: Maybe<Scalars['String']>;
+  totalDepositUnspent?: Maybe<Scalars['String']>;
 };
 
 export type OrderArgs = {
   __typename?: 'OrderArgs';
-  inputOffers?: Maybe<Array<Scalars['String']>>;
-  selectedOffers?: Maybe<Array<Scalars['String']>>;
-  slots?: Maybe<Scalars['Float']>;
+  inputOffers: Array<Scalars['String']>;
+  outputOffers: Array<Scalars['String']>;
 };
 
 export type OrderArgsInput = {
-  inputOffers?: InputMaybe<Array<Scalars['String']>>;
-  selectedOffers?: InputMaybe<Array<Scalars['String']>>;
-  slots?: InputMaybe<Scalars['Float']>;
+  inputOffers: Array<Scalars['String']>;
+  outputOffers: Array<Scalars['String']>;
 };
 
 export type OrderConnection = {
@@ -561,16 +541,28 @@ export type OrderEdge = {
   node?: Maybe<Order>;
 };
 
+export enum OrderEventType {
+  OrderCreated = 'orderCreated',
+  OrderUpdated = 'orderUpdated',
+  SuborderCreated = 'suborderCreated',
+  SuborderUpdated = 'suborderUpdated'
+}
+
 export type OrderInfo = {
   __typename?: 'OrderInfo';
   args: OrderArgs;
   encryptedArgs: Scalars['String'];
   encryptedRequirements: Scalars['String'];
-  offer: Scalars['String'];
+  externalId: Scalars['String'];
+  offerId: Scalars['String'];
+  optionsCount: Array<Scalars['String']>;
+  optionsIds: Array<Scalars['String']>;
   resultPublicKey: Scalars['String'];
+  slotCount: Scalars['String'];
+  slotId: Scalars['String'];
   /**
    * description of values:
-   * 
+   *
    *     New = '0',
    *
    *     Processing = '1',
@@ -598,11 +590,16 @@ export type OrderInfoInput = {
   args: OrderArgsInput;
   encryptedArgs: Scalars['String'];
   encryptedRequirements: Scalars['String'];
-  offer: Scalars['String'];
+  externalId: Scalars['String'];
+  offerId: Scalars['String'];
+  optionsCount: Array<Scalars['String']>;
+  optionsIds: Array<Scalars['String']>;
   resultPublicKey: Scalars['String'];
+  slotCount: Scalars['String'];
+  slotId: Scalars['String'];
   /**
    * description of values:
-   * 
+   *
    *     New = '0',
    *
    *     Processing = '1',
@@ -628,6 +625,7 @@ export type OrderInfoInput = {
 
 export type OrderInputType = {
   consumer: Scalars['String'];
+  depositReserved?: InputMaybe<Scalars['String']>;
   depositSpent?: InputMaybe<Scalars['String']>;
   offerInfo?: InputMaybe<OfferInfoInput>;
   offerType: TOfferType;
@@ -640,6 +638,30 @@ export type OrderInputType = {
   teeOfferInfo?: InputMaybe<TeeOfferInfoInput>;
   totalDeposit?: InputMaybe<Scalars['String']>;
   totalDepositSpent?: InputMaybe<Scalars['String']>;
+  totalDepositUnspent?: InputMaybe<Scalars['String']>;
+};
+
+export type OrderObject = {
+  __typename?: 'OrderObject';
+  consumer: Scalars['String'];
+  depositReserved?: Maybe<Scalars['String']>;
+  depositSpent?: Maybe<Scalars['String']>;
+  /** blockchain id */
+  id: Scalars['String'];
+  offerInfo?: Maybe<OfferInfo>;
+  offerType: Scalars['String'];
+  orderHoldDeposit?: Maybe<Scalars['String']>;
+  /** blockchain id */
+  orderId: Scalars['String'];
+  orderInfo: OrderInfo;
+  orderResult: OrderResult;
+  origins?: Maybe<Origins>;
+  parentOrder?: Maybe<Scalars['String']>;
+  subOrders: Array<Scalars['String']>;
+  teeOfferInfo?: Maybe<TeeOfferInfo>;
+  totalDeposit?: Maybe<Scalars['String']>;
+  totalDepositSpent?: Maybe<Scalars['String']>;
+  totalDepositUnspent?: Maybe<Scalars['String']>;
 };
 
 export type OrderPageInfo = {
@@ -648,6 +670,12 @@ export type OrderPageInfo = {
   hasNextPage: Scalars['Boolean'];
   hasPreviousPage: Scalars['Boolean'];
   startCursor?: Maybe<Scalars['String']>;
+};
+
+export type OrderPayload = {
+  __typename?: 'OrderPayload';
+  eventType?: Maybe<OrderEventType>;
+  order: OrderObject;
 };
 
 export type OrderResult = {
@@ -661,6 +689,17 @@ export type OrderResultInput = {
   orderPrice?: InputMaybe<Scalars['String']>;
 };
 
+export type OrderStatusUpdatedInput = {
+  /** filter by order ids */
+  orderIds?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type OrderStatusUpdatedPayload = {
+  __typename?: 'OrderStatusUpdatedPayload';
+  orderId: Scalars['String'];
+  status: Scalars['String'];
+};
+
 export type OrdersFilter = {
   /** filter by orderInfo -> consumer */
   consumer?: InputMaybe<Scalars['String']>;
@@ -668,18 +707,20 @@ export type OrdersFilter = {
   excludeStatuses?: InputMaybe<Array<Scalars['String']>>;
   /** filter by blockchain id */
   id?: InputMaybe<Scalars['String']>;
+  /** filter by blockchain ids */
+  ids?: InputMaybe<Array<Scalars['String']>>;
   /** include filter by orderInfo -> status */
   includeStatuses?: InputMaybe<Array<Scalars['String']>>;
   /** filter by orderInfo -> args -> inputOffers */
   inputOffers?: InputMaybe<Array<Scalars['String']>>;
-  /** filter by orderInfo -> offer */
-  offer?: InputMaybe<Scalars['String']>;
+  /** filter by orderInfo -> offerId */
+  offerId?: InputMaybe<Scalars['String']>;
   /** filter by offerType */
   offerType?: InputMaybe<TOfferType>;
+  /** filter by orderInfo -> args -> outputOffers */
+  outputOffers?: InputMaybe<Array<Scalars['String']>>;
   /** filter by parentOrder -> orderId */
   parentOrder?: InputMaybe<Scalars['String']>;
-  /** filter by orderInfo -> args -> selectedOffers */
-  selectedOffers?: InputMaybe<Array<Scalars['String']>>;
   /** filter by orderInfo -> status */
   status?: InputMaybe<Scalars['String']>;
 };
@@ -715,6 +756,7 @@ export type ParentOrder = {
   _id: Scalars['String'];
   authority?: Maybe<Scalars['String']>;
   consumer: Scalars['String'];
+  depositReserved?: Maybe<Scalars['String']>;
   depositSpent?: Maybe<Scalars['String']>;
   /** blockchain id */
   id: Scalars['String'];
@@ -728,10 +770,12 @@ export type ParentOrder = {
   teeOfferInfo?: Maybe<TeeOfferInfo>;
   totalDeposit?: Maybe<Scalars['String']>;
   totalDepositSpent?: Maybe<Scalars['String']>;
+  totalDepositUnspent?: Maybe<Scalars['String']>;
 };
 
 export type ParentOrderInputType = {
   consumer: Scalars['String'];
+  depositReserved?: InputMaybe<Scalars['String']>;
   depositSpent?: InputMaybe<Scalars['String']>;
   offerInfo?: InputMaybe<OfferInfoInput>;
   offerType: TOfferType;
@@ -742,7 +786,14 @@ export type ParentOrderInputType = {
   teeOfferInfo?: InputMaybe<TeeOfferInfoInput>;
   totalDeposit?: InputMaybe<Scalars['String']>;
   totalDepositSpent?: InputMaybe<Scalars['String']>;
+  totalDepositUnspent?: InputMaybe<Scalars['String']>;
 };
+
+/** Slot price type. */
+export enum PriceType {
+  Fixed = 'Fixed',
+  PerHour = 'PerHour'
+}
 
 export type Provider = {
   __typename?: 'Provider';
@@ -838,21 +889,22 @@ export type Query = {
   configs: ListConfigResponse;
   erc20: Erc20;
   listErc20: ListErc20Response;
-  listLocking: ListLockingResponse;
-  listStaking: ListStakingResponse;
-  locking: Locking;
   offer: Offer;
+  offerType: OfferType;
   offers: ListOffersResponse;
   order: Order;
   orders: ListOrdersResponse;
+  /** Average processing time in milliseconds */
+  ordersProcessingStatistic: Array<StatisticPoint>;
+  ordersStatusesStatistic: Array<StatisticPoint>;
   provider: Provider;
   providers: ListProvidersResponse;
-  staking: Staking;
   teeBalanceOf: Scalars['String'];
   teeOffer: TeeOffer;
   teeOffers: ListTeeOffersResponse;
   transaction: Transaction;
   transactions: ListTransactionResponse;
+  uniqConsumersStatistic: Array<StatisticPoint>;
 };
 
 
@@ -883,25 +935,15 @@ export type QueryListErc20Args = {
 };
 
 
-export type QueryListLockingArgs = {
-  filter?: InputMaybe<LockingFilter>;
-  pagination: ConnectionArgs;
-};
-
-
-export type QueryListStakingArgs = {
-  filter?: InputMaybe<StakingFilter>;
-  pagination: ConnectionArgs;
-};
-
-
-export type QueryLockingArgs = {
-  _id: Scalars['String'];
-};
-
-
 export type QueryOfferArgs = {
   _id: Scalars['String'];
+  mapTo?: InputMaybe<TIdSource>;
+};
+
+
+export type QueryOfferTypeArgs = {
+  _id: Scalars['String'];
+  mapTo?: InputMaybe<TIdSource>;
 };
 
 
@@ -922,6 +964,22 @@ export type QueryOrdersArgs = {
 };
 
 
+export type QueryOrdersProcessingStatisticArgs = {
+  dateFrom: Scalars['Float'];
+  dateTo: Scalars['Float'];
+  offerTypes?: InputMaybe<Array<TOfferType>>;
+  pointsCount?: InputMaybe<Scalars['Float']>;
+};
+
+
+export type QueryOrdersStatusesStatisticArgs = {
+  dateFrom: Scalars['Float'];
+  dateTo: Scalars['Float'];
+  pointsCount?: InputMaybe<Scalars['Float']>;
+  status: Scalars['String'];
+};
+
+
 export type QueryProviderArgs = {
   _id: Scalars['String'];
 };
@@ -933,11 +991,6 @@ export type QueryProvidersArgs = {
 };
 
 
-export type QueryStakingArgs = {
-  _id: Scalars['String'];
-};
-
-
 export type QueryTeeBalanceOfArgs = {
   address: Scalars['String'];
 };
@@ -945,6 +998,7 @@ export type QueryTeeBalanceOfArgs = {
 
 export type QueryTeeOfferArgs = {
   _id: Scalars['String'];
+  mapTo?: InputMaybe<TIdSource>;
 };
 
 
@@ -964,65 +1018,45 @@ export type QueryTransactionsArgs = {
   pagination: ConnectionArgs;
 };
 
-export type StakeInfo = {
-  __typename?: 'StakeInfo';
-  amount: Scalars['String'];
-  profit: Scalars['String'];
-  startDate: Scalars['Float'];
-  totalLocked: Scalars['String'];
+
+export type QueryUniqConsumersStatisticArgs = {
+  dateFrom: Scalars['Float'];
+  dateTo: Scalars['Float'];
+  pointsCount?: InputMaybe<Scalars['Float']>;
 };
 
-export type StakeInfoInput = {
-  amount: Scalars['String'];
-  profit: Scalars['String'];
-  startDate: Scalars['Float'];
-  totalLocked: Scalars['String'];
+export type SlotInfo = {
+  __typename?: 'SlotInfo';
+  cpuCores: Scalars['Float'];
+  diskUsage: Scalars['Float'];
+  ram: Scalars['Float'];
 };
 
-export type Staking = {
-  __typename?: 'Staking';
-  /** system identifier */
-  _id: Scalars['String'];
-  /** owner address */
-  owner: Scalars['String'];
-  providerName?: Maybe<Scalars['String']>;
-  stakeInfo: StakeInfo;
-  updatedAt?: Maybe<Scalars['DateTime']>;
+export type SlotInfoInput = {
+  cpuCores: Scalars['Float'];
+  diskUsage: Scalars['Float'];
+  ram: Scalars['Float'];
 };
 
-export type StakingConnection = {
-  __typename?: 'StakingConnection';
-  edges?: Maybe<Array<StakingEdge>>;
-  pageInfo?: Maybe<StakingPageInfo>;
+export type SlotUsage = {
+  __typename?: 'SlotUsage';
+  maxTimeMinutes: Scalars['Float'];
+  minTimeMinutes: Scalars['Float'];
+  price: Scalars['String'];
+  priceType: PriceType;
 };
 
-export type StakingEdge = {
-  __typename?: 'StakingEdge';
-  cursor?: Maybe<Scalars['String']>;
-  node?: Maybe<Staking>;
+export type SlotUsageInput = {
+  maxTimeMinutes: Scalars['Float'];
+  minTimeMinutes: Scalars['Float'];
+  price: Scalars['String'];
+  priceType: PriceType;
 };
 
-export type StakingFilter = {
-  /** filter by owner address */
-  owner?: InputMaybe<Scalars['String']>;
-};
-
-export type StakingInputType = {
-  /** system identifier */
-  _id: Scalars['String'];
-  /** owner address */
-  owner: Scalars['String'];
-  providerName?: InputMaybe<Scalars['String']>;
-  stakeInfo: StakeInfoInput;
-  updatedAt?: InputMaybe<Scalars['DateTime']>;
-};
-
-export type StakingPageInfo = {
-  __typename?: 'StakingPageInfo';
-  endCursor?: Maybe<Scalars['String']>;
-  hasNextPage: Scalars['Boolean'];
-  hasPreviousPage: Scalars['Boolean'];
-  startCursor?: Maybe<Scalars['String']>;
+export type StatisticPoint = {
+  __typename?: 'StatisticPoint';
+  timestamp: Scalars['Float'];
+  value: Scalars['Float'];
 };
 
 export type Stats = {
@@ -1052,15 +1086,56 @@ export type StatsInput = {
   suspended?: InputMaybe<Scalars['Float']>;
 };
 
+export type SubOrderCreatedPayload = {
+  __typename?: 'SubOrderCreatedPayload';
+  parentOrderId: Scalars['String'];
+  subOrderId: Scalars['String'];
+};
+
+export type SuborderCreatedInput = {
+  parentOrderId: Scalars['String'];
+};
+
 export type Subscription = {
   __typename?: 'Subscription';
   /** event - create or update an entity. My be filtered by consumer */
   event: SubscriptionPayload;
+  /** order event */
+  order: OrderPayload;
+  /** order status updated event. My be filtered by order ID */
+  orderStatusUpdated: OrderStatusUpdatedPayload;
+  /** Suborder created event. My be filtered by parent ID */
+  subOrderCreated: SubOrderCreatedPayload;
+  /** workflow created event. My be filtered by consumer and external ID */
+  workflowCreated: WorkflowCreatedPayload;
 };
 
 
 export type SubscriptionEventArgs = {
   filter?: InputMaybe<EventFilter>;
+};
+
+
+export type SubscriptionOrderArgs = {
+  consumer?: InputMaybe<Scalars['String']>;
+  eventTypes?: InputMaybe<Array<OrderEventType>>;
+  externalId?: InputMaybe<Scalars['String']>;
+  orderIds?: InputMaybe<Array<Scalars['String']>>;
+};
+
+
+export type SubscriptionOrderStatusUpdatedArgs = {
+  input: OrderStatusUpdatedInput;
+};
+
+
+export type SubscriptionSubOrderCreatedArgs = {
+  input: SuborderCreatedInput;
+};
+
+
+export type SubscriptionWorkflowCreatedArgs = {
+  input: WorkflowCreatedInput;
 };
 
 export type SubscriptionPayload = {
@@ -1092,12 +1167,10 @@ export enum SubscriptionType {
   Update = 'update'
 }
 
-/** The supported LockInfo sources. */
-export enum TLockInfoSource {
-  Orders = 'Orders',
-  ProviderRegistry = 'ProviderRegistry',
-  TeeOffersFactory = 'TeeOffersFactory',
-  Voting = 'Voting'
+/** Source of input id */
+export enum TIdSource {
+  Blockchain = 'Blockchain',
+  Internal = 'Internal'
 }
 
 /** The supported offers type. */
@@ -1116,9 +1189,11 @@ export type TeeOffer = {
   disabledAfter: Scalars['Float'];
   /** blockchain id */
   id: Scalars['String'];
+  options: Array<TeeOfferOption>;
   origins?: Maybe<Origins>;
   providerAddress: Scalars['String'];
   providerInfo: ProviderInformation;
+  slots: Array<TeeOfferSlot>;
   stats?: Maybe<Stats>;
   teeOfferInfo: TeeOfferInfo;
 };
@@ -1142,17 +1217,18 @@ export type TeeOfferFilter = {
   ids?: InputMaybe<Array<Scalars['String']>>;
   /** filter by teeOfferInfo → name */
   name?: InputMaybe<Scalars['String']>;
+  /** filter by TEE offer providerInfo → actionAccount */
+  providerActionAccounts?: InputMaybe<Array<Scalars['String']>>;
 };
 
 export type TeeOfferInfo = {
   __typename?: 'TeeOfferInfo';
   argsPublicKey: Scalars['String'];
   description: Scalars['String'];
-  minTimeMinutes: Scalars['Float'];
+  enabled: Scalars['Boolean'];
+  hardwareInfo: HardwareInfo;
   name: Scalars['String'];
   properties: Scalars['String'];
-  slots: Scalars['Float'];
-  tcb: Scalars['String'];
   teeType: Scalars['String'];
   tlb: Scalars['String'];
 };
@@ -1160,21 +1236,35 @@ export type TeeOfferInfo = {
 export type TeeOfferInfoInput = {
   argsPublicKey: Scalars['String'];
   description: Scalars['String'];
-  minTimeMinutes: Scalars['Float'];
+  enabled: Scalars['Boolean'];
+  hardwareInfo: HardwareInfoInput;
   name: Scalars['String'];
   properties: Scalars['String'];
-  slots: Scalars['Float'];
-  tcb: Scalars['String'];
   teeType: Scalars['String'];
   tlb: Scalars['String'];
 };
 
 export type TeeOfferInputType = {
   disabledAfter: Scalars['Float'];
+  options: Array<TeeOfferOptionInput>;
   providerAddress: Scalars['String'];
   providerInfo: ProviderInformationInput;
+  slots: Array<TeeOfferSlotInput>;
   stats?: InputMaybe<StatsInput>;
   teeOfferInfo: TeeOfferInfoInput;
+};
+
+export type TeeOfferOption = {
+  __typename?: 'TeeOfferOption';
+  id: Scalars['String'];
+  info: OptionInfo;
+  usage: SlotUsage;
+};
+
+export type TeeOfferOptionInput = {
+  id: Scalars['String'];
+  info: OptionInfoInput;
+  usage: SlotUsageInput;
 };
 
 export type TeeOfferPageInfo = {
@@ -1183,6 +1273,19 @@ export type TeeOfferPageInfo = {
   hasNextPage: Scalars['Boolean'];
   hasPreviousPage: Scalars['Boolean'];
   startCursor?: Maybe<Scalars['String']>;
+};
+
+export type TeeOfferSlot = {
+  __typename?: 'TeeOfferSlot';
+  id: Scalars['String'];
+  info: SlotInfo;
+  usage: SlotUsage;
+};
+
+export type TeeOfferSlotInput = {
+  id: Scalars['String'];
+  info: SlotInfoInput;
+  usage: SlotUsageInput;
 };
 
 export type Transaction = {
@@ -1259,45 +1362,44 @@ export type ValueObject = {
   __typename?: 'ValueObject';
   actionAccountAddress?: Maybe<Scalars['String']>;
   authorityAccountAddress?: Maybe<Scalars['String']>;
-  consensus?: Maybe<Scalars['String']>;
-  epochs?: Maybe<Scalars['String']>;
-  lastBlocks?: Maybe<Scalars['String']>;
   offerSecDeposit?: Maybe<Scalars['String']>;
   orderMinimumDeposit?: Maybe<Scalars['String']>;
-  ordersFactory?: Maybe<Scalars['String']>;
-  providerRegistry?: Maybe<Scalars['String']>;
   staking?: Maybe<Scalars['String']>;
   superpro?: Maybe<Scalars['String']>;
-  suspicious?: Maybe<Scalars['String']>;
   teeOfferSecDeposit?: Maybe<Scalars['String']>;
-  teeOffersFactory?: Maybe<Scalars['String']>;
   teeRewardPerEpoch?: Maybe<Scalars['String']>;
   token?: Maybe<Scalars['String']>;
   tokenReceiverAddress?: Maybe<Scalars['String']>;
-  valueOffersFactory?: Maybe<Scalars['String']>;
-  voting?: Maybe<Scalars['String']>;
 };
 
 export type ValueObjectType = {
   actionAccountAddress?: InputMaybe<Scalars['String']>;
   authorityAccountAddress?: InputMaybe<Scalars['String']>;
-  consensus?: InputMaybe<Scalars['String']>;
-  epochs?: InputMaybe<Scalars['String']>;
-  lastBlocks?: InputMaybe<Scalars['String']>;
   offerSecDeposit?: InputMaybe<Scalars['String']>;
   orderMinimumDeposit?: InputMaybe<Scalars['String']>;
-  ordersFactory?: InputMaybe<Scalars['String']>;
-  providerRegistry?: InputMaybe<Scalars['String']>;
   staking?: InputMaybe<Scalars['String']>;
   superpro?: InputMaybe<Scalars['String']>;
-  suspicious?: InputMaybe<Scalars['String']>;
   teeOfferSecDeposit?: InputMaybe<Scalars['String']>;
-  teeOffersFactory?: InputMaybe<Scalars['String']>;
   teeRewardPerEpoch?: InputMaybe<Scalars['String']>;
   token?: InputMaybe<Scalars['String']>;
   tokenReceiverAddress?: InputMaybe<Scalars['String']>;
-  valueOffersFactory?: InputMaybe<Scalars['String']>;
-  voting?: InputMaybe<Scalars['String']>;
+};
+
+export type WorkflowCreatedFilter = {
+  consumer: Scalars['String'];
+  externalId: Scalars['String'];
+};
+
+export type WorkflowCreatedInput = {
+  filter: WorkflowCreatedFilter;
+};
+
+export type WorkflowCreatedPayload = {
+  __typename?: 'WorkflowCreatedPayload';
+  consumer: Scalars['String'];
+  externalId: Scalars['String'];
+  offerId: Scalars['String'];
+  orderId: Scalars['String'];
 };
 
 export type PageDataDtoFragmentFragment = { __typename?: 'PageDataDto', count: number, limit: number, offset: number };
@@ -1323,7 +1425,7 @@ export type OffersQueryVariables = Exact<{
 }>;
 
 
-export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, offerInfo: { __typename?: 'OfferInfo', group: string, offerType: string, allowedAccounts?: Array<string> | null, allowedArgs?: string | null, argsPublicKey: string, cancelable: boolean, description: string, hash: string, holdSum: string, linkage: string, maxDurationTimeMinutes: number, name: string, properties: string, resultResource: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<TOfferType> | null } | null }, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
+export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, offerInfo: { __typename?: 'OfferInfo', group: string, offerType: string, allowedAccounts: Array<string>, allowedArgs?: string | null, argsPublicKey: string, cancelable: boolean, description: string, hash: string, linkage: string, name: string, metadata: string, resultResource: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<OfferType> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: string, externalPort: string, traffic: string } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
 
 export type OffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1347,7 +1449,7 @@ export type OrdersQueryVariables = Exact<{
 }>;
 
 
-export type OrdersQuery = { __typename?: 'Query', result: { __typename?: 'ListOrdersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OrderConnection', edges?: Array<{ __typename?: 'OrderEdge', cursor?: string | null, node?: { __typename?: 'Order', _id: string, id: string, authority?: string | null, consumer: string, orderHoldDeposit?: string | null, depositSpent?: string | null, totalDeposit?: string | null, totalDepositSpent?: string | null, offerType: TOfferType, parentOrder?: { __typename?: 'ParentOrder', id: string } | null, offerInfo?: { __typename?: 'OfferInfo', name: string, description: string, cancelable: boolean } | null, orderInfo: { __typename?: 'OrderInfo', offer: string, status: string, args: { __typename?: 'OrderArgs', slots?: number | null } }, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, subOrders?: Array<{ __typename?: 'BaseOrder', id: string, depositSpent?: string | null, offerType: TOfferType, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, offerInfo?: { __typename?: 'OfferInfo', name: string, description: string, cancelable: boolean } | null, orderInfo: { __typename?: 'OrderInfo', offer: string, status: string }, origins?: { __typename?: 'Origins', modifiedDate: number } | null }> | null } | null }> | null, pageInfo?: { __typename?: 'OrderPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
+export type OrdersQuery = { __typename?: 'Query', result: { __typename?: 'ListOrdersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OrderConnection', edges?: Array<{ __typename?: 'OrderEdge', cursor?: string | null, node?: { __typename?: 'Order', _id: string, id: string, authority?: string | null, consumer: string, orderHoldDeposit?: string | null, depositSpent?: string | null, totalDeposit?: string | null, totalDepositSpent?: string | null, offerType: TOfferType, parentOrder?: { __typename?: 'ParentOrder', id: string } | null, offerInfo?: { __typename?: 'OfferInfo', name: string, description: string, cancelable: boolean } | null, orderInfo: { __typename?: 'OrderInfo', offerId: string, status: string }, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, subOrders?: Array<{ __typename?: 'BaseOrder', id: string, depositSpent?: string | null, offerType: TOfferType, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, offerInfo?: { __typename?: 'OfferInfo', name: string, description: string, cancelable: boolean } | null, orderInfo: { __typename?: 'OrderInfo', offerId: string, status: string }, origins?: { __typename?: 'Origins', modifiedDate: number } | null }> | null } | null }> | null, pageInfo?: { __typename?: 'OrderPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
 
 export type OrdersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1369,7 +1471,7 @@ export type OrderQueryVariables = Exact<{
 }>;
 
 
-export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offer: string }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null } } };
+export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offerId: string }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null } } };
 
 export type SubOrdersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1377,7 +1479,7 @@ export type SubOrdersQueryVariables = Exact<{
 }>;
 
 
-export type SubOrdersQuery = { __typename?: 'Query', result: { __typename?: 'ListOrdersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OrderConnection', edges?: Array<{ __typename?: 'OrderEdge', cursor?: string | null, node?: { __typename?: 'Order', _id: string, id: string, authority?: string | null, consumer: string, offerType: TOfferType, offerInfo?: { __typename?: 'OfferInfo', name: string, offerType: string, cancelable: boolean, description: string } | null, orderInfo: { __typename?: 'OrderInfo', offer: string, status: string }, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null } | null }> | null, pageInfo?: { __typename?: 'OrderPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
+export type SubOrdersQuery = { __typename?: 'Query', result: { __typename?: 'ListOrdersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OrderConnection', edges?: Array<{ __typename?: 'OrderEdge', cursor?: string | null, node?: { __typename?: 'Order', _id: string, id: string, authority?: string | null, consumer: string, offerType: TOfferType, offerInfo?: { __typename?: 'OfferInfo', name: string, offerType: string, cancelable: boolean, description: string } | null, orderInfo: { __typename?: 'OrderInfo', offerId: string, status: string }, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null } | null }> | null, pageInfo?: { __typename?: 'OrderPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
 
 export type ProvidersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1393,7 +1495,7 @@ export type TeeOffersQueryVariables = Exact<{
 }>;
 
 
-export type TeeOffersQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', _id: string, id: string, authority?: string | null, disabledAfter: number, providerAddress: string, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, stats?: { __typename?: 'Stats', freeCores?: number | null, ordersInQueue?: number | null, new?: number | null, processing?: number | null } | null, teeOfferInfo: { __typename?: 'TeeOfferInfo', argsPublicKey: string, description: string, minTimeMinutes: number, name: string, properties: string, slots: number, tcb: string, teeType: string, tlb: string } } | null }> | null, pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
+export type TeeOffersQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', _id: string, id: string, authority?: string | null, disabledAfter: number, providerAddress: string, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, teeOfferInfo: { __typename?: 'TeeOfferInfo', argsPublicKey: string, description: string, name: string, teeType: string, tlb: string, hardwareInfo: { __typename?: 'HardwareInfo', slotInfo: { __typename?: 'SlotInfo', cpuCores: number } } }, slots: Array<{ __typename?: 'TeeOfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, options: Array<{ __typename?: 'TeeOfferOption', id: string, info: { __typename?: 'OptionInfo', bandwidth: string, externalPort: string, traffic: string }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, stats?: { __typename?: 'Stats', freeCores?: number | null, ordersInQueue?: number | null, new?: number | null, processing?: number | null } | null } | null }> | null, pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
 
 export type TeeOffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1456,15 +1558,32 @@ export const OffersDocument = gql`
             cancelable
             description
             hash
-            holdSum
             linkage
-            maxDurationTimeMinutes
             name
-            properties
+            metadata
             resultResource
             restrictions {
               offers
               types
+            }
+          }
+          slots {
+            id
+            info {
+              cpuCores
+              diskUsage
+              ram
+            }
+            usage {
+              maxTimeMinutes
+              minTimeMinutes
+              price
+              priceType
+            }
+            option {
+              bandwidth
+              externalPort
+              traffic
             }
           }
           origins {
@@ -1560,11 +1679,8 @@ export const OrdersDocument = gql`
           }
           offerType
           orderInfo {
-            offer
+            offerId
             status
-            args {
-              slots
-            }
           }
           origins {
             createdBy
@@ -1590,7 +1706,7 @@ export const OrdersDocument = gql`
             }
             offerType
             orderInfo {
-              offer
+              offerId
               status
             }
             origins {
@@ -1655,7 +1771,7 @@ export const OrderDocument = gql`
     offerType
     orderInfo {
       status
-      offer
+      offerId
     }
     teeOfferInfo {
       name
@@ -1689,7 +1805,7 @@ export const SubOrdersDocument = gql`
           }
           offerType
           orderInfo {
-            offer
+            offerId
             status
           }
           origins {
@@ -1783,23 +1899,49 @@ export const TeeOffersDocument = gql`
             name
             tokenReceiver
           }
-          stats {
-            freeCores
-            ordersInQueue
-          }
           teeOfferInfo {
             argsPublicKey
             description
-            minTimeMinutes
             name
-            properties
-            slots
-            tcb
             teeType
             tlb
+            hardwareInfo {
+              slotInfo {
+                cpuCores
+              }
+            }
+          }
+          slots {
+            id
+            info {
+              cpuCores
+              diskUsage
+              ram
+            }
+            usage {
+              maxTimeMinutes
+              minTimeMinutes
+              price
+              priceType
+            }
+          }
+          options {
+            id
+            info {
+              bandwidth
+              externalPort
+              traffic
+            }
+            usage {
+              maxTimeMinutes
+              minTimeMinutes
+              price
+              priceType
+            }
           }
           stats {
             freeCores
+            ordersInQueue
             new
             processing
           }

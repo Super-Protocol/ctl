@@ -4,13 +4,11 @@
     "offerType": "2",
     "cancelable": false,
     "description": "<a href=\"https://github.com/Super-Protocol/solutions/tree/main/Python\" target=\"_blank\">Solution description</a>",
-    "holdSum": "1000000000000000000",
     "restrictions": {
         "offers": [],
         "types": []
     },
-    "properties": "",
-    "maxDurationTimeMinutes": 15,
+    "metadata": "",
     "input": "",
     "output": "",
     "allowedArgs": "",

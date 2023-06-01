@@ -25,11 +25,8 @@ query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                     }
                     offerType
                     orderInfo {
-                        offer
+                        offerId
                         status
-                        args {
-                            slots
-                        }
                     }
                     origins {
                         createdBy
@@ -55,7 +52,7 @@ query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                         }
                         offerType
                         orderInfo {
-                            offer
+                            offerId
                             status
                         }
                         origins {
@@ -117,7 +114,7 @@ query Order($id: String!) {
         offerType
         orderInfo {
             status
-            offer
+            offerId
         }
         teeOfferInfo {
             name
@@ -150,7 +147,7 @@ query SubOrders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                     }
                     offerType
                     orderInfo {
-                        offer
+                        offerId
                         status
                     }
                     origins {
