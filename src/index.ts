@@ -232,7 +232,7 @@ async function main() {
         .command("create")
         .description("Create workflow")
         .requiredOption("--tee <id,slot>", "TEE offer <id,slot> (required)")
-        .option("--tee-slot-count <id>", "TEE slot count")
+        .requiredOption("--tee-slot-count <id>", "TEE slot count")
         .option("--tee-options <id...>", "TEE options <id> (accepts multiple values)", collectOptions, [])
         .option("--tee-options-count <value...>", "TEE options count <id> (accepts multiple values)", collectOptions, [])
         .requiredOption("--storage <id,slot>", "Storage offer <id> (required)")
