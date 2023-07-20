@@ -24,6 +24,7 @@ export const formatFetchedTeeOffer = (item: any) => {
         ordersInQueue: (item.node?.stats?.new || 0) + (item.node?.stats?.processing || 0),
         cancelable: false,
         modifiedDate: formatDate(item.node?.origins?.modifiedDate),
+        enabled: item.node?.teeOfferInfo?.enabled,
     }
 };
 

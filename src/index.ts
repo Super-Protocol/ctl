@@ -537,6 +537,7 @@ async function main() {
         "orders_in_queue",
         "cancelable",
         "modified_date",
+        "enabled",
     ],
         offersListTeeDefaultFields = ["id", "name", "orders_in_queue"];
     offersListCommand
@@ -613,6 +614,7 @@ async function main() {
         "cancelable",
         "modified_date",
         "slots",
+        "enabled",
     ];
     offersGetCommand
         .command("tee")
