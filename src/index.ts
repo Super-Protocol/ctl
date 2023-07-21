@@ -160,9 +160,9 @@ async function main() {
     ordersCommand
         .command("cancel")
         .description("Cancel order with <id>")
-        .argument("id", "Order <id>")
+        .argument("<ids...>", "Order <ids>")
         .option("--debug", "Display debug information", false)
-        .action(async (id: string, options: any) => {
+        .action(async (ids: string[], options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const blockchain = configLoader.loadSection("blockchain") as Config["blockchain"];
             const blockchainConfig = {
@@ -174,7 +174,7 @@ async function main() {
             const requestParams = {
                 blockchainConfig,
                 actionAccountKey: blockchain.accountPrivateKey,
-                id,
+                ids,
             };
             const analytics = configLoader.loadSection('analytics') as Config['analytics'];
 
