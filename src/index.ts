@@ -1054,7 +1054,6 @@ async function main() {
         .option("--base-image-resource <containerImageResource>", "Path to a container image resource file (required if no --base-image-path specified)", "")
         .option("--write-default-manifest", "Write the default manifest for solutions with empty sgxMrEnclave", false)
         .option("--hash-algo <solutionHashAlgo>", "Hash calculation algorithm for solution", HashAlgorithm.SHA256)
-        .option("--sgx-thread-num <threadNum>", "Number of enclave threads. Deprecated in Gramine 1.4", "")
         .option("--sgx-max-threads <maxThreads>", "Number of maximum threads. Gramine 1.4 option", "")
         .option(
             "--sgx-enclave-size <enclaveSize>",
@@ -1074,7 +1073,6 @@ async function main() {
                 baseImageResource: options.baseImageResource,
                 loaderPalInternalMemSize: options.sgxLoaderInternalSize,
                 sgxEnclaveSize: options.sgxEnclaveSize,
-                sgxThreadNum: options.sgxThreadNum,
                 sgxMaxThreads: options.sgxMaxThreads,
                 sysStackSize: options.sgxStackSize,
                 writeDefaultManifest: options.writeDefaultManifest,

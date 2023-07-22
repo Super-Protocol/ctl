@@ -20,7 +20,6 @@ export type PrepareSolutionParams = {
     baseImagePath?: string;
     baseImageResource?: string;
     keyPath: string;
-    sgxThreadNum?: string;
     sgxMaxThreads?: string;
     sgxEnclaveSize?: string;
     loaderPalInternalMemSize?: string;
@@ -41,7 +40,6 @@ const setValue = (obj: any, value: any, ...path: string[]) => {
 };
 
 export default async (params: PrepareSolutionParams) => {
-    assertNumber(params.sgxThreadNum, "Invalid threads number");
     assertSize(params.loaderPalInternalMemSize, "Invalid SGX pal internal size");
     assertSize(params.sysStackSize, "Invalid stack size");
     assertSize(params.sgxEnclaveSize, "Invalid enclave size");
@@ -66,12 +64,6 @@ export default async (params: PrepareSolutionParams) => {
 
         if (params.sgxEnclaveSize) {
             setValue(manifestObject, params.sgxEnclaveSize, "sgx", "enclave_size");
-        }
-        if (params.sgxThreadNum) {
-            if (parseInt(params.sgxThreadNum, 10) < 4) {
-                throw new Error("Value for the number of threads is too low, the minimum value is 4");
-            }
-            setValue(manifestObject, params.sgxThreadNum, "sgx", "thread_num");
         }
         if(params.sgxMaxThreads) {
             if (parseInt(params.sgxMaxThreads, 10) < 4) {
