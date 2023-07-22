@@ -1104,9 +1104,11 @@ async function main() {
 
     // Add global options
     processSubCommands(program, (command) => {
-        command.option("--config <configPath>", "Path to the configuration file", "./config.json");
         command.addHelpCommand("help", "Display help for the command");
         command.helpOption("-h, --help", "Display help for the command");
+        if(!command.commands.length) {
+            command.option("--config <configPath>", "Path to the configuration file", "./config.json");
+        }
     });
 
     await program.parseAsync(process.argv);
