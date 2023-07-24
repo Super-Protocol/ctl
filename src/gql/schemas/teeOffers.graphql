@@ -36,6 +36,7 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                                 cpuCores
                             }
                         }
+                        enabled
                     }
                     slots {
                         id
