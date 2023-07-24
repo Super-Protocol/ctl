@@ -19,6 +19,7 @@ export type FilesUploadParams = {
     writeAccessToken: string;
     readAccessToken: string;
     withEncryption: boolean;
+    maximumConcurrent?: string;
 };
 
 export default async (params: FilesUploadParams) => {
@@ -59,6 +60,14 @@ export default async (params: FilesUploadParams) => {
         prefix: params.prefix
     };
 
+    let maximumConcurrent: number | undefined;
+    if(params.maximumConcurrent) {
+        maximumConcurrent = parseInt(params.maximumConcurrent, 10);
+        if (maximumConcurrent < 4 || maximumConcurrent > 1000) {
+            throw new Error("Value of maximumConcurrent must be between 4 and 1000");
+        }
+    }
+
     try {
         await uploadService(
             localPath,
@@ -66,6 +75,7 @@ export default async (params: FilesUploadParams) => {
             {
                 storageType: params.storageType,
                 credentials: writeCredentials,
+                maximumConcurrent: maximumConcurrent,
             },
             (total: number, current: number) => {
                 Printer.progress("Uploading file", total, current);

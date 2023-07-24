@@ -991,6 +991,7 @@ async function main() {
         )
         .option("--skip-encryption", "Skip file encryption before upload")
         .option("--metadata <path>", "Path to a metadata file for adding fields to the resource file")
+        .option("--maximum-concurrent <number>", "Maximum concurrent pieces to upload at once per transfer")
         .action(async (localPath: string, options: any) => {
             const configLoader = new ConfigLoader(options.config);
             const storage = configLoader.loadSection("storage") as Config["storage"];
@@ -1006,6 +1007,7 @@ async function main() {
                 outputPath: options.output,
                 metadataPath: options.metadata,
                 withEncryption: !options.skipEncryption,
+                maximumConcurrent: options.maximumConcurrent,
             });
         });
 
