@@ -24,6 +24,7 @@ export type PrepareSolutionParams = {
     sgxEnclaveSize?: string;
     loaderPalInternalMemSize?: string;
     sysStackSize?: string;
+    envs: string[];
 };
 
 const setValue = (obj: any, value: any, ...path: string[]) => {
@@ -76,6 +77,12 @@ export default async (params: PrepareSolutionParams) => {
         }
         if (params.sysStackSize) {
             setValue(manifestObject, params.sysStackSize, "sys", "stack", "size");
+        }
+        if (params.envs.length) {
+            params.envs.forEach((env) => {
+                const [paramName, paramValue] = env.split(/=(.+)/);
+                setValue(manifestObject, paramValue, "loader", "env", paramName);
+            });
         }
 
         Printer.print("Signing manifest");

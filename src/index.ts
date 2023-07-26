@@ -1057,6 +1057,7 @@ async function main() {
         .option("--base-image-path <pathToContainerImage>", "Path to a container image file (required if no --base-image-resource specified)", "")
         .option("--base-image-resource <containerImageResource>", "Path to a container image resource file (required if no --base-image-path specified)", "")
         .option("--write-default-manifest", "Write the default manifest for solutions with empty sgxMrEnclave", false)
+        .option("--env <envs...>", "List of env variabeles to set into solution manifest")
         .option("--hash-algo <solutionHashAlgo>", "Hash calculation algorithm for solution", HashAlgorithm.SHA256)
         .option("--sgx-max-threads <maxThreads>", "Number of maximum threads. Gramine 1.4 option", "")
         .option(
@@ -1080,6 +1081,7 @@ async function main() {
                 sgxMaxThreads: options.sgxMaxThreads,
                 sysStackSize: options.sgxStackSize,
                 writeDefaultManifest: options.writeDefaultManifest,
+                envs: options.env || [],
             });
         });
 
