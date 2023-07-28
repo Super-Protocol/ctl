@@ -1,4 +1,4 @@
-import {
+import BlockchainConnector, {
     Crypto,
     OrderInfo,
     Orders,
@@ -7,8 +7,8 @@ import {
 } from "@super-protocol/sdk-js";
 import { Encryption } from "@super-protocol/dto-js";
 import Printer from "../printer";
-import { generateExternalId, sleep } from "../utils";
-import { MAX_ATTEMPT_WAITING_NEW_TX, ATTEMPT_PERIOD_MS } from "../constants";
+import { generateExternalId } from "../utils";
+import doWithRetries from "./doWithRetries";
 
 export type TeeOfferParams = {
     id: string;
@@ -86,6 +86,9 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
         })
     );
 
+    const workflowCreationBLock =
+        await BlockchainConnector.getInstance().getLastBlockInfo();
+
     await Orders.createWorkflow(
         parentOrderInfo,
         subOrdersInfo,
@@ -93,27 +96,21 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
         { from: params.consumerAddress }
     );
 
-    let { orderId } = await Orders.getByExternalId(
-        params.consumerAddress,
-        externalId
-    );
-    let attempt = 0;
-    while (orderId === "-1") {
-        await sleep(ATTEMPT_PERIOD_MS);
-        const events = await Orders.getByExternalId(
+    const orderLoaderFn = () =>
+        Orders.getByExternalId(
             params.consumerAddress,
-            externalId
-        );
-        orderId = events.orderId;
-
-        if (orderId == "-1" && attempt == MAX_ATTEMPT_WAITING_NEW_TX) {
+            externalId,
+            workflowCreationBLock.index
+        ).then((event) => {
+            if (event?.orderId !== "-1") {
+                return event.orderId;
+            }
             throw new Error(
-                `TEE order wasn't created within ${
-                    (MAX_ATTEMPT_WAITING_NEW_TX * ATTEMPT_PERIOD_MS) / 1000
-                } seconds. Try increasing the gas price.`
+                "TEE order wasn't created. Try increasing the gas price."
             );
-        }
-    }
+        });
+
+    const orderId = await doWithRetries(orderLoaderFn);
 
     return orderId;
 };
