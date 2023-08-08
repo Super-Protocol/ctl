@@ -16,11 +16,11 @@ import createWorkflowService, { TeeOfferParams } from "../services/createWorkflo
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
 import getTeeBalance from "../services/getTeeBalance";
-import { ErrorTxRevertedByEvm, etherToWei, getObjectKey, weiToEther } from "../utils";
+import { ErrorTxRevertedByEvm, etherToWei, getObjectKey, weiToEther, ErrorWithCustomMessage } from "../utils";
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
 import fetchOrdersCountService from "../services/fetchOrdersCount";
 import { TOfferType } from "../gql";
-import { TX_REVERTED_BY_EVM_ERROR } from "../constants";
+import { TX_REVERTED_BY_EVM_ERROR, UNKNOWN_SLOT_ERROR } from "../constants";
 import fetchOffers from "../services/fetchOffers";
 import fetchTeeOffers from "../services/fetchTeeOffers";
 import { BigNumber } from "ethers";
@@ -202,12 +202,25 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         optionsCount: params.teeOptionsCount
     };
 
-    let holdDeposit = await calcWorkflowDepositService({
-        tee: teeOfferParams,
-        storage: storage,
-        solutions: solutions.offers,
-        data: data.offers,
-    });
+
+    let holdDeposit: BigNumber | undefined;
+    try {
+        holdDeposit = await calcWorkflowDepositService({
+            tee: teeOfferParams,
+            storage: storage,
+            solutions: solutions.offers,
+            data: data.offers,
+        });
+    } catch (error: any) {
+        if (error.message?.includes(UNKNOWN_SLOT_ERROR)){
+            throw ErrorWithCustomMessage(
+                `Offer ${teeOfferParams.id} doesn't have slot ${teeOfferParams.slotId}, please use slot from this list: ${fetchedTeeOffer.node?.slots.map((slot) => slot.id)}`,
+                error,
+            );
+        } else {
+            throw error;
+        }
+    }
 
     if (params.userDepositAmount) {
         const userDeposit = etherToWei(params.userDepositAmount);
@@ -266,7 +279,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
                             solution: solutionTIIs,
                         }),
                         resultPublicKey: resultEncryption,
-                        holdDeposit: holdDeposit.toString(),
+                        holdDeposit: holdDeposit!.toString(),
                         consumerAddress: consumerAddress!,
                     })
                 );
