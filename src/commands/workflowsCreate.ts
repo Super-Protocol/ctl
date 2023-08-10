@@ -110,6 +110,11 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         throw new Error(`TEE offer ${tee.id} does not exist or is of the wrong type`);
     }
 
+    const offerSlots = fetchedTeeOffer.node?.slots.map((slot) => slot.id);
+    if (!offerSlots?.includes(tee.slotId)) {
+        throw new Error(`Offer ${tee.id} doesn't have slot ${tee.slotId}, please use slot from this list: ${offerSlots}`);
+    }
+
     const valueOfferIds = [...solutionIds, ...dataIds, storage.id];
 
     const fetchedValueOffers = await fetchOffers({
