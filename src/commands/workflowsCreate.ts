@@ -16,11 +16,11 @@ import createWorkflowService, { TeeOfferParams } from "../services/createWorkflo
 import parseInputResourcesService from "../services/parseInputResources";
 import calcWorkflowDepositService from "../services/calcWorkflowDeposit";
 import getTeeBalance from "../services/getTeeBalance";
-import { ErrorTxRevertedByEvm, etherToWei, getObjectKey, weiToEther, ErrorWithCustomMessage } from "../utils";
+import { ErrorTxRevertedByEvm, etherToWei, getObjectKey, weiToEther } from "../utils";
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
 import fetchOrdersCountService from "../services/fetchOrdersCount";
 import { TOfferType } from "../gql";
-import { TX_REVERTED_BY_EVM_ERROR, UNKNOWN_SLOT_ERROR } from "../constants";
+import { TX_REVERTED_BY_EVM_ERROR } from "../constants";
 import fetchOffers from "../services/fetchOffers";
 import fetchTeeOffers from "../services/fetchTeeOffers";
 import { BigNumber } from "ethers";
@@ -108,6 +108,11 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
     if (!fetchedTeeOffer) {
         throw new Error(`TEE offer ${tee.id} does not exist or is of the wrong type`);
+    }
+
+    const offerSlots = fetchedTeeOffer.node?.slots.map((slot) => slot.id);
+    if (!offerSlots?.includes(tee.slotId)) {
+        throw new Error(`Offer ${tee.id} doesn't have slot ${tee.slotId}, please use slot from this list: ${offerSlots}`);
     }
 
     const valueOfferIds = [...solutionIds, ...dataIds, storage.id];
@@ -202,25 +207,12 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         optionsCount: params.teeOptionsCount
     };
 
-
-    let holdDeposit: BigNumber | undefined;
-    try {
-        holdDeposit = await calcWorkflowDepositService({
-            tee: teeOfferParams,
-            storage: storage,
-            solutions: solutions.offers,
-            data: data.offers,
-        });
-    } catch (error: any) {
-        if (error.message?.includes(UNKNOWN_SLOT_ERROR)){
-            throw ErrorWithCustomMessage(
-                `Offer ${teeOfferParams.id} doesn't have slot ${teeOfferParams.slotId}, please use slot from this list: ${fetchedTeeOffer.node?.slots.map((slot) => slot.id)}`,
-                error,
-            );
-        } else {
-            throw error;
-        }
-    }
+    let holdDeposit = await calcWorkflowDepositService({
+        tee: teeOfferParams,
+        storage: storage,
+        solutions: solutions.offers,
+        data: data.offers,
+    });
 
     if (params.userDepositAmount) {
         const userDeposit = etherToWei(params.userDepositAmount);
