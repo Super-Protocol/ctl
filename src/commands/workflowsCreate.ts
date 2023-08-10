@@ -271,7 +271,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
                             solution: solutionTIIs,
                         }),
                         resultPublicKey: resultEncryption,
-                        holdDeposit: holdDeposit!.toString(),
+                        holdDeposit: holdDeposit.toString(),
                         consumerAddress: consumerAddress!,
                     })
                 );
