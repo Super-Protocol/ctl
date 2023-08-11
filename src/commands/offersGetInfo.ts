@@ -1,3 +1,5 @@
+import { promises as fs } from "fs";
+import path from "path";
 import Printer from "../printer";
 import fetchOffers from "../services/fetchOffers";
 import fetchTeeOffers from "../services/fetchTeeOffers";
@@ -39,4 +41,5 @@ export default async (params: OffersGetInfoParams) => {
     }
 
     Printer.printObject(offer);
+    await fs.writeFile(path.join(process.cwd(), `offerInfo.json`), JSON.stringify(offer));
 };
