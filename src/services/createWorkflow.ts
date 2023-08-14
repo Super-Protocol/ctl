@@ -6,7 +6,6 @@ import BlockchainConnector, {
     TeeOffer,
 } from "@super-protocol/sdk-js";
 import { Encryption } from "@super-protocol/dto-js";
-import Web3 from "web3";
 import Printer from "../printer";
 import { generateExternalId } from "../utils";
 import doWithRetries from "./doWithRetries";
@@ -64,8 +63,6 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
             optionsIds: params.teeOffer.optionsIds,
             optionsCount: params.teeOffer.optionsCount,
         },
-        expectedPrice:  Web3.utils.toWei("1", "ether"),
-        maxPriceSlippage: Web3.utils.toWei("1", "ether"),
     };
 
     const subOrdersInfo: OrderInfo[] = params.inputOffers.map(
@@ -86,8 +83,6 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
                 optionsIds: [],
                 optionsCount: [],
             },
-            expectedPrice:  Web3.utils.toWei("1", "ether"),
-            maxPriceSlippage: Web3.utils.toWei("1", "ether"),
         })
     );
 
