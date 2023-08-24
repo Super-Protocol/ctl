@@ -110,9 +110,9 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         throw new Error(`TEE offer ${tee.id} does not exist or is of the wrong type`);
     }
 
-    const offerSlots = fetchedTeeOffer.node?.slots.map((slot) => slot.id);
-    if (!offerSlots?.includes(tee.slotId)) {
-        throw new Error(`Offer ${tee.id} doesn't have slot ${tee.slotId}, please use slot from this list: ${offerSlots}`);
+    const teeOfferSlots = fetchedTeeOffer.node?.slots.map((slot) => slot.id);
+    if (teeOfferSlots) {
+        checkSlot(teeOfferSlots, tee.id, tee.slotId, OfferType.TeeOffer);
     }
 
     const valueOfferIds = [...solutionIds, ...dataIds, storage.id];
@@ -133,9 +133,9 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
     const offersMap = new Map<string, FethchedOffer>(fetchedValueOffers.map((o) => [o.id, o]));
 
-    checkFetchedOffers([storage.id], offersMap, OfferType.Storage);
-    checkFetchedOffers(solutionIds, offersMap, OfferType.Solution);
-    checkFetchedOffers(dataIds, offersMap, OfferType.Data);
+    checkFetchedOffers([storage], offersMap, OfferType.Storage);
+    checkFetchedOffers(solutions.offers, offersMap, OfferType.Solution);
+    checkFetchedOffers(data.offers, offersMap, OfferType.Data);
 
     const restrictionOffersMap = new Map<string, Offer>(
         fetchedValueOffers.flatMap(({ offerInfo }) => offerInfo.restrictions?.offers || []).map((id) => [id, new Offer(id)])
@@ -292,8 +292,14 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
 export default workflowCreate;
 
-const checkFetchedOffers = (ids: string[], offers: Map<string, FethchedOffer>, type: OfferType) => {
-    ids.forEach((id) => {
+const checkSlot = (availableSlots: (string | undefined)[], offer: string, targetSlotId: string, offerType: OfferType): void => {
+    if (!availableSlots?.includes(targetSlotId)) {
+        throw new Error(`${getObjectKey(offerType, OfferType)} ${offer} doesn't have slot ${targetSlotId}, please use slot from this list: ${availableSlots}`);
+    }
+}
+
+const checkFetchedOffers = (ids: Array<{id: string, slotId: string}>, offers: Map<string, FethchedOffer>, type: OfferType) => {
+    ids.forEach(({id, slotId}) => {
         const fetchedOffer = offers.get(id);
 
         if (!fetchedOffer) {
@@ -301,6 +307,6 @@ const checkFetchedOffers = (ids: string[], offers: Map<string, FethchedOffer>, t
             // TODO: move prettifying of offers from fetching to separate service and remove getObjectKey here
         } else if (fetchedOffer.offerInfo.offerType !== type) {
             throw new Error(`Offer ${id} has wrong type ${getObjectKey(fetchedOffer.offerInfo.offerType, OfferType)} instead of ${getObjectKey(type, OfferType)}`);
-        }
+        } else checkSlot(fetchedOffer.slots?.map((slot) => slot.id), id, slotId, fetchedOffer.offerInfo.offerType);
     });
 };
