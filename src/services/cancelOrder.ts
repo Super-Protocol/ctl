@@ -1,5 +1,4 @@
-import { Order } from "@super-protocol/sdk-js";
-import { Web3TransactionRevertedByEvmError } from "@super-protocol/sdk-js/build/utils/TxManager";
+import { Order, Web3TransactionRevertedByEvmError } from "@super-protocol/sdk-js";
 import { ErrorTxRevertedByEvm } from "../utils";
 
 export type CancelOrderParams = {

@@ -1,8 +1,8 @@
 import {
     Config as BlockchainConfig,
     TeeOffer,
+    Web3TransactionRevertedByEvmError,
 } from "@super-protocol/sdk-js";
-import { Web3TransactionRevertedByEvmError } from "@super-protocol/sdk-js/build/utils/TxManager";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import { ErrorTxRevertedByEvm } from "../utils";

@@ -7,6 +7,7 @@ import {
     Offer,
     OfferType,
     OfferInfo,
+    Web3TransactionRevertedByEvmError
 } from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
@@ -24,7 +25,6 @@ import fetchOffers from "../services/fetchOffers";
 import fetchTeeOffers from "../services/fetchTeeOffers";
 import { BigNumber } from "ethers";
 import { ValueOfferSlot } from "@super-protocol/sdk-js/build/types/ValueOfferSlot";
-import { Web3TransactionRevertedByEvmError } from "@super-protocol/sdk-js/build/utils/TxManager";
 
 export type WorkflowCreateParams = {
     backendUrl: string;

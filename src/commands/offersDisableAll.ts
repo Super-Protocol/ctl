@@ -1,5 +1,10 @@
-import BlockchainConnector, { Config as BlockchainConfig, Offer, Provider, TeeOffer } from "@super-protocol/sdk-js";
-import { Web3TransactionRevertedByEvmError } from "@super-protocol/sdk-js/build/utils/TxManager";
+import BlockchainConnector, {
+    Config as BlockchainConfig,
+    Offer,
+    Provider,
+    TeeOffer,
+    Web3TransactionRevertedByEvmError,
+} from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import readJsonFile from "../services/readJsonFile";
