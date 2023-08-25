@@ -7,6 +7,7 @@ import {
     Offer,
     OfferType,
     OfferInfo,
+    Web3TransactionRevertedByEvmError
 } from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
@@ -20,7 +21,6 @@ import { ErrorTxRevertedByEvm, etherToWei, getObjectKey, weiToEther } from "../u
 import getPublicFromPrivate from "../services/getPublicFromPrivate";
 import fetchOrdersCountService from "../services/fetchOrdersCount";
 import { TOfferType } from "../gql";
-import { TX_REVERTED_BY_EVM_ERROR } from "../constants";
 import fetchOffers from "../services/fetchOffers";
 import fetchTeeOffers from "../services/fetchTeeOffers";
 import { BigNumber } from "ethers";
@@ -249,7 +249,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
                 { from: consumerAddress! },
             );
         } catch (error: any) {
-            if (error.message?.includes(TX_REVERTED_BY_EVM_ERROR)) throw ErrorTxRevertedByEvm(error);
+            if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error);
             else throw error;
         }
     }

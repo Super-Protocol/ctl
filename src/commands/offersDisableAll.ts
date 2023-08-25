@@ -1,5 +1,10 @@
-import BlockchainConnector, { Config as BlockchainConfig, Offer, Provider, TeeOffer } from "@super-protocol/sdk-js";
-import { TX_REVERTED_BY_EVM_ERROR } from "../constants";
+import BlockchainConnector, {
+    Config as BlockchainConfig,
+    Offer,
+    Provider,
+    TeeOffer,
+    Web3TransactionRevertedByEvmError,
+} from "@super-protocol/sdk-js";
 import Printer from "../printer";
 import initBlockchainConnectorService from "../services/initBlockchainConnector";
 import readJsonFile from "../services/readJsonFile";
@@ -39,7 +44,7 @@ export default async (params: OffersDisableAllParams) => {
             }
         }
     } catch (error: any) {
-        if (error.message?.includes(TX_REVERTED_BY_EVM_ERROR)) throw ErrorTxRevertedByEvm(error);
+        if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error);
         else throw error;
     }
 };
