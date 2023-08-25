@@ -10,7 +10,7 @@ export default async (params: CancelOrderParams) => {
     try {
         await order.cancelOrder();
     } catch (error: any) {
-        if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error);
+        if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error.originalError);
         else throw error;
     }
 };

@@ -28,7 +28,7 @@ export default async (params: OffersDeleteOptionParams) => {
         Printer.print(`Option ${params.optionId} was deleted from offer ${params.offerId}`);
     } catch (error: any) {
         if (error instanceof Web3TransactionRevertedByEvmError)
-            throw ErrorTxRevertedByEvm(error);
+            throw ErrorTxRevertedByEvm(error.originalError);
         else throw error;
     }
 };

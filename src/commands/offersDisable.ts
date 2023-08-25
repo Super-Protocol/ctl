@@ -22,7 +22,7 @@ export default async (params: OffersDisableParams) => {
 
         Printer.print(`Offer ${params.id} was disabled`);
     } catch (error: any) {
-        if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error);
+        if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error.originalError);
         else throw error;
     }
 };
