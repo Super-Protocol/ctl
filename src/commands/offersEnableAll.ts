@@ -44,7 +44,7 @@ export default async (params: OfferEnableAllParams) => {
             }
         }
     } catch (error: any) {
-        if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error);
+        if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error.originalError);
         else throw error;
     }
 };

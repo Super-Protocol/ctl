@@ -41,7 +41,7 @@ export default async (params: OffersDisableParams) => {
         Printer.print(`Slot ${params.slotId} was deleted from offer ${params.offerId}`);
     } catch (error: any) {
         if (error instanceof Web3TransactionRevertedByEvmError)
-            throw ErrorTxRevertedByEvm(error);
+            throw ErrorTxRevertedByEvm(error.originalError);
         else throw error;
     }
 };

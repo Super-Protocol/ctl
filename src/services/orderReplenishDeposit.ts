@@ -11,7 +11,7 @@ export default async (params: OrderReplenishDepositParams) => {
         await SuperproToken.approve(Orders.address, params.amount);
         await Orders.refillOrderDeposit(params.id, params.amount);
     } catch (error: any) {
-        if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error);
+        if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error.originalError);
         else throw error;
     }
 };

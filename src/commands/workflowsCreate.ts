@@ -249,7 +249,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
                 { from: consumerAddress! },
             );
         } catch (error: any) {
-            if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error);
+            if (error instanceof Web3TransactionRevertedByEvmError) throw ErrorTxRevertedByEvm(error.originalError);
             else throw error;
         }
     }
