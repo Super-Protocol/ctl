@@ -293,6 +293,9 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 export default workflowCreate;
 
 const checkSlot = (availableSlots: (string | undefined)[], offer: string, targetSlotId: string, offerType: OfferType): void => {
+    if (!targetSlotId) {
+        throw new Error(`${getObjectKey(offerType, OfferType)} ${offer} slot is not specified, please use slot from this list: ${availableSlots}. For example: 8,${availableSlots?.[0]}`);
+    }
     if (!availableSlots?.includes(targetSlotId)) {
         throw new Error(`${getObjectKey(offerType, OfferType)} ${offer} doesn't have slot ${targetSlotId}, please use slot from this list: ${availableSlots}`);
     }
