@@ -52,9 +52,9 @@ export default async (params: FetchOrdersParams) => {
                     totalUnspentDeposit: weiToEther(
                         BigNumber.from(item.node?.totalDeposit).sub(item.node?.totalDepositSpent ?? 0)
                     ),
-                    deposit: weiToEther(item.node?.orderHoldDeposit),
+                    deposit: weiToEther(item.node?.orderDeposit),
                     unspentDeposit: weiToEther(
-                        BigNumber.from(item.node?.orderHoldDeposit).sub(item.node?.depositSpent ?? 0)
+                        BigNumber.from(item.node?.orderDeposit).sub(item.node?.depositSpent ?? 0)
                     ),
                     cancelable: item.node?.offerInfo?.cancelable || false,
                     modifiedDate: formatDate(item.node?.origins?.modifiedDate),

@@ -11,7 +11,7 @@ query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                     id
                     authority
                     consumer
-                    orderHoldDeposit
+                    orderDeposit
                     depositSpent
                     totalDeposit
                     totalDepositSpent
