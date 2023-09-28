@@ -6,37 +6,37 @@ const fs: any = jest.createMockFromModule('fs');
 // `fs` APIs are used.
 let mockFiles: { [dir: string]: { [file: string]: string } } = Object.create(null);
 
-function __setMockFiles(newMockFiles: { [path: string]: string; }) {
-    mockFiles = Object.create(null);
-    for (const file in newMockFiles) {
-        addMockFile(file, newMockFiles[file]);
-    }
+function __setMockFiles(newMockFiles: { [path: string]: string }) {
+  mockFiles = Object.create(null);
+  for (const file in newMockFiles) {
+    addMockFile(file, newMockFiles[file]);
+  }
 }
 
 function addMockFile(filePath: string, data: string) {
-    const dir = path.dirname(filePath);
+  const dir = path.dirname(filePath);
 
-    if (!mockFiles[dir]) {
-        mockFiles[dir] = {};
-    }
-    mockFiles[dir][path.basename(filePath)] = data;
+  if (!mockFiles[dir]) {
+    mockFiles[dir] = {};
+  }
+  mockFiles[dir][path.basename(filePath)] = data;
 }
 
 async function writeFile(filePath: string, data: string) {
-    addMockFile(filePath, data);
+  addMockFile(filePath, data);
 }
 
 async function readFile(filePath: string) {
-    const dir = path.dirname(filePath);
-    const file = path.basename(filePath);
+  const dir = path.dirname(filePath);
+  const file = path.basename(filePath);
 
-    return mockFiles[dir][file];
+  return mockFiles[dir][file];
 }
 
 const fsPromises = {
-    readFile,
-    writeFile,
-    unlink: jest.fn(),
+  readFile,
+  writeFile,
+  unlink: jest.fn(),
 };
 
 fs.__setMockFiles = __setMockFiles;

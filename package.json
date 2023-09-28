@@ -7,11 +7,11 @@
     "bin": "build/index.js",
     "scripts": {
         "dev": "ts-node ./src/index.ts",
-        "build:prepare": "tsc",
+        "build:prepare": "tsc -p tsconfig.build.json",
         "build:linux": "npm run build:prepare && pkg --target linux-x64 -o dist/spctl .",
         "build:mac": "npm run build:prepare  && pkg --target macos-x64 -o dist/spctl .",
         "build:mac:arm": "npm run build:prepare  && pkg --target macos-arm64 -o dist/spctl .",
-        "format": "prettier --tab-width 4 --print-width 120 --write ./src/**/* ./src/* ./tests/**/*",
+        "format": "eslint --ext .ts . --fix",
         "generate:gql": "graphql-codegen --config gql-codegen.yml",
         "test": "jest",
         "bump": "npm version prerelease --preid=beta && npm run tag:publish",
@@ -52,6 +52,7 @@
         "@graphql-codegen/typescript": "2.4.8",
         "@graphql-codegen/typescript-graphql-request": "^4.4.6",
         "@graphql-codegen/typescript-operations": "^2.3.6",
+        "@super-protocol/eslint-config-typescript": "^1.0.1",
         "@types/cli-progress": "^3.9.2",
         "@types/get-folder-size": "^2.0.0",
         "@types/jest": "^28.1.7",
@@ -62,9 +63,6 @@
         "ts-jest": "^28.0.8",
         "ts-node": "^10.4.0",
         "typescript": "^4.5.4"
-    },
-    "resolutions": {
-        "wrap-ansi": "7.0.0"
     },
     "pkg": {
         "assets": [

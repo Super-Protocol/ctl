@@ -1,67 +1,55 @@
-import {
-    Config as BlockchainConfig,
-    Offer,
-    TeeOffer,
-} from "@super-protocol/sdk-js";
-import Printer from "../printer";
-import initBlockchainConnector from "../services/initBlockchainConnector";
-import readTeeOfferSlot from "../services/readTeeOfferSlot";
-import readValueOfferSlot from "../services/readValueOfferSlot";
+import { Config as BlockchainConfig, Offer, TeeOffer } from '@super-protocol/sdk-js';
+import Printer from '../printer';
+import initBlockchainConnector from '../services/initBlockchainConnector';
+import readTeeOfferSlot from '../services/readTeeOfferSlot';
+import readValueOfferSlot from '../services/readValueOfferSlot';
 
 export type OffersAddSlotParams = {
-    offerId: string;
-    slotId: string;
-    type: "tee" | "value";
-    slotPath: string;
-    blockchainConfig: BlockchainConfig;
-    actionAccountKey: string;
+  offerId: string;
+  slotId: string;
+  type: 'tee' | 'value';
+  slotPath: string;
+  blockchainConfig: BlockchainConfig;
+  actionAccountKey: string;
 };
 
 export default async (params: OffersAddSlotParams) => {
-    await initBlockchainConnector({
-        blockchainConfig: params.blockchainConfig,
-        actionAccountKey: params.actionAccountKey,
-    });
+  await initBlockchainConnector({
+    blockchainConfig: params.blockchainConfig,
+    actionAccountKey: params.actionAccountKey,
+  });
 
-    switch (params.type) {
-        case "tee":
-            const teeOfferSlot = await readTeeOfferSlot({
-                path: params.slotPath,
-            });
+  switch (params.type) {
+    case 'tee':
+      const teeOfferSlot = await readTeeOfferSlot({
+        path: params.slotPath,
+      });
 
-            Printer.print(
-                "Slot info file was read successfully, updating in blockchain"
-            );
+      Printer.print('Slot info file was read successfully, updating in blockchain');
 
-            const teeOffer = new TeeOffer(params.offerId);
-            await teeOffer.updateSlot(
-                params.slotId,
-                teeOfferSlot.slotInfo,
-                teeOfferSlot.slotUsage
-            );
-            break;
+      const teeOffer = new TeeOffer(params.offerId);
+      await teeOffer.updateSlot(params.slotId, teeOfferSlot.slotInfo, teeOfferSlot.slotUsage);
+      break;
 
-        case "value":
-            const valueOfferSlot = await readValueOfferSlot({
-                path: params.slotPath,
-            });
+    case 'value':
+      const valueOfferSlot = await readValueOfferSlot({
+        path: params.slotPath,
+      });
 
-            Printer.print(
-                "Slot info file was read successfully, updating in blockchain"
-            );
+      Printer.print('Slot info file was read successfully, updating in blockchain');
 
-            const offer = new Offer(params.offerId);
-            await offer.updateSlot(
-                params.slotId,
-                valueOfferSlot.slotInfo,
-                valueOfferSlot.optionInfo,
-                valueOfferSlot.slotUsage
-            );
-            break;
+      const offer = new Offer(params.offerId);
+      await offer.updateSlot(
+        params.slotId,
+        valueOfferSlot.slotInfo,
+        valueOfferSlot.optionInfo,
+        valueOfferSlot.slotUsage,
+      );
+      break;
 
-        default:
-            throw new Error(`Unknown offer type ${params.type} provided`);
-    }
+    default:
+      throw new Error(`Unknown offer type ${params.type} provided`);
+  }
 
-    Printer.print(`Slot ${params.slotId} was updated successfully`);
+  Printer.print(`Slot ${params.slotId} was updated successfully`);
 };

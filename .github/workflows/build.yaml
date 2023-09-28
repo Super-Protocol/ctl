@@ -27,7 +27,7 @@ jobs:
                   architecture: x64
                   scope: super-protocol
             - name: Install dependencies
-              run: yarn --frozen-lock
+              run: npm ci
             - name: Build binary for macOS
               if: ${{ runner.os == 'macOS' }}
               run: >

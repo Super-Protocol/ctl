@@ -1,0 +1,4 @@
+{
+    "extends": "@super-protocol/eslint-config-typescript/eslint-config.js",
+    "ignorePatterns": ["src/gql/index.ts"]
+}

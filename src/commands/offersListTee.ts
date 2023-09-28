@@ -1,33 +1,33 @@
-import fetchTeeOffersService, { formatFetchedTeeOffer } from "../services/fetchTeeOffers";
-import Printer from "../printer";
-import { prepareObjectToPrint } from "../utils";
+import fetchTeeOffersService, { formatFetchedTeeOffer } from '../services/fetchTeeOffers';
+import Printer from '../printer';
+import { prepareObjectToPrint } from '../utils';
 
 export type OffersListTeeParams = {
-    backendUrl: string;
-    accessToken: string;
-    fields: string[];
-    limit: number;
-    cursor?: string;
+  backendUrl: string;
+  accessToken: string;
+  fields: string[];
+  limit: number;
+  cursor?: string;
 };
 
 export default async (params: OffersListTeeParams) => {
-    const offers = await fetchTeeOffersService({
-        backendUrl: params.backendUrl,
-        accessToken: params.accessToken,
-        limit: params.limit,
-        cursor: params.cursor,
-    }).then((offers) => ({
-        ...offers,
-        list: offers.list.map((item) => formatFetchedTeeOffer(item)),
-    }));
+  const offers = await fetchTeeOffersService({
+    backendUrl: params.backendUrl,
+    accessToken: params.accessToken,
+    limit: params.limit,
+    cursor: params.cursor,
+  }).then((offers) => ({
+    ...offers,
+    list: offers.list.map((item) => formatFetchedTeeOffer(item)),
+  }));
 
-    if (!offers.list.length) {
-        Printer.print("No tee offers found");
-        return;
-    }
+  if (!offers.list.length) {
+    Printer.print('No tee offers found');
+    return;
+  }
 
-    const rows = offers.list.map((item) => prepareObjectToPrint(item, params.fields));
+  const rows = offers.list.map((item) => prepareObjectToPrint(item, params.fields));
 
-    Printer.table(rows);
-    Printer.print("Last pagination cursor: " + offers.cursor);
+  Printer.table(rows);
+  Printer.print('Last pagination cursor: ' + offers.cursor);
 };

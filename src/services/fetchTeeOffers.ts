@@ -1,58 +1,58 @@
-import { getSdk } from "../gql";
-import { GraphQLClient } from "graphql-request";
-import { ErrorWithCustomMessage, formatDate } from "../utils";
-import getGqlHeaders from "./gqlHeaders";
+import { getSdk } from '../gql';
+import { GraphQLClient } from 'graphql-request';
+import { ErrorWithCustomMessage, formatDate } from '../utils';
+import getGqlHeaders from './gqlHeaders';
 
 export type FetchTeeOffersParams = {
-    backendUrl: string;
-    accessToken: string;
-    limit: number;
-    cursor?: string;
-    id?: string;
+  backendUrl: string;
+  accessToken: string;
+  limit: number;
+  cursor?: string;
+  id?: string;
 };
 
 export const formatFetchedTeeOffer = (item: any) => {
-    return {
-        id: item.node?.id,
-        name: item.node?.teeOfferInfo?.name,
-        description: item.node?.teeOfferInfo?.description,
-        providerName: item.node?.providerInfo.name,
-        providerAddress: item.node?.origins?.createdBy,
-        totalCores: item.node?.teeOfferInfo?.hardwareInfo?.slotInfo?.cpuCores,
-        freeCores: item.node?.stats?.freeCores,
-        slots: item.node?.slots,
-        ordersInQueue: (item.node?.stats?.new || 0) + (item.node?.stats?.processing || 0),
-        cancelable: false,
-        modifiedDate: formatDate(item.node?.origins?.modifiedDate),
-        enabled: item.node?.teeOfferInfo?.enabled,
-    }
+  return {
+    id: item.node?.id,
+    name: item.node?.teeOfferInfo?.name,
+    description: item.node?.teeOfferInfo?.description,
+    providerName: item.node?.providerInfo.name,
+    providerAddress: item.node?.origins?.createdBy,
+    totalCores: item.node?.teeOfferInfo?.hardwareInfo?.slotInfo?.cpuCores,
+    freeCores: item.node?.stats?.freeCores,
+    slots: item.node?.slots,
+    ordersInQueue: (item.node?.stats?.new || 0) + (item.node?.stats?.processing || 0),
+    cancelable: false,
+    modifiedDate: formatDate(item.node?.origins?.modifiedDate),
+    enabled: item.node?.teeOfferInfo?.enabled,
+  };
 };
 
 export default async (params: FetchTeeOffersParams) => {
-    const sdk = getSdk(new GraphQLClient(params.backendUrl));
-    const headers = getGqlHeaders(params.accessToken);
+  const sdk = getSdk(new GraphQLClient(params.backendUrl));
+  const headers = getGqlHeaders(params.accessToken);
 
-    try {
-        const { result } = await sdk.TeeOffers(
-            {
-                pagination: {
-                    first: params.limit,
-                    after: params.cursor,
-                    sortDir: "DESC",
-                    sortBy: "origins.createdDate",
-                },
-                filter: { id: params.id },
-            },
-            headers
-        );
+  try {
+    const { result } = await sdk.TeeOffers(
+      {
+        pagination: {
+          first: params.limit,
+          after: params.cursor,
+          sortDir: 'DESC',
+          sortBy: 'origins.createdDate',
+        },
+        filter: { id: params.id },
+      },
+      headers,
+    );
 
-        return {
-            list: result.page.edges?.map((item) => item) || [],
-            cursor: result.page.pageInfo!.endCursor,
-        };
-    } catch (error: any) {
-        let message = "Fetching tee offers error";
-        if (error?.response?.errors[0]?.message) message += ": " + error.response.errors[0].message;
-        throw ErrorWithCustomMessage(message, error);
-    }
+    return {
+      list: result.page.edges?.map((item) => item) || [],
+      cursor: result.page.pageInfo!.endCursor,
+    };
+  } catch (error: any) {
+    let message = 'Fetching tee offers error';
+    if (error?.response?.errors[0]?.message) message += ': ' + error.response.errors[0].message;
+    throw ErrorWithCustomMessage(message, error);
+  }
 };

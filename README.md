@@ -6,12 +6,12 @@ A tool for publishing values in a secure and reliable way.
 2. Install dependencies:
 
     ```
-    yarn
+    npm i
     ```
 3. Run help in dev mode to see available commands:
 
     ```
-    yarn dev help
+    npm run dev help
     ```
 
 ## Building
@@ -25,31 +25,30 @@ Can be run on any os with Docker support.</br>
 Result will be saved at `./dist/spctl-linux`
 #### Build on native os (linux only):
 ```
-yarn build:linux
+npm run build:linux
 ```
 IMPORTANT: to make `upload` and `download` commands works correctly, requires to make this build on Linux only</br>
 Result will be saved at `./dist/spctl`
 
 ### MacOS
 ```
-yarn build:mac
+npm run build:mac
 ```
 IMPORTANT: to make `upload` and `download` commands works correctly, requires to make this build on MacOS only</br>
 Result will be saved at `./dist/spctl`
 
 ## Develop and Release
 
-Before making a release, please decide what version tag this release should have - major, minor or patch. Then create a new `release/vX.X.X` branch with new version. Then run one of the next commands: `yarn patch:beta` or `yarn minor:beta` or `yarn major:beta`. This command will make commit, create new tag and push all of this to remote. 
-Then you need to make PR to master and merge it with `Rebase and Merge` after approve. Then go the Releases Page and create new release with the name as new tag. 
+Before making a release, please decide what version tag this release should have - major, minor or patch. Then create a new `release/vX.X.X` branch with new version. Then run one of the next commands: `npm run patch:beta` or `npm run minor:beta` or `npm run major:beta`. This command will make commit, create new tag and push all of this to remote.
+Then you need to make PR to master and merge it with `Rebase and Merge` after approve. Then go the Releases Page and create new release with the name as new tag.
 
 ## Commands
-`yarn build` – compiles typescript with tcs.</br>
-`yarn build:linux` – builds a linux binary file ready for distribution</br>
-`yarn build:macos` – builds a macos binary file ready for distribution</br>
-`yarn dev [command]` – runs command in dev mode</br>
-`yarn prettier` – runs code auto formatting
+`npm run build` – compiles typescript with tcs.</br>
+`npm run build:linux` – builds a linux binary file ready for distribution</br>
+`npm run build:macos` – builds a macos binary file ready for distribution</br>
+`npm run dev -- [command]` – runs command in dev mode</br>
+`npm run prettier` – runs code auto formatting
 
 ## Dependencies
 - NodeJS v17.4.0
 - NPM v8.3.1
-- yarn v1.22.17
