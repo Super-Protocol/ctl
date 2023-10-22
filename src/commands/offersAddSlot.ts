@@ -36,7 +36,7 @@ export default async (params: OffersAddSlotParams) => {
       );
 
       const teeOffer = new TeeOffer(params.offerId);
-      await teeOffer.addSlot(teeOfferSlot.slotInfo, teeOfferSlot.slotUsage, slotExternalId);
+      await teeOffer.addSlot(teeOfferSlot.info, teeOfferSlot.usage, slotExternalId);
 
       slotLoaderFn = () =>
         TeeOffers.getSlotByExternalId({
@@ -63,9 +63,9 @@ export default async (params: OffersAddSlotParams) => {
 
       const offer = new Offer(params.offerId);
       await offer.addSlot(
-        valueOfferSlot.slotInfo,
-        valueOfferSlot.optionInfo,
-        valueOfferSlot.slotUsage,
+        valueOfferSlot.info,
+        valueOfferSlot.option,
+        valueOfferSlot.usage,
         slotExternalId,
       );
 

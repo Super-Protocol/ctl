@@ -1,5 +1,5 @@
 import z from 'zod';
-import { OptionInfo, SlotInfo, SlotUsage } from '@super-protocol/sdk-js';
+import { ValueOfferSlot } from '@super-protocol/sdk-js/build/types/ValueOfferSlot';
 import readJsonFile from './readJsonFile';
 import { SlotInfoValidator, SlotUsageValidator, OptionInfoValidator } from './baseValidators';
 
@@ -8,15 +8,11 @@ export type ReadFileParams = {
 };
 
 const ValueOfferSlotFileValidator = z.object({
-  slotInfo: SlotInfoValidator,
-  slotUsage: SlotUsageValidator,
-  optionInfo: OptionInfoValidator,
+  id: z.string().optional(),
+  info: SlotInfoValidator,
+  usage: SlotUsageValidator,
+  option: OptionInfoValidator,
 });
-export type ValueOfferSlot = {
-  slotInfo: SlotInfo;
-  slotUsage: SlotUsage;
-  optionInfo: OptionInfo;
-};
 
 export default async (params: ReadFileParams): Promise<ValueOfferSlot> => {
   const valueOfferSlot = await readJsonFile({

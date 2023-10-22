@@ -47,6 +47,8 @@ import offersDeleteSlot from './commands/offersDeleteSlot';
 import offersAddOption from './commands/offersAddOption';
 import offersUpdateOption from './commands/offersUpdateOption';
 import offersDeleteOption from './commands/offersDeleteOption';
+import offersGetSlot from './commands/offersGetSlot';
+import offersGetOption from './commands/offersGetOption';
 
 const defaultAmplitudeApiKey = '322ed6bd9a802109e1e9692be0a825c6';
 
@@ -642,10 +644,10 @@ async function main() {
       'type',
       'provider_address',
       'provider_name',
-      'cost',
       'cancelable',
       'depends_on_offers',
       'modified_date',
+      'enabled',
     ],
     offersListValueDefaultFields = ['id', 'name', 'type'];
   offersListCommand
@@ -717,10 +719,10 @@ async function main() {
     'type',
     'cancelable',
     'provider_name',
-    'cost',
     'depends_on_offers',
     'modified_date',
     'slots',
+    'enabled',
   ];
   offersGetCommand
     .command('value')
@@ -751,14 +753,16 @@ async function main() {
     .description('Get offer info property')
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
     .argument('id', 'Offer id')
+    .option('--save-to <filepath>', 'Save result to a file')
     .action(async (type: 'tee' | 'value', id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = configLoader.loadSection('backend') as Config['backend'];
 
       await offersGetInfo({
         backendUrl: backend.url,
-        type,
         accessToken: backend.accessToken,
+        type,
+        saveTo: options.saveTo,
         id,
       });
     });
@@ -910,6 +914,27 @@ async function main() {
     });
 
   offersCommand
+    .command('get-slot')
+    .description('Get slot by id')
+    .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
+    .requiredOption('--offer <id>', 'Offer <id>')
+    .requiredOption('--slot <id>', 'Slot <id>')
+    .option('--save-to <filepath>', 'Save result to a file')
+    .action(async (type: 'tee' | 'value', options: any) => {
+      const configLoader = new ConfigLoader(options.config);
+      const backend = configLoader.loadSection('backend') as Config['backend'];
+
+      await offersGetSlot({
+        backendUrl: backend.url,
+        accessToken: backend.accessToken,
+        type,
+        offerId: options.offer,
+        slotId: options.slot,
+        saveTo: options.saveTo,
+      });
+    });
+
+  offersCommand
     .command('add-slot')
     .description('Add slot to offer')
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
@@ -980,6 +1005,25 @@ async function main() {
         type,
         offerId: options.offer,
         slotId: options.slot,
+      });
+    });
+
+  offersCommand
+    .command('get-option')
+    .description('Get option by id (TEE offers only)')
+    .requiredOption('--offer <id>', 'Offer <id>')
+    .requiredOption('--option <id>', 'Option <id>')
+    .option('--save-to <filepath>', 'Save result to a file')
+    .action(async (options: any) => {
+      const configLoader = new ConfigLoader(options.config);
+      const backend = configLoader.loadSection('backend') as Config['backend'];
+
+      await offersGetOption({
+        backendUrl: backend.url,
+        accessToken: backend.accessToken,
+        offerId: options.offer,
+        optionId: options.option,
+        saveTo: options.saveTo,
       });
     });
 

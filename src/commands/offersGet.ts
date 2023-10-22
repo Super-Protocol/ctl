@@ -1,6 +1,6 @@
 import Printer from '../printer';
-import fetchOffers, { formatFetchedOffer } from '../services/fetchOffers';
-import fetchTeeOffers, { formatFetchedTeeOffer } from '../services/fetchTeeOffers';
+import fetchOffers, { OfferDto, formatFetchedOffer } from '../services/fetchOffers';
+import fetchTeeOffers, { TeeOfferDto, formatFetchedTeeOffer } from '../services/fetchTeeOffers';
 import { prepareObjectToPrint } from '../utils';
 
 export type OffersGetParams = {
@@ -11,35 +11,34 @@ export type OffersGetParams = {
   id: string;
 };
 
-export default async (params: OffersGetParams) => {
-  let offers: any[];
+export default async (params: OffersGetParams): Promise<void> => {
+  let offer: OfferDto | TeeOfferDto | undefined;
   switch (params.type) {
     case 'tee':
-      offers = await fetchTeeOffers({
+      offer = await fetchTeeOffers({
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
         limit: 1,
         id: params.id,
-      }).then(({ list }) => list.map((item) => formatFetchedTeeOffer(item)));
+      }).then(({ list }) => formatFetchedTeeOffer(list[0]));
       break;
     case 'value':
-      offers = await fetchOffers({
+      offer = await fetchOffers({
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
         limit: 1,
         id: params.id,
-      }).then(({ list }) => list.map((item) => formatFetchedOffer(item)));
+      }).then(({ list }) => formatFetchedOffer(list[0]));
       break;
 
     default:
       throw new Error(`Unknown offer type ${params.type} provided`);
   }
 
-  if (!offers.length) {
+  if (!offer) {
     Printer.print(`Offer ${params.id} could not be found`);
     return;
   }
 
-  const offer = prepareObjectToPrint(offers[0], params.fields);
-  Printer.printObject(offer);
+  Printer.printObject(prepareObjectToPrint(offer, params.fields));
 };

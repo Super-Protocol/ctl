@@ -1,8 +1,9 @@
 {
+    "id": "",
     "optionInfo": {
-        "bandwidth": "0",
-        "traffic": "0",
-        "externalPort": "0"
+        "bandwidth": 0,
+        "traffic": 0,
+        "externalPort": 0
     },
     "optionUsage": {
         "priceType": "0",

@@ -28,7 +28,7 @@ export default async (params: OffersAddSlotParams) => {
       Printer.print('Slot info file was read successfully, updating in blockchain');
 
       const teeOffer = new TeeOffer(params.offerId);
-      await teeOffer.updateSlot(params.slotId, teeOfferSlot.slotInfo, teeOfferSlot.slotUsage);
+      await teeOffer.updateSlot(params.slotId, teeOfferSlot.info, teeOfferSlot.usage);
       break;
 
     case 'value':
@@ -41,9 +41,9 @@ export default async (params: OffersAddSlotParams) => {
       const offer = new Offer(params.offerId);
       await offer.updateSlot(
         params.slotId,
-        valueOfferSlot.slotInfo,
-        valueOfferSlot.optionInfo,
-        valueOfferSlot.slotUsage,
+        valueOfferSlot.info,
+        valueOfferSlot.option,
+        valueOfferSlot.usage,
       );
       break;
 

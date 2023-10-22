@@ -16,24 +16,26 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                     id
                     authority
                     offerInfo {
+                        name
                         group
                         offerType
-                        allowedAccounts
-                        allowedArgs
-                        argsPublicKey
                         cancelable
                         description
-                        hash
-                        linkage
-                        name
-                        metadata
-                        resultResource
                         restrictions {
                             offers
                             types
                         }
-                        enabled
+                        metadata
+                        input
+                        output
+                        allowedArgs
+                        allowedAccounts
+                        argsPublicKey
+                        resultResource
+                        linkage
+                        hash
                     }
+                    enabled
                     slots {
                         id
                         info {

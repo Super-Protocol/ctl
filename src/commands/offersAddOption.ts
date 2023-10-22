@@ -12,7 +12,7 @@ export type OffersAddOptionParams = {
   actionAccountKey: string;
 };
 
-export default async (params: OffersAddOptionParams) => {
+export default async (params: OffersAddOptionParams): Promise<void> => {
   const creator = (await initBlockchainConnector({
     blockchainConfig: params.blockchainConfig,
     actionAccountKey: params.actionAccountKey,
@@ -28,7 +28,7 @@ export default async (params: OffersAddOptionParams) => {
   );
 
   const teeOffer = new TeeOffer(params.offerId);
-  await teeOffer.addOption(option.optionInfo, option.optionUsage, optionExternalId);
+  await teeOffer.addOption(option.info, option.usage, optionExternalId);
 
   const optionLoaderFn = () =>
     TeeOffers.getOptionByExternalId({

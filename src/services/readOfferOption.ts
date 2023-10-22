@@ -1,4 +1,4 @@
-import { OptionInfo, SlotUsage } from '@super-protocol/sdk-js';
+import { TeeOfferOption } from '@super-protocol/sdk-js';
 import readJsonFile from './readJsonFile';
 import { OptionInfoValidator, SlotUsageValidator } from './baseValidators';
 import { z } from 'zod';
@@ -7,14 +7,10 @@ export type ReadFileParams = {
   path: string;
 };
 
-export type TeeOfferOption = {
-  optionInfo: OptionInfo;
-  optionUsage: SlotUsage;
-};
-
 const TeeOptionValidator = z.object({
-  optionInfo: OptionInfoValidator,
-  optionUsage: SlotUsageValidator,
+  id: z.string().optional(),
+  info: OptionInfoValidator,
+  usage: SlotUsageValidator,
 });
 
 export default async (params: ReadFileParams): Promise<TeeOfferOption> => {

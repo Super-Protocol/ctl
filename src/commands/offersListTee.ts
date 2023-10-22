@@ -10,7 +10,7 @@ export type OffersListTeeParams = {
   cursor?: string;
 };
 
-export default async (params: OffersListTeeParams) => {
+export default async (params: OffersListTeeParams): Promise<void> => {
   const offers = await fetchTeeOffersService({
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,

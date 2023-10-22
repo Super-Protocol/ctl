@@ -3,6 +3,7 @@ import z from 'zod';
 import readJsonFile from './readJsonFile';
 import { EncryptionValidator } from './readResourceFile';
 import { OptionInfoValidator, SlotInfoValidator } from './baseValidators';
+import { ErrorWithCustomMessage, createZodErrorMessage } from '../utils';
 
 export type ReadTeeOfferInfoFileParams = {
   path: string;
@@ -19,20 +20,27 @@ const TeeOfferInfoFileValidator = z.object({
   teeType: z.string(),
   properties: z.string(),
   tlb: z.string(),
-  argsPublicKey: EncryptionValidator,
+  argsPublicKey: z.string(),
   hardwareInfo: HardwareInfoValidator,
 });
 
-export default async (params: ReadTeeOfferInfoFileParams) => {
-  const resourceFile = await readJsonFile({
+export default async (params: ReadTeeOfferInfoFileParams): Promise<TeeOfferInfo> => {
+  const teeOfferInfo = await readJsonFile({
     path: params.path,
     validator: TeeOfferInfoFileValidator,
   });
 
-  const offerInfo: TeeOfferInfo = {
-    ...resourceFile,
-    argsPublicKey: JSON.stringify(resourceFile.argsPublicKey),
-  };
+  const argsPublicKeyValidation = EncryptionValidator.safeParse(
+    JSON.parse(teeOfferInfo.argsPublicKey),
+  );
 
-  return offerInfo;
+  if (!argsPublicKeyValidation.success) {
+    const errorMessage = createZodErrorMessage(argsPublicKeyValidation.error.issues);
+    throw ErrorWithCustomMessage(
+      `Schema validation failed for file ${params.path}:\n${errorMessage}`,
+      argsPublicKeyValidation.error as Error,
+    );
+  }
+
+  return teeOfferInfo;
 };

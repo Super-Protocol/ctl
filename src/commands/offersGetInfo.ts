@@ -1,18 +1,20 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import Printer from '../printer';
-import fetchOffers from '../services/fetchOffers';
+import { OfferInfo, TeeOfferInfo } from '@super-protocol/sdk-js';
 import fetchTeeOffers from '../services/fetchTeeOffers';
+import fetchOffers from '../services/fetchOffers';
 
 export type OffersGetInfoParams = {
   backendUrl: string;
   accessToken: string;
   type: 'tee' | 'value';
   id: string;
+  saveTo?: string;
 };
 
-export default async (params: OffersGetInfoParams) => {
-  let offer: any;
+export default async (params: OffersGetInfoParams): Promise<void> => {
+  let offer: OfferInfo | TeeOfferInfo | undefined;
   switch (params.type) {
     case 'tee':
       offer = await fetchTeeOffers({
@@ -20,7 +22,7 @@ export default async (params: OffersGetInfoParams) => {
         accessToken: params.accessToken,
         limit: 1,
         id: params.id,
-      }).then(({ list }) => list[0]?.node?.teeOfferInfo);
+      }).then(({ list }) => <TeeOfferInfo>list[0]?.node?.teeOfferInfo);
       break;
     case 'value':
       offer = await fetchOffers({
@@ -28,7 +30,7 @@ export default async (params: OffersGetInfoParams) => {
         accessToken: params.accessToken,
         limit: 1,
         id: params.id,
-      }).then(({ list }) => list[0]?.node?.offerInfo);
+      }).then(({ list }) => <OfferInfo>list[0]?.node?.offerInfo);
       break;
 
     default:
@@ -41,5 +43,10 @@ export default async (params: OffersGetInfoParams) => {
   }
 
   Printer.printObject(offer);
-  await fs.writeFile(path.join(process.cwd(), `offerInfo.json`), JSON.stringify(offer));
+
+  if (params.saveTo) {
+    const pathToSaveResult = path.join(process.cwd(), params.saveTo);
+    await fs.writeFile(pathToSaveResult, JSON.stringify(offer));
+    Printer.print(`Saved result to ${pathToSaveResult}`);
+  }
 };

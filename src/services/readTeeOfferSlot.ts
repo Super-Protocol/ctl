@@ -1,17 +1,13 @@
 import z from 'zod';
-import { SlotInfo, SlotUsage } from '@super-protocol/sdk-js';
+import { TeeOfferSlot } from '@super-protocol/sdk-js';
 import readJsonFile from './readJsonFile';
 import { SlotInfoValidator, SlotUsageValidator } from './baseValidators';
 import { ReadFileParams } from './readValueOfferSlot';
 
-export type TeeOfferSlot = {
-  slotInfo: SlotInfo;
-  slotUsage: SlotUsage;
-};
-
 const TeeOfferSlotFileValidator = z.object({
-  slotInfo: SlotInfoValidator,
-  slotUsage: SlotUsageValidator,
+  id: z.string().optional(),
+  info: SlotInfoValidator,
+  usage: SlotUsageValidator,
 });
 
 export default async (params: ReadFileParams): Promise<TeeOfferSlot> => {

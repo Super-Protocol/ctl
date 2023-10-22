@@ -26,18 +26,26 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                         tokenReceiver
                     }
                     teeOfferInfo {
-                        argsPublicKey
-                        description
                         name
+                        description
                         teeType
+                        properties
                         tlb
+                        argsPublicKey
                         hardwareInfo {
                             slotInfo {
                                 cpuCores
+                                ram
+                                diskUsage
+                            }
+                            optionInfo {
+                                bandwidth
+                                traffic
+                                externalPort
                             }
                         }
-                        enabled
                     }
+                    enabled
                     slots {
                         id
                         info {

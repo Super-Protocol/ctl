@@ -11,7 +11,7 @@ export type OffersUpdateOptionParams = {
   actionAccountKey: string;
 };
 
-export default async (params: OffersUpdateOptionParams) => {
+export default async (params: OffersUpdateOptionParams): Promise<void> => {
   await initBlockchainConnector({
     blockchainConfig: params.blockchainConfig,
     actionAccountKey: params.actionAccountKey,
@@ -24,7 +24,7 @@ export default async (params: OffersUpdateOptionParams) => {
   Printer.print('Option info file was read successfully, updating in blockchain');
 
   const teeOffer = new TeeOffer(params.offerId);
-  await teeOffer.updateOption(params.optionId, option.optionInfo, option.optionUsage);
+  await teeOffer.updateOption(params.optionId, option.info, option.usage);
 
   Printer.print(`Option ${params.optionId} was updated successfully`);
 };

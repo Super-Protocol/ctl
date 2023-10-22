@@ -1,6 +1,6 @@
-import { getSdk } from '../gql';
+import { OffersQuery, getSdk } from '../gql';
 import { GraphQLClient } from 'graphql-request';
-import { ErrorWithCustomMessage, formatDate, getObjectKey, weiToEther } from '../utils';
+import { ErrorWithCustomMessage, formatDate, getObjectKey } from '../utils';
 import getGqlHeaders from './gqlHeaders';
 import { OfferType } from '@super-protocol/sdk-js';
 
@@ -18,30 +18,36 @@ export type OfferDto = {
   name: string | undefined;
   description: string | undefined;
   type: string | undefined;
-  cost: string | undefined;
   providerName: string | undefined;
   providerAddress: string | undefined;
   cancelable: boolean | undefined;
   modifiedDate: string | undefined;
   dependsOnOffers: string[];
+  enabled?: boolean;
 };
 
-export const formatFetchedOffer = (item: any): OfferDto => {
+export type OfferItem = NonNullable<OffersQuery['result']['page']['edges']>[number];
+
+export type OfferItemSlots = NonNullable<OfferItem['node']>['slots'];
+
+export const formatFetchedOffer = (item: OfferItem): OfferDto => {
   return {
     id: item.node?.id,
     name: item.node?.offerInfo?.name,
     description: item.node?.offerInfo?.description,
     type: getObjectKey(item.node?.offerInfo.offerType, OfferType),
-    cost: weiToEther(item.node?.offerInfo.holdSum),
     providerName: item.node?.providerInfo.name,
     providerAddress: item.node?.origins?.createdBy,
     cancelable: item.node?.offerInfo?.cancelable,
     modifiedDate: formatDate(item.node?.origins?.modifiedDate),
     dependsOnOffers: item.node?.offerInfo.restrictions?.offers || [],
+    enabled: item.node?.enabled,
   };
 };
 
-export default async (params: FetchOffersParams) => {
+export default async (
+  params: FetchOffersParams,
+): Promise<{ list: OfferItem[]; cursor: string }> => {
   const sdk = getSdk(new GraphQLClient(params.backendUrl));
   const headers = getGqlHeaders(params.accessToken);
 
@@ -61,7 +67,7 @@ export default async (params: FetchOffersParams) => {
 
     return {
       list: result.page.edges?.map((item) => item) || [],
-      cursor: result.page.pageInfo!.endCursor,
+      cursor: result.page.pageInfo?.endCursor || '',
     };
   } catch (error: any) {
     let message = 'Fetching offers error';

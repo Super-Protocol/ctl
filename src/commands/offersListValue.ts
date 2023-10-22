@@ -10,7 +10,7 @@ export type OffersListValueParams = {
   cursor?: string;
 };
 
-export default async (params: OffersListValueParams) => {
+export default async (params: OffersListValueParams): Promise<void> => {
   const offers = await fetchOffersService({
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,

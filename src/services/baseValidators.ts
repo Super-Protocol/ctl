@@ -15,7 +15,7 @@ export const SlotUsageValidator = z.object({
 });
 
 export const OptionInfoValidator = z.object({
-  bandwidth: z.string(),
-  traffic: z.string(),
-  externalPort: z.string(),
+  bandwidth: z.number(),
+  traffic: z.number(),
+  externalPort: z.number(),
 });

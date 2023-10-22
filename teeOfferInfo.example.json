@@ -12,9 +12,9 @@
     "hardwareInfo": {
         "slotInfo": { "cpuCores": 0, "ram": 0, "diskUsage": 0 },
         "optionInfo": {
-            "bandwidth": "",
-            "traffic": "",
-            "externalPort": ""
+            "bandwidth": 0,
+            "traffic": 0,
+            "externalPort": 0
         }
     }
 }
