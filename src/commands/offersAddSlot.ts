@@ -1,4 +1,10 @@
-import { Config as BlockchainConfig, Offer, TeeOffer, TeeOffers } from '@super-protocol/sdk-js';
+import {
+  Config as BlockchainConfig,
+  BlockchainId,
+  Offer,
+  TeeOffer,
+  TeeOffers,
+} from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import readTeeOfferSlot from '../services/readTeeOfferSlot';
@@ -22,11 +28,10 @@ export default async (params: OffersAddSlotParams) => {
   })) as string;
 
   const slotExternalId = generateExternalId();
-  let newSlotId: string | undefined;
-  let slotLoaderFn: () => Promise<string>;
+  let slotLoaderFn: () => Promise<BlockchainId>;
 
   switch (params.type) {
-    case 'tee':
+    case 'tee': {
       const teeOfferSlot = await readTeeOfferSlot({
         path: params.slotPath,
       });
@@ -51,8 +56,8 @@ export default async (params: OffersAddSlotParams) => {
         });
 
       break;
-
-    case 'value':
+    }
+    case 'value': {
       const valueOfferSlot = await readValueOfferSlot({
         path: params.slotPath,
       });
@@ -82,12 +87,12 @@ export default async (params: OffersAddSlotParams) => {
         });
 
       break;
-
+    }
     default:
       throw new Error(`Unknown offer type ${params.type} provided`);
   }
 
-  newSlotId = await doWithRetries(slotLoaderFn);
+  const newSlotId = await doWithRetries(slotLoaderFn);
 
   Printer.print(`Slot was created with id ${newSlotId}`);
 };

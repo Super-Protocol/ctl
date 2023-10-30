@@ -22,7 +22,7 @@ export default async (params: OffersGetInfoParams): Promise<void> => {
         accessToken: params.accessToken,
         limit: 1,
         id: params.id,
-      }).then(({ list }) => <TeeOfferInfo>list[0]?.node?.teeOfferInfo);
+      }).then(({ list }) => <TeeOfferInfo>list[0]?.teeOfferInfo);
       break;
     case 'value':
       offer = await fetchOffers({
@@ -30,7 +30,7 @@ export default async (params: OffersGetInfoParams): Promise<void> => {
         accessToken: params.accessToken,
         limit: 1,
         id: params.id,
-      }).then(({ list }) => <OfferInfo>list[0]?.node?.offerInfo);
+      }).then(({ list }) => <OfferInfo>list[0]?.offerInfo);
       break;
 
     default:

@@ -1,10 +1,9 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-import { ValueOfferSlot } from '@super-protocol/sdk-js/build/types/ValueOfferSlot';
 import Printer from '../printer';
 
-import { PriceType, TeeOfferSlot } from '@super-protocol/sdk-js';
+import { PriceType, TeeOfferSlot, ValueOfferSlot } from '@super-protocol/sdk-js';
 import fetchTeeOffers, { TeeOfferItem } from '../services/fetchTeeOffers';
 import fetchOffers, { OfferItem, OfferItemSlots } from '../services/fetchOffers';
 
@@ -21,7 +20,7 @@ function findFetchedSlot(
   item: OfferItem | TeeOfferItem,
   targetSlotId: string,
 ): TeeOfferSlot | ValueOfferSlot | undefined {
-  const slotItem = (item.node?.slots as OfferItemSlots)?.find((slot) => slot.id === targetSlotId);
+  const slotItem = (item?.slots as OfferItemSlots)?.find((slot) => slot.id === targetSlotId);
 
   if (!slotItem) return;
 

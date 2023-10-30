@@ -1,4 +1,5 @@
 import BlockchainConnector, {
+  BlockchainId,
   Crypto,
   OrderInfo,
   Orders,
@@ -13,9 +14,9 @@ import doWithRetries from './doWithRetries';
 export type TeeOfferParams = {
   id: string;
   slotId: string;
-  slotCount: string;
+  slotCount: number;
   optionsIds: string[];
-  optionsCount: string[];
+  optionsCount: number[];
 };
 
 export type ValueOfferParams = {
@@ -33,7 +34,7 @@ export type CreateWorkflowParams = {
   consumerAddress: string;
 };
 
-export default async (params: CreateWorkflowParams): Promise<string> => {
+export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
   Printer.print('Fetching TEE offer');
   const teeOffer = new TeeOffer(params.teeOffer.id);
   const offerInfo = await teeOffer.getInfo();
@@ -78,7 +79,7 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
     encryptedRequirements: '',
     slots: {
       slotId: subOrderParams.slotId,
-      slotCount: '0',
+      slotCount: 0,
       optionsIds: [],
       optionsCount: [],
     },
@@ -91,14 +92,15 @@ export default async (params: CreateWorkflowParams): Promise<string> => {
   });
 
   const orderLoaderFn = () =>
-    Orders.getByExternalId(params.consumerAddress, externalId, workflowCreationBLock.index).then(
-      (event) => {
-        if (event?.orderId !== '-1') {
-          return event.orderId;
-        }
-        throw new Error("TEE order wasn't created. Try increasing the gas price.");
-      },
-    );
+    Orders.getByExternalId(
+      { externalId, consumer: params.consumerAddress },
+      workflowCreationBLock.index,
+    ).then((event) => {
+      if (event && event?.orderId !== '-1') {
+        return event.orderId;
+      }
+      throw new Error("TEE order wasn't created. Try increasing the gas price.");
+    });
 
   const orderId = await doWithRetries(orderLoaderFn);
 

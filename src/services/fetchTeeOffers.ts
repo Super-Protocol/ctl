@@ -27,24 +27,24 @@ export type TeeOfferDto = {
   enabled?: boolean;
 };
 
-export type TeeOfferItem = NonNullable<TeeOffersQuery['result']['page']['edges']>[number];
+export type TeeOfferItem = NonNullable<TeeOffersQuery['result']['page']['edges']>[number]['node'];
 
-export type TeeOfferItemOptions = NonNullable<TeeOfferItem['node']>['options'];
+export type TeeOfferItemOptions = NonNullable<TeeOfferItem>['options'];
 
 export const formatFetchedTeeOffer = (item: TeeOfferItem): TeeOfferDto => {
   return {
-    id: item.node?.id,
-    name: item.node?.teeOfferInfo?.name,
-    description: item.node?.teeOfferInfo?.description,
-    providerName: item.node?.providerInfo.name,
-    providerAddress: item.node?.origins?.createdBy,
-    totalCores: item.node?.teeOfferInfo?.hardwareInfo?.slotInfo?.cpuCores,
-    freeCores: item.node?.stats?.freeCores,
-    slots: item.node?.slots,
-    ordersInQueue: (item.node?.stats?.new || 0) + (item.node?.stats?.processing || 0),
+    id: item?.id,
+    name: item?.teeOfferInfo?.name,
+    description: item?.teeOfferInfo?.description,
+    providerName: item?.providerInfo.name,
+    providerAddress: item?.origins?.createdBy,
+    totalCores: item?.teeOfferInfo?.hardwareInfo?.slotInfo?.cpuCores,
+    freeCores: item?.stats?.freeCores,
+    slots: item?.slots,
+    ordersInQueue: (item?.stats?.new || 0) + (item?.stats?.processing || 0),
     cancelable: false,
-    modifiedDate: formatDate(item.node?.origins?.modifiedDate),
-    enabled: item.node?.enabled,
+    modifiedDate: formatDate(item?.origins?.modifiedDate),
+    enabled: item?.enabled,
   };
 };
 
@@ -69,7 +69,7 @@ export default async (
     );
 
     return {
-      list: result.page.edges?.map((item) => item) || [],
+      list: result.page.edges?.map((item) => item.node) || [],
       cursor: result.page.pageInfo?.endCursor || '',
     };
   } catch (error: any) {

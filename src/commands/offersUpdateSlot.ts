@@ -20,7 +20,7 @@ export default async (params: OffersAddSlotParams) => {
   });
 
   switch (params.type) {
-    case 'tee':
+    case 'tee': {
       const teeOfferSlot = await readTeeOfferSlot({
         path: params.slotPath,
       });
@@ -30,8 +30,8 @@ export default async (params: OffersAddSlotParams) => {
       const teeOffer = new TeeOffer(params.offerId);
       await teeOffer.updateSlot(params.slotId, teeOfferSlot.info, teeOfferSlot.usage);
       break;
-
-    case 'value':
+    }
+    case 'value': {
       const valueOfferSlot = await readValueOfferSlot({
         path: params.slotPath,
       });
@@ -46,7 +46,7 @@ export default async (params: OffersAddSlotParams) => {
         valueOfferSlot.usage,
       );
       break;
-
+    }
     default:
       throw new Error(`Unknown offer type ${params.type} provided`);
   }
