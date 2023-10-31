@@ -19,7 +19,7 @@ export default async (params: OffersGetSlotParams): Promise<void> => {
     limit: 1,
     id: params.offerId,
   }).then(({ list }): TeeOfferOption | undefined => {
-    const optionItem = (list[0]?.node?.options as TeeOfferItemOptions)?.find(
+    const optionItem = (list[0]?.options as TeeOfferItemOptions)?.find(
       (option) => option.id === params.optionId,
     );
 

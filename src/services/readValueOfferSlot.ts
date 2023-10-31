@@ -1,5 +1,5 @@
 import z from 'zod';
-import { ValueOfferSlot } from '@super-protocol/sdk-js/build/types/ValueOfferSlot';
+import { ValueOfferSlot } from '@super-protocol/sdk-js';
 import readJsonFile from './readJsonFile';
 import { SlotInfoValidator, SlotUsageValidator, OptionInfoValidator } from './baseValidators';
 

@@ -6,7 +6,6 @@ import {
   OrderStatus,
   Offer,
   OfferType,
-  OfferInfo,
   Web3TransactionRevertedByEvmError,
 } from '@super-protocol/sdk-js';
 import Printer from '../printer';
@@ -21,10 +20,9 @@ import { ErrorTxRevertedByEvm, etherToWei, getObjectKey, weiToEther } from '../u
 import getPublicFromPrivate from '../services/getPublicFromPrivate';
 import fetchOrdersCountService from '../services/fetchOrdersCount';
 import { TOfferType } from '../gql';
-import fetchOffers from '../services/fetchOffers';
+import fetchOffers, { OfferItem } from '../services/fetchOffers';
 import fetchTeeOffers from '../services/fetchTeeOffers';
 import { BigNumber } from 'ethers';
-import { ValueOfferSlot } from '@super-protocol/sdk-js/build/types/ValueOfferSlot';
 
 export type WorkflowCreateParams = {
   backendUrl: string;
@@ -33,9 +31,9 @@ export type WorkflowCreateParams = {
   actionAccountKey: string;
 
   tee: string;
-  teeSlotCount: string;
+  teeSlotCount: number;
   teeOptionsIds: string[];
-  teeOptionsCount: string[];
+  teeOptionsCount: number[];
 
   storage: string;
   solution: string[];
@@ -47,9 +45,9 @@ export type WorkflowCreateParams = {
 };
 
 type FethchedOffer = {
-  id: string;
-  offerInfo: Partial<OfferInfo>;
-  slots: Partial<ValueOfferSlot>[];
+  id: NonNullable<OfferItem>['id'];
+  offerInfo: NonNullable<OfferItem>['offerInfo'];
+  slots: NonNullable<OfferItem>['slots'];
 };
 
 const workflowCreate = async (params: WorkflowCreateParams): Promise<string | void> => {
@@ -112,7 +110,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     throw new Error(`TEE offer ${tee.id} does not exist or is of the wrong type`);
   }
 
-  const teeOfferSlots = fetchedTeeOffer.node?.slots.map((slot) => slot.id);
+  const teeOfferSlots = fetchedTeeOffer?.slots.map((slot) => slot.id);
   if (teeOfferSlots) {
     checkSlot(teeOfferSlots, tee.id, tee.slotId, OfferType.TeeOffer);
   }
@@ -126,11 +124,11 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     ids: valueOfferIds,
   }).then(
     ({ list }) => <FethchedOffer[]>list
-        .filter((item) => Boolean(item.node))
+        .filter((item) => Boolean(item))
         .map((item) => ({
-          offerInfo: item.node?.offerInfo || {},
-          slots: item.node?.slots || [],
-          id: item.node?.id,
+          offerInfo: item?.offerInfo || {},
+          slots: item?.slots || [],
+          id: item?.id,
         })),
   );
 
@@ -143,7 +141,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   const restrictionOffersMap = new Map<string, Offer>(
     fetchedValueOffers
       .flatMap(({ offerInfo }) => offerInfo.restrictions?.offers || [])
-      .map((id) => [id, new Offer(id)]),
+      .map((id) => [id.toString(), new Offer(id)]),
   );
 
   Printer.print('Validating workflow configuration');
@@ -282,26 +280,24 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
 
   for (let pos = 0; pos < params.workflowNumber; pos++) {
-    workflowPromises[pos] = new Promise(async (resolve) => {
-      try {
-        resolve(
-          await createWorkflowService({
-            teeOffer: teeOfferParams,
-            storageOffer: storage,
-            inputOffers: inputOffersParams,
-            argsToEncrypt: JSON.stringify({
-              data: dataTIIs,
-              solution: solutionTIIs,
-            }),
-            resultPublicKey: resultEncryption,
-            holdDeposit: holdDeposit.toString(),
-            consumerAddress: consumerAddress!,
-          }),
-        );
-      } catch (error) {
-        Printer.error(`Error creating workflow ${error}`);
-        resolve(null);
-      }
+    workflowPromises[pos] = new Promise((resolve) => {
+      createWorkflowService({
+        teeOffer: teeOfferParams,
+        storageOffer: storage,
+        inputOffers: inputOffersParams,
+        argsToEncrypt: JSON.stringify({
+          data: dataTIIs,
+          solution: solutionTIIs,
+        }),
+        resultPublicKey: resultEncryption,
+        holdDeposit: holdDeposit.toString(),
+        consumerAddress: consumerAddress!,
+      })
+        .then((workflowId) => resolve(workflowId))
+        .catch((error) => {
+          Printer.error(`Error creating workflow ${error}`);
+          resolve(null);
+        });
     });
   }
 

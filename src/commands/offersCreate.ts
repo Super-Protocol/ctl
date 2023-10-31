@@ -1,4 +1,4 @@
-import { Config as BlockchainConfig } from '@super-protocol/sdk-js';
+import { Config as BlockchainConfig, BlockchainId } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import createValueOffer from '../services/createValueOffer';
@@ -20,9 +20,9 @@ export default async (params: OffersCreateParams) => {
     actionAccountKey: params.actionAccountKey,
   });
 
-  let id: string;
+  let id: BlockchainId;
   switch (params.type) {
-    case 'tee':
+    case 'tee':{
       const teeOfferInfo = await readTeeOfferInfo({ path: params.offerInfoPath });
 
       Printer.print('Offer info file was read successfully');
@@ -32,8 +32,8 @@ export default async (params: OffersCreateParams) => {
         action: params.actionAccountKey,
         offerInfo: teeOfferInfo,
       });
-      break;
-    case 'value':
+      break;}
+    case 'value':{
       const offerInfo = await readValueOfferInfo({ path: params.offerInfoPath });
 
       Printer.print('Offer info file was read successfully');
@@ -44,7 +44,7 @@ export default async (params: OffersCreateParams) => {
         offerInfo,
       });
       break;
-
+}
     default:
       throw new Error(`Unknown offer type ${params.type} provided`);
   }

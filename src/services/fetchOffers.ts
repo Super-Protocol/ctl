@@ -26,22 +26,22 @@ export type OfferDto = {
   enabled?: boolean;
 };
 
-export type OfferItem = NonNullable<OffersQuery['result']['page']['edges']>[number];
+export type OfferItem = NonNullable<OffersQuery['result']['page']['edges']>[number]['node'];
 
-export type OfferItemSlots = NonNullable<OfferItem['node']>['slots'];
+export type OfferItemSlots = NonNullable<OfferItem>['slots'];
 
 export const formatFetchedOffer = (item: OfferItem): OfferDto => {
   return {
-    id: item.node?.id,
-    name: item.node?.offerInfo?.name,
-    description: item.node?.offerInfo?.description,
-    type: getObjectKey(item.node?.offerInfo.offerType, OfferType),
-    providerName: item.node?.providerInfo.name,
-    providerAddress: item.node?.origins?.createdBy,
-    cancelable: item.node?.offerInfo?.cancelable,
-    modifiedDate: formatDate(item.node?.origins?.modifiedDate),
-    dependsOnOffers: item.node?.offerInfo.restrictions?.offers || [],
-    enabled: item.node?.enabled,
+    id: item?.id,
+    name: item?.offerInfo?.name,
+    description: item?.offerInfo?.description,
+    type: getObjectKey(item?.offerInfo.offerType, OfferType),
+    providerName: item?.providerInfo.name,
+    providerAddress: item?.origins?.createdBy,
+    cancelable: item?.offerInfo?.cancelable,
+    modifiedDate: formatDate(item?.origins?.modifiedDate),
+    dependsOnOffers: item?.offerInfo.restrictions?.offers || [],
+    enabled: item?.enabled,
   };
 };
 
@@ -66,7 +66,7 @@ export default async (
     );
 
     return {
-      list: result.page.edges?.map((item) => item) || [],
+      list: result.page.edges?.map((item) => item.node) || [],
       cursor: result.page.pageInfo?.endCursor || '',
     };
   } catch (error: any) {
