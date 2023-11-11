@@ -117,3 +117,14 @@ query OffersRestrictions($pagination: ConnectionArgs!, $filter: OfferFilter) {
         }
     }
 }
+
+query MinimalConfiguration($offers: [[String!]!]!) {
+  result: getMinimalConfiguration(offers: $offers) {
+    cpuCores
+    ram
+    diskUsage
+    bandwidth
+    traffic
+    externalPort
+  }
+}

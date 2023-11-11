@@ -29,7 +29,7 @@ const calcWorkflowDeposit = async (params: CalcWorkflowDepositParams) => {
     optionsIds,
     optionsCount,
   );
-  offersDeposits.add(teeOfferMinDeposit);
+  offersDeposits = offersDeposits.add(teeOfferMinDeposit);
 
   const workflowDeposit = offersDeposits.gte(orderMinDeposit)
     ? offersDeposits

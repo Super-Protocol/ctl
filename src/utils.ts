@@ -148,3 +148,16 @@ export const preparePath = (rawPath: string) => {
   if (path.isAbsolute(rawPath)) return rawPath;
   return path.join(process.cwd(), rawPath);
 };
+
+export const formatTeeOptions = (
+  options: { id: string; count: number }[],
+): { ids: string[]; counts: number[] } => {
+  return options.reduce(
+    (acc: { ids: string[]; counts: number[] }, curr) => {
+      acc.ids.push(curr.id);
+      acc.counts.push(curr.count);
+      return acc;
+    },
+    { ids: [], counts: [] },
+  );
+};

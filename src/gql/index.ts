@@ -33,7 +33,7 @@ export type BaseOrder = {
   orderOutputReserve?: Maybe<Scalars['String']>;
   orderResult: OrderResult;
   origins?: Maybe<Origins>;
-  selectedUsage: OrderUsage;
+  selectedUsage?: Maybe<OrderUsage>;
   startDate: Scalars['Float'];
   teeOfferInfo?: Maybe<TeeOfferInfo>;
   totalDeposit?: Maybe<Scalars['String']>;
@@ -51,7 +51,7 @@ export type BaseOrderInputType = {
   orderInfo: OrderInfoInput;
   orderOutputReserve?: InputMaybe<Scalars['String']>;
   orderResult: OrderResultInput;
-  selectedUsage: OrderUsageInput;
+  selectedUsage?: InputMaybe<OrderUsageInput>;
   startDate: Scalars['Float'];
   teeOfferInfo?: InputMaybe<TeeOfferInfoInput>;
   totalDeposit?: InputMaybe<Scalars['String']>;
@@ -173,17 +173,66 @@ export type Erc20rFilter = {
   owner?: InputMaybe<Scalars['String']>;
 };
 
-export type EventData = {
-  __typename?: 'EventData';
+export type Event = {
+  __typename?: 'Event';
+  _id: Scalars['String'];
+  consumer?: Maybe<Scalars['String']>;
   contract: Scalars['String'];
-  data: EventObject;
+  externalId?: Maybe<Scalars['String']>;
+  from?: Maybe<Scalars['String']>;
   name: Scalars['String'];
+  offerId?: Maybe<Scalars['String']>;
+  orderId: Scalars['String'];
+  orderStatus?: Maybe<Scalars['String']>;
+  owner?: Maybe<Scalars['String']>;
+  parentOrderId?: Maybe<Scalars['String']>;
+  spender?: Maybe<Scalars['String']>;
+  to?: Maybe<Scalars['String']>;
+  transactionBlockNumber: Scalars['Float'];
+  transactionHash: Scalars['String'];
+  transactionTimestamp: Scalars['Float'];
+  value?: Maybe<Scalars['String']>;
+};
+
+export type EventConnection = {
+  __typename?: 'EventConnection';
+  edges?: Maybe<Array<EventEdge>>;
+  pageInfo?: Maybe<EventPageInfo>;
+};
+
+export type EventDataFilter = {
+  /** filter by event name */
+  name?: InputMaybe<Scalars['String']>;
+  /** filter by order ID */
+  orderId?: InputMaybe<Scalars['String']>;
+  /** filter by parent order ID */
+  parentOrderId?: InputMaybe<Scalars['String']>;
 };
 
 export type EventDataInput = {
+  _id: Scalars['String'];
+  consumer?: InputMaybe<Scalars['String']>;
   contract: Scalars['String'];
-  data: EventObjectInput;
+  externalId?: InputMaybe<Scalars['String']>;
+  from?: InputMaybe<Scalars['String']>;
   name: Scalars['String'];
+  offerId?: InputMaybe<Scalars['String']>;
+  orderId: Scalars['String'];
+  orderStatus?: InputMaybe<Scalars['String']>;
+  owner?: InputMaybe<Scalars['String']>;
+  parentOrderId?: InputMaybe<Scalars['String']>;
+  spender?: InputMaybe<Scalars['String']>;
+  to?: InputMaybe<Scalars['String']>;
+  transactionBlockNumber: Scalars['Float'];
+  transactionHash: Scalars['String'];
+  transactionTimestamp: Scalars['Float'];
+  value?: InputMaybe<Scalars['String']>;
+};
+
+export type EventEdge = {
+  __typename?: 'EventEdge';
+  cursor?: Maybe<Scalars['String']>;
+  node?: Maybe<Event>;
 };
 
 export type EventFilter = {
@@ -198,29 +247,12 @@ export type EventFilterField = {
   offerType?: InputMaybe<TOfferType>;
 };
 
-export type EventObject = {
-  __typename?: 'EventObject';
-  consumer?: Maybe<Scalars['String']>;
-  externalId?: Maybe<Scalars['String']>;
-  from?: Maybe<Scalars['String']>;
-  offerId?: Maybe<Scalars['String']>;
-  orderId?: Maybe<Scalars['String']>;
-  owner?: Maybe<Scalars['String']>;
-  spender?: Maybe<Scalars['String']>;
-  to?: Maybe<Scalars['String']>;
-  value?: Maybe<Scalars['String']>;
-};
-
-export type EventObjectInput = {
-  consumer?: InputMaybe<Scalars['String']>;
-  externalId?: InputMaybe<Scalars['String']>;
-  from?: InputMaybe<Scalars['String']>;
-  offerId?: InputMaybe<Scalars['String']>;
-  orderId?: InputMaybe<Scalars['String']>;
-  owner?: InputMaybe<Scalars['String']>;
-  spender?: InputMaybe<Scalars['String']>;
-  to?: InputMaybe<Scalars['String']>;
-  value?: InputMaybe<Scalars['String']>;
+export type EventPageInfo = {
+  __typename?: 'EventPageInfo';
+  endCursor?: Maybe<Scalars['String']>;
+  hasNextPage: Scalars['Boolean'];
+  hasPreviousPage: Scalars['Boolean'];
+  startCursor?: Maybe<Scalars['String']>;
 };
 
 export type EventSource = {
@@ -253,6 +285,12 @@ export type ListErc20Response = {
   pageData?: Maybe<PageDataDto>;
 };
 
+export type ListEventResponse = {
+  __typename?: 'ListEventResponse';
+  page: EventConnection;
+  pageData?: Maybe<PageDataDto>;
+};
+
 export type ListOffersResponse = {
   __typename?: 'ListOffersResponse';
   page: OfferConnection;
@@ -280,12 +318,6 @@ export type ListTeeOffersAndSlots = {
 export type ListTeeOffersResponse = {
   __typename?: 'ListTeeOffersResponse';
   page: TeeOfferConnection;
-  pageData?: Maybe<PageDataDto>;
-};
-
-export type ListTransactionResponse = {
-  __typename?: 'ListTransactionResponse';
-  page: TransactionConnection;
   pageData?: Maybe<PageDataDto>;
 };
 
@@ -589,7 +621,7 @@ export type Order = {
   origins?: Maybe<Origins>;
   parentOrder?: Maybe<ParentOrder>;
   providerInfo: ProviderInformation;
-  selectedUsage: OrderUsage;
+  selectedUsage?: Maybe<OrderUsage>;
   startDate: Scalars['Float'];
   subOrders?: Maybe<Array<BaseOrder>>;
   teeOfferInfo?: Maybe<TeeOfferInfo>;
@@ -627,6 +659,34 @@ export enum OrderEventType {
   SuborderCreated = 'suborderCreated',
   SuborderUpdated = 'suborderUpdated'
 }
+
+export type OrderEventsUpdated = {
+  __typename?: 'OrderEventsUpdated';
+  _id: Scalars['String'];
+  consumer?: Maybe<Scalars['String']>;
+  contract: Scalars['String'];
+  externalId?: Maybe<Scalars['String']>;
+  from?: Maybe<Scalars['String']>;
+  name: Scalars['String'];
+  offerId?: Maybe<Scalars['String']>;
+  orderId: Scalars['String'];
+  orderStatus?: Maybe<Scalars['String']>;
+  owner?: Maybe<Scalars['String']>;
+  parentOrderId?: Maybe<Scalars['String']>;
+  spender?: Maybe<Scalars['String']>;
+  to?: Maybe<Scalars['String']>;
+  transactionBlockNumber: Scalars['Float'];
+  transactionHash: Scalars['String'];
+  transactionTimestamp: Scalars['Float'];
+  value?: Maybe<Scalars['String']>;
+};
+
+export type OrderEventsUpdatedInput = {
+  /** filter by order ids */
+  orderIds?: InputMaybe<Array<Scalars['String']>>;
+  /** filter by parent order ids */
+  parentOrderIds?: InputMaybe<Array<Scalars['String']>>;
+};
 
 export type OrderInfo = {
   __typename?: 'OrderInfo';
@@ -709,7 +769,7 @@ export type OrderInputType = {
   orderResult: OrderResultInput;
   parentOrder?: InputMaybe<ParentOrderInputType>;
   providerInfo: ProviderInformationInput;
-  selectedUsage: OrderUsageInput;
+  selectedUsage?: InputMaybe<OrderUsageInput>;
   startDate: Scalars['Float'];
   subOrders?: InputMaybe<Array<BaseOrderInputType>>;
   teeOfferInfo?: InputMaybe<TeeOfferInfoInput>;
@@ -771,16 +831,16 @@ export type OrderResultInput = {
 
 export type OrderSlots = {
   __typename?: 'OrderSlots';
-  optionsCount: Array<Scalars['String']>;
+  optionsCount: Array<Scalars['Float']>;
   optionsIds: Array<Scalars['String']>;
-  slotCount: Scalars['String'];
+  slotCount: Scalars['Float'];
   slotId: Scalars['String'];
 };
 
 export type OrderSlotsInput = {
-  optionsCount: Array<Scalars['String']>;
+  optionsCount: Array<Scalars['Float']>;
   optionsIds: Array<Scalars['String']>;
-  slotCount: Scalars['String'];
+  slotCount: Scalars['Float'];
   slotId: Scalars['String'];
 };
 
@@ -882,7 +942,7 @@ export type ParentOrder = {
   orderResult: OrderResult;
   origins?: Maybe<Origins>;
   parentOrder?: Maybe<Scalars['String']>;
-  selectedUsage: OrderUsage;
+  selectedUsage?: Maybe<OrderUsage>;
   startDate: Scalars['Float'];
   teeOfferInfo?: Maybe<TeeOfferInfo>;
   totalDeposit?: Maybe<Scalars['String']>;
@@ -901,7 +961,7 @@ export type ParentOrderInputType = {
   orderOutputReserve?: InputMaybe<Scalars['String']>;
   orderResult: OrderResultInput;
   parentOrder?: InputMaybe<Scalars['String']>;
-  selectedUsage: OrderUsageInput;
+  selectedUsage?: InputMaybe<OrderUsageInput>;
   startDate: Scalars['Float'];
   teeOfferInfo?: InputMaybe<TeeOfferInfoInput>;
   totalDeposit?: InputMaybe<Scalars['String']>;
@@ -1009,6 +1069,8 @@ export type Query = {
   configs: ListConfigResponse;
   coresStatistic: Array<CoresStatisticPoint>;
   erc20: Erc20;
+  event: Event;
+  events: ListEventResponse;
   getMatchingTeeSlots: ListTeeOffersAndSlots;
   getMinimalConfiguration: OfferConfiguration;
   listErc20: ListErc20Response;
@@ -1025,9 +1087,8 @@ export type Query = {
   teeBalanceOf: Scalars['String'];
   teeOffer: TeeOffer;
   teeOffers: ListTeeOffersResponse;
-  transaction: Transaction;
-  transactions: ListTransactionResponse;
   uniqConsumersStatistic: Array<StatisticPoint>;
+  validateConfiguraion: ValidationResult;
 };
 
 
@@ -1056,6 +1117,17 @@ export type QueryCoresStatisticArgs = {
 
 export type QueryErc20Args = {
   _id: Scalars['String'];
+};
+
+
+export type QueryEventArgs = {
+  _id: Scalars['String'];
+};
+
+
+export type QueryEventsArgs = {
+  filter?: InputMaybe<EventDataFilter>;
+  pagination: ConnectionArgs;
 };
 
 
@@ -1149,21 +1221,21 @@ export type QueryTeeOffersArgs = {
 };
 
 
-export type QueryTransactionArgs = {
-  _id: Scalars['String'];
-};
-
-
-export type QueryTransactionsArgs = {
-  filter?: InputMaybe<TransactionFilter>;
-  pagination: ConnectionArgs;
-};
-
-
 export type QueryUniqConsumersStatisticArgs = {
   dateFrom: Scalars['Float'];
   dateTo: Scalars['Float'];
   pointsCount?: InputMaybe<Scalars['Float']>;
+};
+
+
+export type QueryValidateConfiguraionArgs = {
+  input: WorkflowConfigurationValidation;
+};
+
+export type ResourceRequirement = {
+  __typename?: 'ResourceRequirement';
+  provided: Scalars['Float'];
+  required: Scalars['Float'];
 };
 
 export type SlotInfo = {
@@ -1250,6 +1322,8 @@ export type Subscription = {
   event: SubscriptionPayload;
   /** order event */
   order: OrderPayload;
+  /** order events updated event. My be filtered by order ID */
+  orderEventsUpdated: OrderEventsUpdated;
   /** order status updated event. My be filtered by order ID */
   orderStatusUpdated: OrderStatusUpdatedPayload;
   /** Suborder created event. My be filtered by parent ID */
@@ -1269,6 +1343,11 @@ export type SubscriptionOrderArgs = {
   eventTypes?: InputMaybe<Array<OrderEventType>>;
   externalId?: InputMaybe<Scalars['String']>;
   orderIds?: InputMaybe<Array<Scalars['String']>>;
+};
+
+
+export type SubscriptionOrderEventsUpdatedArgs = {
+  input: OrderEventsUpdatedInput;
 };
 
 
@@ -1361,7 +1440,7 @@ export type TeeOfferEdge = {
 
 export type TeeOfferFilter = {
   /** filter by teeOfferInfo.hardwareInfo.optionInfo → bandwidth */
-  bandwidth?: InputMaybe<Array<Scalars['Float']>>;
+  bandwidth?: InputMaybe<Scalars['Float']>;
   /** filter by teeOfferInfo.hardwareInfo.slotInfo → cpuCores */
   cpuCores?: InputMaybe<Array<Scalars['Float']>>;
   /** filter by teeOfferInfo.hardwareInfo.slotInfo → diskUsage */
@@ -1383,7 +1462,7 @@ export type TeeOfferFilter = {
   /** filter by teeOfferInfo.hardwareInfo.slotInfo → ram */
   ram?: InputMaybe<Array<Scalars['Float']>>;
   /** filter by teeOfferInfo.hardwareInfo.optionInfo → traffic */
-  traffic?: InputMaybe<Array<Scalars['Float']>>;
+  traffic?: InputMaybe<Scalars['Float']>;
   /** filter by slot/option usage → minTimeMinutes,maxTimeMinutes */
   usageMinutes?: InputMaybe<Array<Scalars['Float']>>;
 };
@@ -1454,6 +1533,12 @@ export type TeeOfferSlotInput = {
   usage: SlotUsageInput;
 };
 
+export type TeeOfferWithSlotsAndOptions = {
+  offerId: Scalars['String'];
+  options: Array<TeeSlot>;
+  slot: TeeSlot;
+};
+
 export type TeeOffersAndSLots = {
   __typename?: 'TeeOffersAndSLots';
   optionsResult?: Maybe<MatchingOptions>;
@@ -1489,74 +1574,25 @@ export type TeeOffersAndSLotsType = {
   teeOffer: TeeOfferInputType;
 };
 
-export type Transaction = {
-  __typename?: 'Transaction';
-  baseAddress: Scalars['String'];
-  blockHash?: Maybe<Scalars['String']>;
-  blockNumber?: Maybe<Scalars['Float']>;
-  events?: Maybe<Array<EventData>>;
-  from: Scalars['String'];
-  gas: Scalars['Float'];
-  gasPrice: Scalars['String'];
-  hash: Scalars['String'];
-  input: Scalars['String'];
-  nonce: Scalars['Float'];
-  r: Scalars['String'];
-  s: Scalars['String'];
-  timestamp: Scalars['Float'];
-  to?: Maybe<Scalars['String']>;
-  transactionIndex: Scalars['Float'];
-  v: Scalars['String'];
-  value: Scalars['String'];
+export type TeeSlot = {
+  count: Scalars['Float'];
+  id: Scalars['String'];
 };
 
-export type TransactionConnection = {
-  __typename?: 'TransactionConnection';
-  edges?: Maybe<Array<TransactionEdge>>;
-  pageInfo?: Maybe<TransactionPageInfo>;
+export type ValidationErrors = {
+  __typename?: 'ValidationErrors';
+  bandwidth?: Maybe<ResourceRequirement>;
+  cpuCores?: Maybe<ResourceRequirement>;
+  diskUsage?: Maybe<ResourceRequirement>;
+  externalPort?: Maybe<ResourceRequirement>;
+  ram?: Maybe<ResourceRequirement>;
+  traffic?: Maybe<ResourceRequirement>;
 };
 
-export type TransactionEdge = {
-  __typename?: 'TransactionEdge';
-  cursor?: Maybe<Scalars['String']>;
-  node?: Maybe<Transaction>;
-};
-
-export type TransactionFilter = {
-  /** filter by hash */
-  hash?: InputMaybe<Scalars['String']>;
-  /** filter by receiver */
-  receiver?: InputMaybe<Scalars['String']>;
-  /** filter by sender */
-  sender?: InputMaybe<Scalars['String']>;
-};
-
-export type TransactionInputType = {
-  baseAddress: Scalars['String'];
-  blockHash?: InputMaybe<Scalars['String']>;
-  blockNumber?: InputMaybe<Scalars['Float']>;
-  events?: InputMaybe<Array<EventDataInput>>;
-  from: Scalars['String'];
-  gas: Scalars['Float'];
-  gasPrice: Scalars['String'];
-  hash: Scalars['String'];
-  input: Scalars['String'];
-  nonce: Scalars['Float'];
-  r: Scalars['String'];
-  s: Scalars['String'];
-  timestamp: Scalars['Float'];
-  to?: InputMaybe<Scalars['String']>;
-  transactionIndex: Scalars['Float'];
-  v: Scalars['String'];
-  value: Scalars['String'];
-};
-
-export type TransactionPageInfo = {
-  __typename?: 'TransactionPageInfo';
-  endCursor?: Maybe<Scalars['String']>;
-  hasNextPage: Scalars['Boolean'];
-  hasPreviousPage: Scalars['Boolean'];
-  startCursor?: Maybe<Scalars['String']>;
+export type ValidationResult = {
+  __typename?: 'ValidationResult';
+  errors?: Maybe<ValidationErrors>;
+  success: Scalars['Boolean'];
 };
 
 export type ValueObject = {
@@ -1584,6 +1620,22 @@ export type ValueObjectType = {
   teeRewardPerEpoch?: InputMaybe<Scalars['String']>;
   token?: InputMaybe<Scalars['String']>;
   tokenReceiverAddress?: InputMaybe<Scalars['String']>;
+};
+
+export type ValueOfferWithSlotsAndOptions = {
+  offerId: Scalars['String'];
+  slot: ValueSlot;
+};
+
+export type ValueSlot = {
+  id: Scalars['String'];
+};
+
+export type WorkflowConfigurationValidation = {
+  data: Array<ValueOfferWithSlotsAndOptions>;
+  solution: ValueOfferWithSlotsAndOptions;
+  storage: ValueOfferWithSlotsAndOptions;
+  tee: TeeOfferWithSlotsAndOptions;
 };
 
 export type WorkflowCreatedFilter = {
@@ -1626,7 +1678,7 @@ export type OffersQueryVariables = Exact<{
 }>;
 
 
-export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', group: string, offerType: string, allowedAccounts: Array<string>, allowedArgs?: string | null, argsPublicKey: string, cancelable: boolean, description: string, hash: string, linkage: string, name: string, metadata: string, resultResource: string, input: string, output: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
+export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, metadata: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, linkage: string, hash: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
 
 export type OffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1643,6 +1695,13 @@ export type OffersRestrictionsQueryVariables = Exact<{
 
 
 export type OffersRestrictionsQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', page: { __typename?: 'OfferConnection', edges?: Array<{ __typename?: 'OfferEdge', node?: { __typename?: 'Offer', id: string, offerInfo: { __typename?: 'OfferInfo', restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null } | null } } | null }> | null } } };
+
+export type MinimalConfigurationQueryVariables = Exact<{
+  offers: Array<Array<Scalars['String']> | Scalars['String']> | Array<Scalars['String']> | Scalars['String'];
+}>;
+
+
+export type MinimalConfigurationQuery = { __typename?: 'Query', result: { __typename?: 'OfferConfiguration', cpuCores: number, ram: number, diskUsage: number, bandwidth: number, traffic: number, externalPort: number } };
 
 export type OrdersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1696,7 +1755,7 @@ export type TeeOffersQueryVariables = Exact<{
 }>;
 
 
-export type TeeOffersQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', _id: string, id: string, authority?: string | null, disabledAfter: number, providerAddress: string, enabled: boolean, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, teeOfferInfo: { __typename?: 'TeeOfferInfo', argsPublicKey: string, description: string, name: string, teeType: string, tlb: string, properties: string, hardwareInfo: { __typename?: 'HardwareInfo', slotInfo: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, optionInfo: { __typename?: 'OptionInfo', bandwidth: number, traffic: number, externalPort: number } } }, slots: Array<{ __typename?: 'TeeOfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, options: Array<{ __typename?: 'TeeOfferOption', id: string, info: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, stats?: { __typename?: 'Stats', freeCores?: number | null, ordersInQueue?: number | null, new?: number | null, processing?: number | null } | null } | null }> | null, pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
+export type TeeOffersQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', _id: string, id: string, authority?: string | null, disabledAfter: number, providerAddress: string, enabled: boolean, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, teeOfferInfo: { __typename?: 'TeeOfferInfo', name: string, description: string, teeType: string, properties: string, tlb: string, argsPublicKey: string, hardwareInfo: { __typename?: 'HardwareInfo', slotInfo: { __typename?: 'SlotInfo', cpuCores: number, ram: number, diskUsage: number }, optionInfo: { __typename?: 'OptionInfo', bandwidth: number, traffic: number, externalPort: number } } }, slots: Array<{ __typename?: 'TeeOfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, options: Array<{ __typename?: 'TeeOfferOption', id: string, info: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, stats?: { __typename?: 'Stats', freeCores?: number | null, ordersInQueue?: number | null, new?: number | null, processing?: number | null } | null } | null }> | null, pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
 
 export type TeeOffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1705,6 +1764,14 @@ export type TeeOffersSelectQueryVariables = Exact<{
 
 
 export type TeeOffersSelectQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', id: string, teeOfferInfo: { __typename?: 'TeeOfferInfo', name: string, description: string } } | null }> | null } } };
+
+export type GetMatchingTeeSlotsQueryVariables = Exact<{
+  filter?: InputMaybe<TeeOfferFilter>;
+  pagination: ConnectionArgs;
+}>;
+
+
+export type GetMatchingTeeSlotsQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersAndSlots', page: { __typename?: 'TeeOffersAndSLotsConnection', edges?: Array<{ __typename?: 'TeeOffersAndSLotsEdge', node?: { __typename?: 'TeeOffersAndSLots', price: string, teeOffer: { __typename?: 'TeeOffer', id: string }, slotResult: { __typename?: 'MatchingSlot', multiplier: number, price: string, slot: { __typename?: 'TeeOfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } } }, optionsResult?: { __typename?: 'MatchingOptions', pricePerHour: string, priceFixed: string, optionResults: Array<{ __typename?: 'MatchingOptionResult', id: string, count: number, info: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, cumulativeValues: { __typename?: 'OptionInfo', bandwidth: number, traffic: number, externalPort: number } } | null } | null }> | null } } };
 
 export const PageDataDtoFragmentFragmentDoc = gql`
     fragment PageDataDtoFragment on PageDataDto {
@@ -1751,24 +1818,24 @@ export const OffersDocument = gql`
           id
           authority
           offerInfo {
+            name
             group
             offerType
-            allowedAccounts
-            allowedArgs
-            argsPublicKey
             cancelable
             description
-            hash
-            linkage
-            name
-            metadata
-            resultResource
-            input
-            output
             restrictions {
               offers
               types
             }
+            metadata
+            input
+            output
+            allowedArgs
+            allowedAccounts
+            argsPublicKey
+            resultResource
+            linkage
+            hash
           }
           enabled
           slots {
@@ -1852,6 +1919,18 @@ export const OffersRestrictionsDocument = gql`
         }
       }
     }
+  }
+}
+    `;
+export const MinimalConfigurationDocument = gql`
+    query MinimalConfiguration($offers: [[String!]!]!) {
+  result: getMinimalConfiguration(offers: $offers) {
+    cpuCores
+    ram
+    diskUsage
+    bandwidth
+    traffic
+    externalPort
   }
 }
     `;
@@ -2104,17 +2183,17 @@ export const TeeOffersDocument = gql`
             tokenReceiver
           }
           teeOfferInfo {
-            argsPublicKey
-            description
             name
+            description
             teeType
-            tlb
             properties
+            tlb
+            argsPublicKey
             hardwareInfo {
               slotInfo {
                 cpuCores
-                diskUsage
                 ram
+                diskUsage
               }
               optionInfo {
                 bandwidth
@@ -2197,6 +2276,58 @@ export const TeeOffersSelectDocument = gql`
   }
 }
     ${PageDataDtoFragmentFragmentDoc}`;
+export const GetMatchingTeeSlotsDocument = gql`
+    query GetMatchingTeeSlots($filter: TeeOfferFilter, $pagination: ConnectionArgs!) {
+  result: getMatchingTeeSlots(filter: $filter, pagination: $pagination) {
+    page {
+      edges {
+        node {
+          teeOffer {
+            id
+          }
+          slotResult {
+            slot {
+              id
+              info {
+                cpuCores
+                diskUsage
+                ram
+              }
+              usage {
+                maxTimeMinutes
+                minTimeMinutes
+                price
+                priceType
+              }
+            }
+            multiplier
+            price
+          }
+          optionsResult {
+            optionResults {
+              id
+              count
+              info {
+                bandwidth
+                externalPort
+                traffic
+              }
+            }
+            cumulativeValues {
+              bandwidth
+              traffic
+              externalPort
+            }
+            pricePerHour
+            priceFixed
+          }
+          price
+        }
+      }
+    }
+  }
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
 
@@ -2223,6 +2354,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     OffersRestrictions(variables: OffersRestrictionsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<OffersRestrictionsQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<OffersRestrictionsQuery>(OffersRestrictionsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'OffersRestrictions', 'query');
     },
+    MinimalConfiguration(variables: MinimalConfigurationQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<MinimalConfigurationQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<MinimalConfigurationQuery>(MinimalConfigurationDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'MinimalConfiguration', 'query');
+    },
     Orders(variables: OrdersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<OrdersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<OrdersQuery>(OrdersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Orders', 'query');
     },
@@ -2246,6 +2380,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     TeeOffersSelect(variables: TeeOffersSelectQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<TeeOffersSelectQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<TeeOffersSelectQuery>(TeeOffersSelectDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'TeeOffersSelect', 'query');
+    },
+    GetMatchingTeeSlots(variables: GetMatchingTeeSlotsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetMatchingTeeSlotsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetMatchingTeeSlotsQuery>(GetMatchingTeeSlotsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetMatchingTeeSlots', 'query');
     }
   };
 }

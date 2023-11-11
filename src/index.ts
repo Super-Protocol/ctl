@@ -248,8 +248,8 @@ async function main() {
   workflowsCommand
     .command('create')
     .description('Create workflow')
-    .requiredOption('--tee <id,slot>', 'TEE offer <id,slot> (required)')
-    .requiredOption('--tee-slot-count <id>', 'TEE slot count')
+    .option('--tee <id,slot>', 'TEE offer <id,slot> (required)')
+    .option('--tee-slot-count <id>', 'TEE slot count')
     .option(
       '--tee-options <id...>',
       'TEE options <id> (accepts multiple values)',
