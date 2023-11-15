@@ -17,7 +17,7 @@ export default async (params: OffersGetSlotParams): Promise<void> => {
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
     limit: 1,
-    id: params.offerId,
+    filter: { id: params.offerId },
   }).then(({ list }): TeeOfferOption | undefined => {
     const optionItem = (list[0]?.options as TeeOfferItemOptions)?.find(
       (option) => option.id === params.optionId,

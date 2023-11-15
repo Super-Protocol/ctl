@@ -279,6 +279,7 @@ async function main() {
       '--deposit <TEE>',
       'Amount of the payment deposit in TEE tokens (if not specified, the minimum deposit required is used)',
     )
+    .option('--min-rent-minutes <number>', 'Minutes of TEE processing that will be paid in advance')
     .option('--debug', 'Display debug information', false)
     .addOption(
       new Option('--workflow-number <number>', 'Number of workflows to create')
@@ -322,6 +323,7 @@ async function main() {
         data: options.data,
         resultEncryption: workflowConfig.resultEncryption,
         userDepositAmount: options.deposit,
+        minRentMinutes: Number(options.minRentMinutes || 0),
         workflowNumber: Number(options.workflowNumber),
         ordersLimit: Number(options.ordersLimit),
       };

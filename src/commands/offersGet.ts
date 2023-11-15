@@ -19,7 +19,7 @@ export default async (params: OffersGetParams): Promise<void> => {
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
         limit: 1,
-        id: params.id,
+        filter: { id: params.id },
       }).then(({ list }) => formatFetchedTeeOffer(list[0]));
       break;
     case 'value':

@@ -11,6 +11,7 @@ export type FetchMatchingTeeSlotsParams = {
   storage: ValueOfferParams;
   data: ValueOfferParams[];
   solutions: ValueOfferParams[];
+  usageMinutes: number;
 };
 
 export type MatchingTeeSlots = NonNullable<GetMatchingTeeSlotsQuery['result']['page']>['edges'];
@@ -42,6 +43,7 @@ export default async (params: FetchMatchingTeeSlotsParams): Promise<MatchingTeeS
       externalPort: minConfiguration.externalPort,
       enabled: true,
       id: params.tee.id || undefined,
+      usageMinutes: params.usageMinutes,
     };
 
     const slot = await fetchMatchingTeeSlots({

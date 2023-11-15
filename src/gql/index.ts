@@ -1464,7 +1464,7 @@ export type TeeOfferFilter = {
   /** filter by teeOfferInfo.hardwareInfo.optionInfo → traffic */
   traffic?: InputMaybe<Scalars['Float']>;
   /** filter by slot/option usage → minTimeMinutes,maxTimeMinutes */
-  usageMinutes?: InputMaybe<Array<Scalars['Float']>>;
+  usageMinutes?: InputMaybe<Scalars['Float']>;
 };
 
 export type TeeOfferInfo = {

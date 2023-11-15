@@ -1,4 +1,4 @@
-import { TeeOffersQuery, getSdk } from '../gql';
+import { TeeOfferFilter, TeeOffersQuery, getSdk } from '../gql';
 import { GraphQLClient } from 'graphql-request';
 import { ErrorWithCustomMessage, formatDate } from '../utils';
 import getGqlHeaders from './gqlHeaders';
@@ -9,7 +9,7 @@ export type FetchTeeOffersParams = {
   accessToken: string;
   limit: number;
   cursor?: string;
-  id?: string;
+  filter?: TeeOfferFilter;
 };
 
 export type TeeOfferDto = {
@@ -29,6 +29,7 @@ export type TeeOfferDto = {
 
 export type TeeOfferItem = NonNullable<TeeOffersQuery['result']['page']['edges']>[number]['node'];
 
+export type TeeOfferItemSlots = NonNullable<TeeOfferItem>['slots'];
 export type TeeOfferItemOptions = NonNullable<TeeOfferItem>['options'];
 
 export const formatFetchedTeeOffer = (item: TeeOfferItem): TeeOfferDto => {
@@ -63,7 +64,7 @@ export default async (
           sortDir: 'DESC',
           sortBy: 'origins.createdDate',
         },
-        filter: { id: params.id },
+        filter: params.filter,
       },
       headers,
     );
