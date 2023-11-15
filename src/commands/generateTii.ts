@@ -10,6 +10,7 @@ export type GenerateTiiParams = {
   teeOfferId: string;
   resourcePath: string;
   outputPath: string;
+  sgxApiUrl: string;
 };
 
 export default async (params: GenerateTiiParams) => {
@@ -35,6 +36,7 @@ export default async (params: GenerateTiiParams) => {
     resource,
     args,
     encryption,
+    params.sgxApiUrl,
   );
 
   const outputPath = preparePath(params.outputPath);
