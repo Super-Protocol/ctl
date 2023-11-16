@@ -117,3 +117,54 @@ query TeeOffersSelect($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
         }
     }
 }
+
+query GetMatchingTeeSlots($filter: TeeOfferFilter, $pagination: ConnectionArgs!) {
+	result: getMatchingTeeSlots(filter: $filter, pagination: $pagination) {
+    page {
+      edges {
+        node {
+          teeOffer {
+            id
+          }
+          slotResult {
+						slot {
+							id
+              info {
+                  cpuCores
+                  diskUsage
+                  ram
+              }
+              usage {
+                  maxTimeMinutes
+                  minTimeMinutes
+                  price
+                  priceType
+              }
+            }
+        multiplier
+        price
+          }
+          optionsResult {
+            optionResults {
+              id
+              count
+              info {
+                bandwidth
+                externalPort
+                traffic
+              }
+            }
+            cumulativeValues {
+              bandwidth
+              traffic
+              externalPort
+            }
+            pricePerHour
+            priceFixed
+          }
+		price
+        }
+      }
+    }
+  }
+}

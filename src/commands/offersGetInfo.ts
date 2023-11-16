@@ -21,7 +21,7 @@ export default async (params: OffersGetInfoParams): Promise<void> => {
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
         limit: 1,
-        id: params.id,
+        filter: { id: params.id },
       }).then(({ list }) => <TeeOfferInfo>list[0]?.teeOfferInfo);
       break;
     case 'value':

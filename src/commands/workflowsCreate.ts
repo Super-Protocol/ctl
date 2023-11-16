@@ -12,17 +12,25 @@ import Printer from '../printer';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
 import validateOfferWorkflowService from '../services/validateOfferWorkflow';
 import { CryptoAlgorithm, Encoding, Encryption } from '@super-protocol/dto-js';
-import createWorkflowService, { TeeOfferParams } from '../services/createWorkflow';
+import createWorkflowService, { ValueOfferParams } from '../services/createWorkflow';
 import parseInputResourcesService from '../services/parseInputResources';
 import calcWorkflowDepositService from '../services/calcWorkflowDeposit';
 import getTeeBalance from '../services/getTeeBalance';
-import { ErrorTxRevertedByEvm, etherToWei, getObjectKey, weiToEther } from '../utils';
+import {
+  ErrorTxRevertedByEvm,
+  etherToWei,
+  formatTeeOptions,
+  getObjectKey,
+  weiToEther,
+} from '../utils';
 import getPublicFromPrivate from '../services/getPublicFromPrivate';
 import fetchOrdersCountService from '../services/fetchOrdersCount';
 import { TOfferType } from '../gql';
 import fetchOffers, { OfferItem } from '../services/fetchOffers';
 import fetchTeeOffers from '../services/fetchTeeOffers';
 import { BigNumber } from 'ethers';
+import automatchTeeSlot from '../services/automatchTeeSlot';
+import { calculateValueOffersMinTimeMinutes } from '../services/workflowHelpers';
 
 export type WorkflowCreateParams = {
   backendUrl: string;
@@ -30,8 +38,8 @@ export type WorkflowCreateParams = {
   blockchainConfig: BlockchainConfig;
   actionAccountKey: string;
 
-  tee: string;
-  teeSlotCount: number;
+  tee?: string;
+  teeSlotCount?: number;
   teeOptionsIds: string[];
   teeOptionsCount: number[];
 
@@ -40,11 +48,12 @@ export type WorkflowCreateParams = {
   data: string[];
   resultEncryption: Encryption;
   userDepositAmount: string;
+  minRentMinutes: number;
   workflowNumber: number;
   ordersLimit: number;
 };
 
-type FethchedOffer = {
+export type FethchedOffer = {
   id: NonNullable<OfferItem>['id'];
   offerInfo: NonNullable<OfferItem>['offerInfo'];
   slots: NonNullable<OfferItem>['slots'];
@@ -81,9 +90,12 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     encoding: params.resultEncryption.encoding,
     key: getPublicFromPrivate(params.resultEncryption.key!),
   };
-  const tee = await parseInputResourcesService({
-    options: [params.tee],
-  }).then(({ offers }) => offers[0]);
+
+  const tee: ValueOfferParams = params.tee
+    ? await parseInputResourcesService({
+        options: [params.tee],
+      }).then(({ offers }) => offers[0])
+    : { id: '', slotId: '' };
 
   const storage = await parseInputResourcesService({
     options: [params.storage],
@@ -98,22 +110,6 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     options: params.data,
   });
   const dataIds = data.offers.map((offer) => offer.id);
-
-  const fetchedTeeOffer = await fetchTeeOffers({
-    backendUrl: params.backendUrl,
-    accessToken: params.accessToken,
-    limit: 1,
-    id: tee.id,
-  }).then(({ list }) => list[0]);
-
-  if (!fetchedTeeOffer) {
-    throw new Error(`TEE offer ${tee.id} does not exist or is of the wrong type`);
-  }
-
-  const teeOfferSlots = fetchedTeeOffer?.slots.map((slot) => slot.id);
-  if (teeOfferSlots) {
-    checkSlot(teeOfferSlots, tee.id, tee.slotId, OfferType.TeeOffer);
-  }
 
   const valueOfferIds = [...solutionIds, ...dataIds, storage.id];
 
@@ -146,7 +142,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
   Printer.print('Validating workflow configuration');
   await Promise.all(
-    [...solutionIds, ...dataIds].map(async (offerId) => {
+    [...solutionIds, ...dataIds].map((offerId) => {
       const offerToCheck = fetchedValueOffers.find((o) => o.id === offerId);
       const restrictions =
         <Offer[]>(
@@ -165,6 +161,68 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
       });
     }),
   );
+
+  const workflowMinTimeMinutes: number =
+    params.minRentMinutes ||
+    calculateValueOffersMinTimeMinutes([...data.offers, ...solutions.offers], offersMap);
+
+  if (!tee.slotId || !tee.id) {
+    Printer.print(
+      'Compute offer or slot is not specified, configuration will be selected automatically',
+    );
+
+    const slot = await automatchTeeSlot({
+      backendUrl: params.backendUrl,
+      accessToken: params.accessToken,
+      tee: tee,
+      storage,
+      data: data.offers,
+      solutions: solutions.offers,
+      usageMinutes: workflowMinTimeMinutes,
+    });
+
+    if (!slot || !slot.teeOffer || !slot.slotResult) {
+      throw new Error(
+        `Unable to find available TEE offer ${tee.id ? `with id ${tee.id} ` : ' '}for workflow`,
+      );
+    }
+
+    tee.id = slot.teeOffer.id;
+    tee.slotId = slot.slotResult.slot.id;
+    params.teeSlotCount = slot.slotResult.multiplier;
+
+    // If user passed options then we don't modify them
+    if (!params.teeOptionsIds && slot.optionsResult?.optionResults.length) {
+      const { ids, counts } = formatTeeOptions(slot.optionsResult?.optionResults);
+
+      params.teeOptionsIds = ids;
+      params.teeOptionsCount = counts;
+    }
+    Printer.print('Selected Compute configuration:');
+    Printer.print(`Compute offer id: ${tee.id}`);
+    Printer.print(`With slot: id: ${tee.slotId}, times: ${params.teeSlotCount}`);
+    if (params.teeOptionsIds.length) {
+      params.teeOptionsIds.forEach((teeOption, index) => {
+        Printer.print(`With option: id: ${teeOption}, times: ${params.teeOptionsCount[index]}`);
+      });
+    }
+  }
+
+  const fetchedTeeOffer = await fetchTeeOffers({
+    backendUrl: params.backendUrl,
+    accessToken: params.accessToken,
+    limit: 1,
+    filter: { id: tee.id },
+  }).then(({ list }) => list[0]);
+
+  if (!fetchedTeeOffer) {
+    throw new Error(`TEE offer ${tee.id} does not exist or is of the wrong type`);
+  }
+
+  const teeOfferSlots = fetchedTeeOffer?.slots.map((slot) => slot.id);
+  if (teeOfferSlots) {
+    checkSlot(teeOfferSlots, tee.id, tee.slotId, OfferType.TeeOffer);
+  }
 
   let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(
     solutionIds.concat(dataIds),
@@ -215,10 +273,11 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
   Printer.print('Calculating payment deposit');
 
-  const teeOfferParams: TeeOfferParams = {
+  const teeOfferParams = {
     id: tee.id,
+    offer: fetchedTeeOffer,
     slotId: tee.slotId,
-    slotCount: params.teeSlotCount,
+    slotCount: params.teeSlotCount!,
     optionsIds: params.teeOptionsIds,
     optionsCount: params.teeOptionsCount,
   };
@@ -228,6 +287,9 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     storage: storage,
     solutions: solutions.offers,
     data: data.offers,
+    minRentMinutes: workflowMinTimeMinutes,
+    teeOffer: fetchedTeeOffer,
+    valueOffers: offersMap,
   });
 
   if (params.userDepositAmount) {
@@ -254,7 +316,9 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   }
 
   Printer.print(
-    `Total deposit is ${weiToEther(holdDeposit.mul(params.workflowNumber))} TEE tokens`,
+    `Total deposit is ${weiToEther(
+      holdDeposit.mul(params.workflowNumber),
+    )} TEE tokens for ${workflowMinTimeMinutes} minutes`,
   );
 
   const workflowPromises = new Array(params.workflowNumber);
@@ -341,7 +405,7 @@ const checkFetchedOffers = (
   ids: Array<{ id: string; slotId: string }>,
   offers: Map<string, FethchedOffer>,
   type: OfferType,
-) => {
+): void => {
   ids.forEach(({ id, slotId }) => {
     const fetchedOffer = offers.get(id);
 

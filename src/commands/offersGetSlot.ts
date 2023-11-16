@@ -41,7 +41,7 @@ export default async (params: OffersGetSlotParams): Promise<void> => {
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
         limit: 1,
-        id: params.offerId,
+        filter: { id: params.offerId },
       }).then(({ list }): TeeOfferSlot | undefined => findFetchedSlot(list[0], params.slotId));
       break;
     case 'value':
