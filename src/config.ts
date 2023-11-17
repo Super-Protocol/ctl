@@ -36,6 +36,9 @@ const ConfigValidators = {
       amplitudeApiKey: z.string(),
     })
     .optional(),
+  tii: z.object({
+    pccsServiceApiUrl: z.string(),
+  }),
 };
 
 export type Config = {
@@ -61,6 +64,9 @@ export type Config = {
   };
   analytics: {
     amplitudeApiKey: string;
+  };
+  tii: {
+    pccsServiceApiUrl: string;
   };
 };
 

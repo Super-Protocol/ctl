@@ -306,6 +306,7 @@ async function main() {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
+      const { pccsServiceApiUrl } = configLoader.loadSection('tii') as Config['tii'];
       const workflowConfig = configLoader.loadSection('workflow') as Config['workflow'];
       const wallet = new Wallet(blockchain.accountPrivateKey);
       const userId = wallet.address;
@@ -326,6 +327,7 @@ async function main() {
         minRentMinutes: Number(options.minRentMinutes || 0),
         workflowNumber: Number(options.workflowNumber),
         ordersLimit: Number(options.ordersLimit),
+        pccsServiceApiUrl,
       };
       const analytics = configLoader.loadSection('analytics') as Config['analytics'];
 
@@ -1243,12 +1245,14 @@ async function main() {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
+      const { pccsServiceApiUrl } = configLoader.loadSection('tii') as Config['tii'];
 
       await generateTii({
         blockchainConfig,
         teeOfferId: options.offer,
         resourcePath: resourcePath,
         outputPath: options.output,
+        pccsServiceApiUrl,
       });
     });
 

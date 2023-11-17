@@ -51,6 +51,8 @@ export type WorkflowCreateParams = {
   minRentMinutes: number;
   workflowNumber: number;
   ordersLimit: number;
+
+  pccsServiceApiUrl: string;
 };
 
 export type FethchedOffer = {
@@ -247,6 +249,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
           solution.resource,
           solution.args,
           solution.encryption!,
+          params.pccsServiceApiUrl,
         ),
       ),
     ),
@@ -259,6 +262,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
           data.resource,
           data.args,
           data.encryption!,
+          params.pccsServiceApiUrl,
         ),
       ),
     ),

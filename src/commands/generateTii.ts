@@ -10,6 +10,7 @@ export type GenerateTiiParams = {
   teeOfferId: string;
   resourcePath: string;
   outputPath: string;
+  pccsServiceApiUrl: string;
 };
 
 export default async (params: GenerateTiiParams) => {
@@ -35,6 +36,7 @@ export default async (params: GenerateTiiParams) => {
     resource,
     args,
     encryption,
+    params.pccsServiceApiUrl,
   );
 
   const outputPath = preparePath(params.outputPath);
