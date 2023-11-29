@@ -21,11 +21,5 @@
             "key": "",
             "encoding": ""
         }
-    },
-    "analytics": {
-        "amplitudeApiKey": ""
-    },
-    "tii": {
-        "pccsServiceApiUrl": ""
     }
 }

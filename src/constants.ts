@@ -4,3 +4,4 @@ export const ATTEMPT_PERIOD_MS = 3000;
 export const MAX_ORDERS_RUNNING = 2;
 export const MINUTES_IN_HOUR = 60;
 export const TX_REVERTED_BY_EVM_ERROR = 'Transaction has been reverted by the EVM';
+export const DEFAULT_PCCS_SERVICE = 'https://pccs.superprotocol.io';

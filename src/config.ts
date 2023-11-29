@@ -5,6 +5,7 @@ import process from 'process';
 import { z, ZodError } from 'zod';
 import Printer from './printer';
 import { createZodErrorMessage, ErrorWithCustomMessage } from './utils';
+import { DEFAULT_PCCS_SERVICE } from './constants';
 
 const ConfigValidators = {
   backend: z.object({
@@ -33,12 +34,15 @@ const ConfigValidators = {
   }),
   analytics: z
     .object({
-      amplitudeApiKey: z.string(),
+      spaAuthKey: z.string(),
     })
     .optional(),
-  tii: z.object({
-    pccsServiceApiUrl: z.string(),
-  }),
+  tii: z
+    .object({
+      pccsServiceApiUrl: z.string().default(DEFAULT_PCCS_SERVICE),
+    })
+    .optional()
+    .default({ pccsServiceApiUrl: DEFAULT_PCCS_SERVICE }),
 };
 
 export type Config = {
@@ -63,7 +67,7 @@ export type Config = {
     resultEncryption: Encryption;
   };
   analytics: {
-    amplitudeApiKey: string;
+    spaAuthKey: string;
   };
   tii: {
     pccsServiceApiUrl: string;

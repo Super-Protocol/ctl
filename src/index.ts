@@ -50,23 +50,21 @@ import offersDeleteOption from './commands/offersDeleteOption';
 import offersGetSlot from './commands/offersGetSlot';
 import offersGetOption from './commands/offersGetOption';
 
-const defaultAmplitudeApiKey = '322ed6bd9a802109e1e9692be0a825c6';
+const defaultSpaAuthKey = '322ed6bd9a802109e1e9692be0a825c6';
 
 async function trackEvent(
-  amplitudeApiKey: string | undefined,
+  spaAuthKey: string | undefined,
   eventType: string,
   userId: string,
   eventProperties?: {
     [key: string]: any;
   },
 ): Promise<void> {
-  const shouldSendAnalytics = amplitudeApiKey !== '';
+  const shouldSendAnalytics = spaAuthKey !== '';
 
   if (shouldSendAnalytics) {
     try {
-      const amplitudeClient = Amplitude.init(
-        amplitudeApiKey ? amplitudeApiKey : defaultAmplitudeApiKey,
-      );
+      const amplitudeClient = Amplitude.init(spaAuthKey ? spaAuthKey : defaultSpaAuthKey);
       const event = {
         event_type: eventType,
         user_id: userId,
@@ -183,12 +181,12 @@ async function main() {
 
       try {
         await ordersCancel(requestParams);
-        await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, {
+        await trackEvent(analytics?.spaAuthKey, 'order_cancel_cli', userId, {
           result: 'success',
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics?.amplitudeApiKey, 'order_cancel_cli', userId, {
+        await trackEvent(analytics?.spaAuthKey, 'order_cancel_cli', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -222,12 +220,12 @@ async function main() {
 
       try {
         await ordersReplenishDeposit(requestParams);
-        await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, {
+        await trackEvent(analytics?.spaAuthKey, 'replenish_deposit_cli', userId, {
           result: 'success',
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics?.amplitudeApiKey, 'replenish_deposit_cli', userId, {
+        await trackEvent(analytics?.spaAuthKey, 'replenish_deposit_cli', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -333,12 +331,12 @@ async function main() {
 
       try {
         const id = await workflowsCreate(requestParams);
-        await trackEvent(analytics?.amplitudeApiKey, 'order_created_cli', userId, {
+        await trackEvent(analytics?.spaAuthKey, 'order_created_cli', userId, {
           id,
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics?.amplitudeApiKey, 'order_create_cli', userId, {
+        await trackEvent(analytics?.spaAuthKey, 'order_create_cli', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -517,12 +515,12 @@ async function main() {
 
       try {
         await ordersDownloadResult(requestParams);
-        await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, {
+        await trackEvent(analytics?.spaAuthKey, 'order_result_download_cli', userId, {
           result: 'success',
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics?.amplitudeApiKey, 'order_result_download_cli', userId, {
+        await trackEvent(analytics?.spaAuthKey, 'order_result_download_cli', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -555,27 +553,27 @@ async function main() {
       try {
         await tokensRequest(requestParams);
         if (options.tee) {
-          await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, {
+          await trackEvent(analytics?.spaAuthKey, 'get_tee_cli', userId, {
             result: 'success',
             ...requestParams,
           });
         }
         if (options.matic) {
-          await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, {
+          await trackEvent(analytics?.spaAuthKey, 'get_matic_cli', userId, {
             result: 'success',
             ...requestParams,
           });
         }
       } catch (error) {
         if (options.tee) {
-          await trackEvent(analytics?.amplitudeApiKey, 'get_tee_cli', userId, {
+          await trackEvent(analytics?.spaAuthKey, 'get_tee_cli', userId, {
             result: 'error',
             error,
             ...requestParams,
           });
         }
         if (options.matic) {
-          await trackEvent(analytics?.amplitudeApiKey, 'get_matic_cli', userId, {
+          await trackEvent(analytics?.spaAuthKey, 'get_matic_cli', userId, {
             result: 'error',
             error,
             ...requestParams,
