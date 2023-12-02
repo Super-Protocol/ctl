@@ -42,15 +42,9 @@ const calcWorkflowDeposit = async (params: CalcWorkflowDepositParams): Promise<B
     }
   });
 
-  const globalMinRentMinutes =
-    Math.max(
-      params.minRentMinutes,
-      fetchedTeeSlot.usage.minTimeMinutes, // We do not count TEE options minTimeMinutes
-    ) || MINUTES_IN_HOUR;
-
   const addDeposit = (usage: SlotUsage, count = 1): void => {
     if (usage.priceType === PriceType.PerHour) {
-      const minTimeMinutes = Math.max(globalMinRentMinutes, usage.minTimeMinutes);
+      const minTimeMinutes = Math.max(params.minRentMinutes, usage.minTimeMinutes);
 
       deposit.perHour = deposit.perHour.add(
         BigNumber.from(usage.price).mul(count).mul(minTimeMinutes).div(MINUTES_IN_HOUR),

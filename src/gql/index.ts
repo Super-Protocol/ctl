@@ -857,17 +857,21 @@ export type OrderStatusUpdatedPayload = {
 
 export type OrderUsage = {
   __typename?: 'OrderUsage';
+  optionIds: Array<Scalars['String']>;
   optionInfo: Array<OptionInfo>;
   optionUsage: Array<SlotUsage>;
   optionsCount: Array<Scalars['Float']>;
+  slotCount: Scalars['Float'];
   slotInfo: SlotInfo;
   slotUsage: SlotUsage;
 };
 
 export type OrderUsageInput = {
+  optionIds: Array<Scalars['String']>;
   optionInfo: Array<OptionInfoInput>;
   optionUsage: Array<SlotUsageInput>;
   optionsCount: Array<Scalars['Float']>;
+  slotCount: Scalars['Float'];
   slotInfo: SlotInfoInput;
   slotUsage: SlotUsageInput;
 };

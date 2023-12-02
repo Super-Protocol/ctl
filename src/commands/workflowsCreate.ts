@@ -32,6 +32,7 @@ import { BigNumber } from 'ethers';
 import automatchTeeSlot from '../services/automatchTeeSlot';
 import { calculateValueOffersMinTimeMinutes } from '../services/workflowHelpers';
 import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
+import { MINUTES_IN_HOUR } from '../constants';
 
 export type WorkflowCreateParams = {
   backendUrl: string;
@@ -137,7 +138,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   checkFetchedOffers(solutions.offers, offersMap, OfferType.Solution);
   checkFetchedOffers(data.offers, offersMap, OfferType.Data);
 
-  const workflowMinTimeMinutes: number =
+  let workflowMinTimeMinutes: number =
     params.minRentMinutes ||
     calculateValueOffersMinTimeMinutes([...data.offers, ...solutions.offers], offersMap);
 
@@ -262,7 +263,11 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
   checkSlot(teeOfferSlots, tee.id, tee.slotId, OfferType.TeeOffer);
 
-  teeOfferSlots.find((slot) => slot);
+  workflowMinTimeMinutes =
+    Math.max(
+      workflowMinTimeMinutes,
+      fetchedTeeOffer.slots?.find((slot) => slot.id === tee.slotId)?.usage.minTimeMinutes || 0, // We do not count TEE options minTimeMinutes
+    ) || MINUTES_IN_HOUR;
 
   let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(
     solutionIds.concat(dataIds),
