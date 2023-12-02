@@ -128,3 +128,35 @@ query MinimalConfiguration($offers: [[String!]!]!) {
     externalPort
   }
 }
+
+query validateConfiguraion($input: WorkflowConfigurationValidation!) {
+  result: validateConfiguraion(input: $input) {
+    success
+    errors {
+      cpuCores {
+        required
+				provided
+      }
+      diskUsage{
+        required
+				provided
+      }
+      ram{
+        required
+				provided
+      }
+      bandwidth{
+        required
+				provided
+      }
+      traffic{
+        required
+				provided
+      }
+      externalPort{
+        required
+				provided
+      }
+    }
+  }
+}

@@ -1633,7 +1633,7 @@ export type ValueSlot = {
 
 export type WorkflowConfigurationValidation = {
   data: Array<ValueOfferWithSlotsAndOptions>;
-  solution: ValueOfferWithSlotsAndOptions;
+  solution?: InputMaybe<Array<ValueOfferWithSlotsAndOptions>>;
   storage: ValueOfferWithSlotsAndOptions;
   tee: TeeOfferWithSlotsAndOptions;
 };
@@ -1702,6 +1702,13 @@ export type MinimalConfigurationQueryVariables = Exact<{
 
 
 export type MinimalConfigurationQuery = { __typename?: 'Query', result: { __typename?: 'OfferConfiguration', cpuCores: number, ram: number, diskUsage: number, bandwidth: number, traffic: number, externalPort: number } };
+
+export type ValidateConfiguraionQueryVariables = Exact<{
+  input: WorkflowConfigurationValidation;
+}>;
+
+
+export type ValidateConfiguraionQuery = { __typename?: 'Query', result: { __typename?: 'ValidationResult', success: boolean, errors?: { __typename?: 'ValidationErrors', cpuCores?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, diskUsage?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, ram?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, bandwidth?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, traffic?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, externalPort?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null } | null } };
 
 export type OrdersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1931,6 +1938,39 @@ export const MinimalConfigurationDocument = gql`
     bandwidth
     traffic
     externalPort
+  }
+}
+    `;
+export const ValidateConfiguraionDocument = gql`
+    query validateConfiguraion($input: WorkflowConfigurationValidation!) {
+  result: validateConfiguraion(input: $input) {
+    success
+    errors {
+      cpuCores {
+        required
+        provided
+      }
+      diskUsage {
+        required
+        provided
+      }
+      ram {
+        required
+        provided
+      }
+      bandwidth {
+        required
+        provided
+      }
+      traffic {
+        required
+        provided
+      }
+      externalPort {
+        required
+        provided
+      }
+    }
   }
 }
     `;
@@ -2356,6 +2396,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     MinimalConfiguration(variables: MinimalConfigurationQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<MinimalConfigurationQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<MinimalConfigurationQuery>(MinimalConfigurationDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'MinimalConfiguration', 'query');
+    },
+    validateConfiguraion(variables: ValidateConfiguraionQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ValidateConfiguraionQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ValidateConfiguraionQuery>(ValidateConfiguraionDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'validateConfiguraion', 'query');
     },
     Orders(variables: OrdersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<OrdersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<OrdersQuery>(OrdersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Orders', 'query');

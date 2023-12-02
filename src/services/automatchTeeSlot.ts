@@ -3,6 +3,7 @@ import { ErrorWithCustomMessage } from '../utils';
 import { ValueOfferParams } from './createWorkflow';
 import fetchMinConfiguration from './fetchMinConfiguration';
 import fetchMatchingTeeSlots, { MatchingTeeSlot } from './fetchMatchingTeeSlots';
+import { CPU_CORES_FOR_CUSTOM_SOLUTION } from '../constants';
 
 export type FetchMatchingTeeSlotsParams = {
   backendUrl: string;
@@ -35,7 +36,7 @@ export default async (params: FetchMatchingTeeSlotsParams): Promise<MatchingTeeS
     }
 
     const filter: TeeOfferFilter = {
-      cpuCores: [minConfiguration.cpuCores],
+      cpuCores: [minConfiguration.cpuCores || CPU_CORES_FOR_CUSTOM_SOLUTION],
       ram: [minConfiguration.ram],
       diskUsage: [minConfiguration.diskUsage],
       bandwidth: minConfiguration.bandwidth,

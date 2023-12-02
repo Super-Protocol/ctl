@@ -31,6 +31,7 @@ import fetchTeeOffers from '../services/fetchTeeOffers';
 import { BigNumber } from 'ethers';
 import automatchTeeSlot from '../services/automatchTeeSlot';
 import { calculateValueOffersMinTimeMinutes } from '../services/workflowHelpers';
+import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 
 export type WorkflowCreateParams = {
   backendUrl: string;
@@ -136,34 +137,6 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   checkFetchedOffers(solutions.offers, offersMap, OfferType.Solution);
   checkFetchedOffers(data.offers, offersMap, OfferType.Data);
 
-  const restrictionOffersMap = new Map<string, Offer>(
-    fetchedValueOffers
-      .flatMap(({ offerInfo }) => offerInfo.restrictions?.offers || [])
-      .map((id) => [id.toString(), new Offer(id)]),
-  );
-
-  Printer.print('Validating workflow configuration');
-  await Promise.all(
-    [...solutionIds, ...dataIds].map((offerId) => {
-      const offerToCheck = fetchedValueOffers.find((o) => o.id === offerId);
-      const restrictions =
-        <Offer[]>(
-          (offerToCheck?.offerInfo?.restrictions?.offers || [])
-            .map((o) => restrictionOffersMap.get(o))
-            .filter(Boolean)
-        ) ?? [];
-      return validateOfferWorkflowService({
-        offerId,
-        restrictions,
-        tee: tee.id,
-        solutions: solutionIds,
-        data: dataIds,
-        solutionArgs: solutions.resourceFiles,
-        dataArgs: data.resourceFiles,
-      });
-    }),
-  );
-
   const workflowMinTimeMinutes: number =
     params.minRentMinutes ||
     calculateValueOffersMinTimeMinutes([...data.offers, ...solutions.offers], offersMap);
@@ -210,6 +183,70 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     }
   }
 
+  const restrictionOffersMap = new Map<string, Offer>(
+    fetchedValueOffers
+      .flatMap(({ offerInfo }) => offerInfo.restrictions?.offers || [])
+      .map((id) => [id.toString(), new Offer(id)]),
+  );
+
+  Printer.print('Validating workflow configuration');
+
+  await Promise.all(
+    [...solutionIds, ...dataIds].map((offerId) => {
+      const offerToCheck = fetchedValueOffers.find((o) => o.id === offerId);
+      const restrictions =
+        <Offer[]>(
+          (offerToCheck?.offerInfo?.restrictions?.offers || [])
+            .map((o) => restrictionOffersMap.get(o))
+            .filter(Boolean)
+        ) ?? [];
+      return validateOfferWorkflowService({
+        offerId,
+        restrictions,
+        tee: tee.id,
+        solutions: solutionIds,
+        data: dataIds,
+        solutionArgs: solutions.resourceFiles,
+        dataArgs: data.resourceFiles,
+      });
+    }),
+  );
+
+  const configurationErrors = await fetchConfigurationErrors({
+    backendUrl: params.backendUrl,
+    accessToken: params.accessToken,
+    offers: {
+      tee: {
+        offerId: tee.id,
+        options: params.teeOptionsIds.map((optionId, index) => ({
+          id: optionId,
+          count: params.teeOptionsCount[index],
+        })),
+        slot: { id: tee.slotId, count: params.teeSlotCount! },
+      },
+      solution: solutions.offers.map((solution) => ({
+        offerId: solution.id,
+        slot: { id: solution.slotId },
+      })),
+      data: data.offers.map((dataOffer) => ({
+        offerId: dataOffer.id,
+        slot: { id: dataOffer.slotId },
+      })),
+      storage: { offerId: storage.id, slot: { id: storage.slotId } },
+    },
+  });
+
+  if (!configurationErrors.success && configurationErrors.errors) {
+    let errorMessage = 'Not enough compute resources to create workflow.';
+    Object.entries(configurationErrors.errors).forEach(([key, value]) => {
+      if (value !== 'ValidationErrors' && value !== null && value !== undefined) {
+        errorMessage += `\nInsufficient ${key}. Required ${value.required}. Provided ${value.provided}`;
+      }
+    });
+
+    throw new Error(errorMessage);
+  }
+
   const fetchedTeeOffer = await fetchTeeOffers({
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
@@ -222,9 +259,10 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   }
 
   const teeOfferSlots = fetchedTeeOffer?.slots.map((slot) => slot.id);
-  if (teeOfferSlots) {
-    checkSlot(teeOfferSlots, tee.id, tee.slotId, OfferType.TeeOffer);
-  }
+
+  checkSlot(teeOfferSlots, tee.id, tee.slotId, OfferType.TeeOffer);
+
+  teeOfferSlots.find((slot) => slot);
 
   let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(
     solutionIds.concat(dataIds),
