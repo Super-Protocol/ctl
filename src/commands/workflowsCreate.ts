@@ -168,7 +168,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     params.teeSlotCount = slot.slotResult.multiplier;
 
     // If user passed options then we don't modify them
-    if (!params.teeOptionsIds && slot.optionsResult?.optionResults.length) {
+    if (!params.teeOptionsIds.length && slot.optionsResult?.optionResults.length) {
       const { ids, counts } = formatTeeOptions(slot.optionsResult?.optionResults);
 
       params.teeOptionsIds = ids;
