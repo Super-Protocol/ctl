@@ -1175,7 +1175,7 @@ async function main() {
     .argument('solutionKeyPath', 'Path to a key file')
     .option(
       '--metadata <pathToSave>',
-      'Path to save metadata (hash and MrEnclave)',
+      'Path to save json metadata (hash and MrEnclave)',
       './metadata.json',
     )
     .option('--pack-solution <packSolution>', 'Path to save the resulting tar.gz archive', '')
