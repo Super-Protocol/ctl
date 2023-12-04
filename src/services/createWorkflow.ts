@@ -3,6 +3,7 @@ import BlockchainConnector, {
   Crypto,
   OrderInfo,
   Orders,
+  OrderSlots,
   OrderStatus,
   TeeOffer,
 } from '@super-protocol/sdk-js';
@@ -58,12 +59,12 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
     encryptedArgs: JSON.stringify(encryptedArgs),
     resultPublicKey: JSON.stringify(params.resultPublicKey),
     encryptedRequirements: '',
-    slots: {
-      slotId: params.teeOffer.slotId,
-      slotCount: params.teeOffer.slotCount,
-      optionsIds: params.teeOffer.optionsIds,
-      optionsCount: params.teeOffer.optionsCount,
-    },
+  };
+  const parentOrderSlot: OrderSlots = {
+    slotId: params.teeOffer.slotId,
+    slotCount: params.teeOffer.slotCount,
+    optionsIds: params.teeOffer.optionsIds,
+    optionsCount: params.teeOffer.optionsCount,
   };
 
   const subOrdersInfo: OrderInfo[] = params.inputOffers.map((subOrderParams) => ({
@@ -77,19 +78,26 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
     resultPublicKey: '',
     encryptedArgs: '',
     encryptedRequirements: '',
-    slots: {
-      slotId: subOrderParams.slotId,
-      slotCount: 0,
-      optionsIds: [],
-      optionsCount: [],
-    },
+  }));
+  const subOrdersSlots: OrderSlots[] = params.inputOffers.map((subOrderParams) => ({
+    slotId: subOrderParams.slotId,
+    slotCount: 0,
+    optionsIds: [],
+    optionsCount: [],
   }));
 
   const workflowCreationBLock = await BlockchainConnector.getInstance().getLastBlockInfo();
 
-  await Orders.createWorkflow(parentOrderInfo, subOrdersInfo, params.holdDeposit, {
-    from: params.consumerAddress,
-  });
+  await Orders.createWorkflow(
+    parentOrderInfo,
+    parentOrderSlot,
+    subOrdersInfo,
+    subOrdersSlots,
+    params.holdDeposit,
+    {
+      from: params.consumerAddress,
+    },
+  );
 
   const orderLoaderFn = () =>
     Orders.getByExternalId(

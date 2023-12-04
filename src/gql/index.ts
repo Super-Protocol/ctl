@@ -20,6 +20,8 @@ export type BaseOrder = {
   __typename?: 'BaseOrder';
   /** system identifier */
   _id: Scalars['String'];
+  accumulatedSlotInfo: SlotInfo;
+  accumulatedSlotUsage: SlotUsage;
   authority?: Maybe<Scalars['String']>;
   awaitingPayment: Scalars['Boolean'];
   consumer: Scalars['String'];
@@ -42,6 +44,8 @@ export type BaseOrder = {
 };
 
 export type BaseOrderInputType = {
+  accumulatedSlotInfo: SlotInfoInput;
+  accumulatedSlotUsage: SlotUsageInput;
   awaitingPayment: Scalars['Boolean'];
   consumer: Scalars['String'];
   depositSpent?: InputMaybe<Scalars['String']>;
@@ -606,6 +610,8 @@ export type Order = {
   __typename?: 'Order';
   /** system identifier */
   _id: Scalars['String'];
+  accumulatedSlotInfo: SlotInfo;
+  accumulatedSlotUsage: SlotUsage;
   authority?: Maybe<Scalars['String']>;
   awaitingPayment: Scalars['Boolean'];
   consumer: Scalars['String'];
@@ -758,6 +764,8 @@ export type OrderInfoInput = {
 };
 
 export type OrderInputType = {
+  accumulatedSlotInfo: SlotInfoInput;
+  accumulatedSlotUsage: SlotUsageInput;
   awaitingPayment: Scalars['Boolean'];
   consumer: Scalars['String'];
   depositSpent?: InputMaybe<Scalars['String']>;
@@ -780,6 +788,8 @@ export type OrderInputType = {
 
 export type OrderObject = {
   __typename?: 'OrderObject';
+  accumulatedSlotInfo: SlotInfo;
+  accumulatedSlotUsage: SlotUsage;
   awaitingPayment?: Maybe<Scalars['Boolean']>;
   consumer: Scalars['String'];
   depositSpent?: Maybe<Scalars['String']>;
@@ -932,6 +942,8 @@ export type ParentOrder = {
   __typename?: 'ParentOrder';
   /** system identifier */
   _id: Scalars['String'];
+  accumulatedSlotInfo: SlotInfo;
+  accumulatedSlotUsage: SlotUsage;
   authority?: Maybe<Scalars['String']>;
   awaitingPayment: Scalars['Boolean'];
   consumer: Scalars['String'];
@@ -955,6 +967,8 @@ export type ParentOrder = {
 };
 
 export type ParentOrderInputType = {
+  accumulatedSlotInfo: SlotInfoInput;
+  accumulatedSlotUsage: SlotUsageInput;
   awaitingPayment: Scalars['Boolean'];
   consumer: Scalars['String'];
   depositSpent?: InputMaybe<Scalars['String']>;
