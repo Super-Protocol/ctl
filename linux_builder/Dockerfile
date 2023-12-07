@@ -7,6 +7,6 @@ ENV PATH $PATH:/usr/local/go/bin
 RUN mkdir /app
 WORKDIR /app
 COPY . .
-RUN yarn install --frozen-lockfile
+RUN npm ci
 
-RUN yarn build:linux
+RUN npm run build:linux
