@@ -1,7 +1,6 @@
 import { CryptoAlgorithm, Encoding, Encryption, StorageType } from '@super-protocol/dto-js';
 import fs from 'fs';
 import path from 'path';
-import process from 'process';
 import { z, ZodError } from 'zod';
 import Printer from './printer';
 import { createZodErrorMessage, ErrorWithCustomMessage } from './utils';
@@ -81,7 +80,6 @@ class ConfigLoader {
   constructor(configPath: string) {
     const PROJECT_DIR = path.join(path.dirname(__dirname));
     const CONFIG_EXAMPLE_PATH = path.join(PROJECT_DIR, 'config.example.json');
-    configPath = path.join(process.cwd(), configPath);
 
     if (!fs.existsSync(configPath)) {
       Printer.error('Config file does not exist');
