@@ -10,16 +10,16 @@
         "authorityAccountPrivateKey": ""
     },
     "storage": {
-        "type": "",
+        "type": "STORJ",
         "bucket": "",
         "writeAccessToken": "",
         "readAccessToken": ""
     },
     "workflow": {
         "resultEncryption": {
-            "algo": "",
+            "algo": "ECIES",
             "key": "",
-            "encoding": ""
+            "encoding": "base64"
         }
     }
 }
