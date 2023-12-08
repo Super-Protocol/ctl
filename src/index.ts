@@ -1279,9 +1279,10 @@ main()
 
     const errorLogPath = path.join(process.cwd(), 'error.log');
     const errorDetails = JSON.stringify(error, null, 2);
-    fs.writeFileSync(
+    const currentTimestamp = new Date().toISOString();
+    fs.appendFileSync(
       errorLogPath,
-      `${error.stack}\n\n` + (errorDetails != '{}' ? `Details:\n ${errorDetails}\n` : ''),
+      `${currentTimestamp}: ${error.stack}\n\n` + (errorDetails != '{}' ? `Details:\n ${errorDetails}\n` : ''),
     );
 
     if (!isSilent) {
