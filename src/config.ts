@@ -6,6 +6,10 @@ import Printer from './printer';
 import { createZodErrorMessage, ErrorWithCustomMessage } from './utils';
 import { DEFAULT_PCCS_SERVICE } from './constants';
 
+const defaultSpaAuthKey = '322ed6bd9a802109e1e9692be0a825c6';
+
+const clusterRegexp = new RegExp(/https:\/\/bff\.(\w+)\.superprotocol\.com\/graphql/);
+
 const ConfigValidators = {
   backend: z.object({
     url: z.string(),
@@ -66,6 +70,7 @@ export type Config = {
     resultEncryption: Encryption;
   };
   analytics: {
+    spaUrl: string;
     spaAuthKey: string;
   };
   tii: {
@@ -90,7 +95,7 @@ class ConfigLoader {
     this.rawConfig = JSON.parse(fs.readFileSync(configPath).toString());
   }
 
-  loadSection(sectionName: keyof Config) {
+  loadSection(sectionName: keyof Config): any {
     if (this.validatedConfig[sectionName]) return this.validatedConfig[sectionName];
 
     const validator = ConfigValidators[sectionName],
@@ -99,6 +104,14 @@ class ConfigLoader {
     try {
       // @ts-ignore validation result matches one of config keys
       this.validatedConfig[sectionName] = validator.parse(rawSection);
+
+      if (sectionName === 'analytics') {
+        this.validatedConfig[sectionName] = {
+          ...this.validatedConfig[sectionName],
+          spaAuthKey: this.validatedConfig.analytics?.spaAuthKey || defaultSpaAuthKey,
+          spaUrl: this.getSpaUrlByBackendUrl(this.rawConfig.backend.url),
+        };
+      }
     } catch (error) {
       const errorMessage = createZodErrorMessage((error as ZodError).issues);
       throw ErrorWithCustomMessage(
@@ -107,6 +120,22 @@ class ConfigLoader {
       );
     }
     return this.validatedConfig[sectionName];
+  }
+
+  private getSpaUrlByBackendUrl(backendUrl: string): string {
+    const cluster = clusterRegexp.exec(backendUrl);
+
+    switch (cluster?.at(1)) {
+      case 'dev':
+        return 'https://spa.dev.superprotocol.com';
+      case 'stg':
+        return 'https://spa.stg.superprotocol.com';
+      case 'testnet':
+        return 'https://spa.superprotocol.com';
+
+      default:
+        return '';
+    }
   }
 }
 

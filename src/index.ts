@@ -1,6 +1,5 @@
 import { HashAlgorithm } from '@super-protocol/dto-js';
 import { OfferType } from '@super-protocol/sdk-js';
-import * as Amplitude from '@amplitude/node';
 import { Wallet } from 'ethers';
 
 const packageJson = require('../package.json');
@@ -49,30 +48,25 @@ import offersUpdateOption from './commands/offersUpdateOption';
 import offersDeleteOption from './commands/offersDeleteOption';
 import offersGetSlot from './commands/offersGetSlot';
 import offersGetOption from './commands/offersGetOption';
-
-const defaultSpaAuthKey = '322ed6bd9a802109e1e9692be0a825c6';
+import { Analytics } from './services/analytics';
 
 async function trackEvent(
-  spaAuthKey: string | undefined,
+  config: Config['analytics'],
   eventType: string,
   userId: string,
-  eventProperties?: {
-    [key: string]: any;
-  },
+  eventProperties?: object,
 ): Promise<void> {
-  const shouldSendAnalytics = spaAuthKey !== '';
+  const shouldSendAnalytics = config.spaUrl !== '';
 
   if (shouldSendAnalytics) {
     try {
-      const amplitudeClient = Amplitude.init(spaAuthKey ? spaAuthKey : defaultSpaAuthKey);
-      const event = {
-        event_type: eventType,
-        user_id: userId,
-        event_properties: eventProperties,
-        time: Date.now(),
-      };
+      const client = new Analytics({
+        userId,
+        apiUrl: config.spaUrl,
+        apiKey: config.spaAuthKey,
+      });
 
-      await amplitudeClient.logEvent(event);
+      await client.trackEvent(eventType, eventProperties);
     } catch {}
   }
 }
@@ -113,7 +107,7 @@ async function main() {
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = configLoader.loadSection('backend');
 
       validateFields(options.fields, providersGetFields);
 
@@ -181,12 +175,12 @@ async function main() {
 
       try {
         await ordersCancel(requestParams);
-        await trackEvent(analytics?.spaAuthKey, 'order_cancel_cli', userId, {
+        await trackEvent(analytics, 'order_cancel_cli', userId, {
           result: 'success',
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics?.spaAuthKey, 'order_cancel_cli', userId, {
+        await trackEvent(analytics, 'order_cancel_cli', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -220,12 +214,12 @@ async function main() {
 
       try {
         await ordersReplenishDeposit(requestParams);
-        await trackEvent(analytics?.spaAuthKey, 'replenish_deposit_cli', userId, {
+        await trackEvent(analytics, 'replenish_deposit_cli', userId, {
           result: 'success',
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics?.spaAuthKey, 'replenish_deposit_cli', userId, {
+        await trackEvent(analytics, 'replenish_deposit_cli', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -331,12 +325,12 @@ async function main() {
 
       try {
         const id = await workflowsCreate(requestParams);
-        await trackEvent(analytics?.spaAuthKey, 'order_created_cli', userId, {
+        await trackEvent(analytics, 'order_created_cli', userId, {
           id,
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics?.spaAuthKey, 'order_create_cli', userId, {
+        await trackEvent(analytics, 'order_create_cli', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -515,12 +509,12 @@ async function main() {
 
       try {
         await ordersDownloadResult(requestParams);
-        await trackEvent(analytics?.spaAuthKey, 'order_result_download_cli', userId, {
+        await trackEvent(analytics, 'order_result_download_cli', userId, {
           result: 'success',
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics?.spaAuthKey, 'order_result_download_cli', userId, {
+        await trackEvent(analytics, 'order_result_download_cli', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -553,27 +547,27 @@ async function main() {
       try {
         await tokensRequest(requestParams);
         if (options.tee) {
-          await trackEvent(analytics?.spaAuthKey, 'get_tee_cli', userId, {
+          await trackEvent(analytics, 'get_tee_cli', userId, {
             result: 'success',
             ...requestParams,
           });
         }
         if (options.matic) {
-          await trackEvent(analytics?.spaAuthKey, 'get_matic_cli', userId, {
+          await trackEvent(analytics, 'get_matic_cli', userId, {
             result: 'success',
             ...requestParams,
           });
         }
       } catch (error) {
         if (options.tee) {
-          await trackEvent(analytics?.spaAuthKey, 'get_tee_cli', userId, {
+          await trackEvent(analytics, 'get_tee_cli', userId, {
             result: 'error',
             error,
             ...requestParams,
           });
         }
         if (options.matic) {
-          await trackEvent(analytics?.spaAuthKey, 'get_matic_cli', userId, {
+          await trackEvent(analytics, 'get_matic_cli', userId, {
             result: 'error',
             error,
             ...requestParams,
@@ -1282,7 +1276,8 @@ main()
     const currentTimestamp = new Date().toISOString();
     fs.writeFileSync(
       errorLogPath,
-      `${currentTimestamp}: ${error.stack}\n\n` + (errorDetails != '{}' ? `Details:\n ${errorDetails}\n` : ''),
+      `${currentTimestamp}: ${error.stack}\n\n` +
+        (errorDetails != '{}' ? `Details:\n ${errorDetails}\n` : ''),
     );
 
     if (!isSilent) {
