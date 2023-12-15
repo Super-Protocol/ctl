@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { v5 as uuidv5 } from 'uuid';
-const packageJson = require('../package.json');
+const packageJson = require('../../package.json');
 
 const UUID_NAMESPACE = '1b671a64-40d5-491e-99b0-da01ff1f3341';
 

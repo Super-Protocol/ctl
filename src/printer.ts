@@ -15,6 +15,12 @@ class Printer {
     process.stdout.write(text + '\n');
   }
 
+  static printNotice(texts: string[]) {
+    ['', ...texts, ''].forEach((text) => {
+      process.stdout.write('spctl notice ' + text + '\n');
+    });
+  }
+
   static error(message: string) {
     process.stderr.write(message + '\n');
   }

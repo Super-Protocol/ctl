@@ -49,6 +49,7 @@ import offersDeleteOption from './commands/offersDeleteOption';
 import offersGetSlot from './commands/offersGetSlot';
 import offersGetOption from './commands/offersGetOption';
 import { Analytics } from './services/analytics';
+import { checkForUpdates } from './services/checkReleaseVersion';
 
 async function trackEvent(
   config: Config['analytics'],
@@ -67,13 +68,23 @@ async function trackEvent(
       });
 
       await client.trackEvent(eventType, eventProperties);
-    } catch {}
+    } catch {
+      return;
+    }
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
   const program = new Command();
   program.name(packageJson.name).description(packageJson.description).version(packageJson.version);
+
+  program.hook('preAction', async (_thisCommand, actionCommand) => {
+    const configPath = actionCommand.opts().config;
+
+    await checkForUpdates(configPath).catch(() => undefined);
+
+    return;
+  });
 
   const providersCommand = program.command('providers');
   const ordersCommand = program.command('orders');

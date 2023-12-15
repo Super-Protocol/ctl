@@ -37,15 +37,24 @@ const ConfigValidators = {
   }),
   analytics: z
     .object({
-      spaAuthKey: z.string(),
+      spaAuthKey: z.string().default(defaultSpaAuthKey),
+      spaUrl: z.string().optional(),
     })
-    .optional(),
+    .optional()
+    .default({
+      spaAuthKey: defaultSpaAuthKey,
+    }),
   tii: z
     .object({
       pccsServiceApiUrl: z.string().default(DEFAULT_PCCS_SERVICE),
     })
     .optional()
     .default({ pccsServiceApiUrl: DEFAULT_PCCS_SERVICE }),
+  metadata: z
+    .object({
+      lastCheckForUpdates: z.number().optional(),
+    })
+    .optional(),
 };
 
 export type Config = {
@@ -76,13 +85,16 @@ export type Config = {
   tii: {
     pccsServiceApiUrl: string;
   };
+  metadata: { lastCheckForUpdates: number };
 };
 
 class ConfigLoader {
+  private configPath: string;
   private rawConfig: Config;
   private validatedConfig: Partial<Config> = {};
 
   constructor(configPath: string) {
+    this.configPath = configPath;
     const PROJECT_DIR = path.join(path.dirname(__dirname));
     const CONFIG_EXAMPLE_PATH = path.join(PROJECT_DIR, 'config.example.json');
 
@@ -105,13 +117,7 @@ class ConfigLoader {
       // @ts-ignore validation result matches one of config keys
       this.validatedConfig[sectionName] = validator.parse(rawSection);
 
-      if (sectionName === 'analytics') {
-        this.validatedConfig[sectionName] = {
-          ...this.validatedConfig[sectionName],
-          spaAuthKey: this.validatedConfig.analytics?.spaAuthKey || defaultSpaAuthKey,
-          spaUrl: this.getSpaUrlByBackendUrl(this.rawConfig.backend.url),
-        };
-      }
+      this.setRuntimeDefaults(this.validatedConfig, sectionName);
     } catch (error) {
       const errorMessage = createZodErrorMessage((error as ZodError).issues);
       throw ErrorWithCustomMessage(
@@ -120,6 +126,29 @@ class ConfigLoader {
       );
     }
     return this.validatedConfig[sectionName];
+  }
+
+  updateSection<T extends keyof Config>(sectionName: T, newValues: Partial<Config[T]>): void {
+    this.rawConfig[sectionName] = {
+      ...this.rawConfig[sectionName],
+      ...newValues,
+    };
+
+    fs.writeFileSync(this.configPath, JSON.stringify(this.rawConfig, null, 4));
+  }
+
+  private setRuntimeDefaults(target: Partial<Config>, sectionName: keyof Config): void {
+    switch (sectionName) {
+      case 'analytics':
+        target[sectionName] = {
+          ...(target[sectionName] as Config['analytics']),
+          spaUrl: this.getSpaUrlByBackendUrl(this.rawConfig.backend.url),
+        };
+        break;
+
+      default:
+        break;
+    }
   }
 
   private getSpaUrlByBackendUrl(backendUrl: string): string {
