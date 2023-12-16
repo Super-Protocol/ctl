@@ -1,13 +1,12 @@
 {
     "backend": {
-        "url": "",
+        "url": "https://bff.testnet.superprotocol.com/graphql",
         "accessToken": ""
     },
     "blockchain": {
-        "rpcUrl": "",
-        "smartContractAddress": "",
-        "accountPrivateKey": "",
-        "authorityAccountPrivateKey": ""
+        "rpcUrl": "https://mumbai.polygon.superprotocol.com/hesoyam",
+        "smartContractAddress": "0xA7Ff565f26b93926e4e6465Eb81d48EfF456848b",
+        "accountPrivateKey": ""
     },
     "storage": {
         "type": "STORJ",
@@ -18,7 +17,7 @@
     "workflow": {
         "resultEncryption": {
             "algo": "ECIES",
-            "key": "",
+            "key": "61Kf7hP/0M/miymRVnA0vy9/TN6+kx9SaYawnfrGQMw=",
             "encoding": "base64"
         }
     }
