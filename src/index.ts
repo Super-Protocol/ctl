@@ -186,12 +186,12 @@ async function main(): Promise<void> {
 
       try {
         await ordersCancel(requestParams);
-        await trackEvent(analytics, 'order_cancel_cli', userId, {
+        await trackEvent(analytics, 'order_cancel', userId, {
           result: 'success',
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics, 'order_cancel_cli', userId, {
+        await trackEvent(analytics, 'order_cancel', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -225,12 +225,12 @@ async function main(): Promise<void> {
 
       try {
         await ordersReplenishDeposit(requestParams);
-        await trackEvent(analytics, 'replenish_deposit_cli', userId, {
+        await trackEvent(analytics, 'replenish_deposit', userId, {
           result: 'success',
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics, 'replenish_deposit_cli', userId, {
+        await trackEvent(analytics, 'replenish_deposit', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -336,12 +336,12 @@ async function main(): Promise<void> {
 
       try {
         const id = await workflowsCreate(requestParams);
-        await trackEvent(analytics, 'order_created_cli', userId, {
+        await trackEvent(analytics, 'order_created', userId, {
           id,
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics, 'order_create_cli', userId, {
+        await trackEvent(analytics, 'order_create', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -520,12 +520,12 @@ async function main(): Promise<void> {
 
       try {
         await ordersDownloadResult(requestParams);
-        await trackEvent(analytics, 'order_result_download_cli', userId, {
+        await trackEvent(analytics, 'order_result_download', userId, {
           result: 'success',
           ...requestParams,
         });
       } catch (error) {
-        await trackEvent(analytics, 'order_result_download_cli', userId, {
+        await trackEvent(analytics, 'order_result_download', userId, {
           result: 'error',
           error,
           ...requestParams,
@@ -558,27 +558,27 @@ async function main(): Promise<void> {
       try {
         await tokensRequest(requestParams);
         if (options.tee) {
-          await trackEvent(analytics, 'get_tee_cli', userId, {
+          await trackEvent(analytics, 'get_tee', userId, {
             result: 'success',
             ...requestParams,
           });
         }
         if (options.matic) {
-          await trackEvent(analytics, 'get_matic_cli', userId, {
+          await trackEvent(analytics, 'get_matic', userId, {
             result: 'success',
             ...requestParams,
           });
         }
       } catch (error) {
         if (options.tee) {
-          await trackEvent(analytics, 'get_tee_cli', userId, {
+          await trackEvent(analytics, 'get_tee', userId, {
             result: 'error',
             error,
             ...requestParams,
           });
         }
         if (options.matic) {
-          await trackEvent(analytics, 'get_matic_cli', userId, {
+          await trackEvent(analytics, 'get_matic', userId, {
             result: 'error',
             error,
             ...requestParams,
