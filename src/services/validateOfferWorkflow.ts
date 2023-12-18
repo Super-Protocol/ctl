@@ -49,7 +49,7 @@ export default async (params: ValidateOfferWorkflowParams) => {
             (o) => o.id,
           );
           throw Error(
-            `Offer ${params.offerId} must be used in conjunction with the following solutions: ${allowedOffers}`,
+            `Offer ${params.offerId} must be used in conjunction with the following solutions: ${allowedOffers} but used: ${solutionId}`,
           );
         }
       }),
