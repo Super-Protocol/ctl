@@ -193,7 +193,7 @@ async function main(): Promise<void> {
       } catch (error) {
         await trackEvent(analytics, 'order_cancel', userId, {
           result: 'error',
-          error,
+          error: (error as Error)?.message || '',
           ...requestParams,
         });
         throw error;
@@ -232,7 +232,7 @@ async function main(): Promise<void> {
       } catch (error) {
         await trackEvent(analytics, 'replenish_deposit', userId, {
           result: 'error',
-          error,
+          error: (error as Error)?.message || '',
           ...requestParams,
         });
         throw error;
@@ -343,7 +343,7 @@ async function main(): Promise<void> {
       } catch (error) {
         await trackEvent(analytics, 'order_create', userId, {
           result: 'error',
-          error,
+          error: (error as Error)?.message || '',
           ...requestParams,
         });
         throw error;
@@ -527,7 +527,7 @@ async function main(): Promise<void> {
       } catch (error) {
         await trackEvent(analytics, 'order_result_download', userId, {
           result: 'error',
-          error,
+          error: (error as Error)?.message || '',
           ...requestParams,
         });
         throw error;
@@ -573,14 +573,14 @@ async function main(): Promise<void> {
         if (options.tee) {
           await trackEvent(analytics, 'get_tee', userId, {
             result: 'error',
-            error,
+            error: (error as Error)?.message || '',
             ...requestParams,
           });
         }
         if (options.matic) {
           await trackEvent(analytics, 'get_matic', userId, {
             result: 'error',
-            error,
+            error: (error as Error)?.message || '',
             ...requestParams,
           });
         }
