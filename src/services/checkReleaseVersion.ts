@@ -11,7 +11,7 @@ export const checkForUpdates = async (configPath: string): Promise<void> => {
   const latestReleaseUrl = `https://api.github.com/repos/Super-Protocol/ctl/releases/latest`;
 
   const configLoader = new ConfigLoader(configPath);
-  const metadata = configLoader.loadSection('metadata');
+  const metadata = await configLoader.loadSection('metadata');
 
   if (!metadata?.lastCheckForUpdates || !Number.isSafeInteger(metadata.lastCheckForUpdates)) {
     configLoader.updateSection('metadata', {

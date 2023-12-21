@@ -1,16 +1,15 @@
 import { CryptoAlgorithm, Encoding, Encryption, StorageType } from '@super-protocol/dto-js';
 import fs from 'fs';
-import path from 'path';
-import { z, ZodError } from 'zod';
+import { z } from 'zod';
 import Printer from './printer';
-import { createZodErrorMessage, ErrorWithCustomMessage } from './utils';
 import { DEFAULT_PCCS_SERVICE } from './constants';
+import setup from './commands/setup';
 
 const defaultSpaAuthKey = '322ed6bd9a802109e1e9692be0a825c6';
 
 const clusterRegexp = new RegExp(/https:\/\/bff\.(\w+)\.superprotocol\.com\/graphql/);
 
-const ConfigValidators = {
+const configValidator = z.object({
   backend: z.object({
     url: z.string(),
     accessToken: z.string(),
@@ -55,7 +54,7 @@ const ConfigValidators = {
       lastCheckForUpdates: z.number().optional(),
     })
     .optional(),
-};
+});
 
 export type Config = {
   backend: {
@@ -90,59 +89,63 @@ export type Config = {
 
 class ConfigLoader {
   private configPath: string;
-  private rawConfig: Config;
-  private validatedConfig: Partial<Config> = {};
+  private validatedConfig: Config | undefined;
+
+  static getConfig(configPath: string): Config | undefined {
+    try {
+      const rawConfig = JSON.parse(fs.readFileSync(configPath).toString());
+      return configValidator.parse(rawConfig) as Config;
+    } catch {
+      return;
+    }
+  }
+
+  static upsertConfig(configPath: string, config: Config): void {
+    const configJson = JSON.stringify(config, null, 2);
+    fs.writeFileSync(configPath, configJson);
+  }
 
   constructor(configPath: string) {
     this.configPath = configPath;
-    const PROJECT_DIR = path.join(path.dirname(__dirname));
-    const CONFIG_EXAMPLE_PATH = path.join(PROJECT_DIR, 'config.example.json');
 
-    if (!fs.existsSync(configPath)) {
-      Printer.error('Config file does not exist');
-      fs.writeFileSync(configPath, fs.readFileSync(CONFIG_EXAMPLE_PATH));
-      throw Error(`Default config file was created: ${configPath}\nPlease configure it`);
+    this.validatedConfig = ConfigLoader.getConfig(configPath);
+
+    if (!this.validatedConfig) {
+      Printer.error('Config file does not exist or corrupted');
     }
-
-    this.rawConfig = JSON.parse(fs.readFileSync(configPath).toString());
   }
 
-  loadSection(sectionName: keyof Config): any {
-    if (this.validatedConfig[sectionName]) return this.validatedConfig[sectionName];
-
-    const validator = ConfigValidators[sectionName],
-      rawSection = this.rawConfig[sectionName];
-
-    try {
-      // @ts-ignore validation result matches one of config keys
-      this.validatedConfig[sectionName] = validator.parse(rawSection);
-
-      this.setRuntimeDefaults(this.validatedConfig, sectionName);
-    } catch (error) {
-      const errorMessage = createZodErrorMessage((error as ZodError).issues);
-      throw ErrorWithCustomMessage(
-        `Invalid format of ${sectionName} config section:\n${errorMessage}`,
-        error,
-      );
+  async loadSection<T extends keyof Config>(sectionName: T): Promise<Config[T]> {
+    if (!this.validatedConfig) {
+      return await this.setupConfig();
     }
+
+    this.setRuntimeDefaults(this.validatedConfig, sectionName);
     return this.validatedConfig[sectionName];
   }
 
   updateSection<T extends keyof Config>(sectionName: T, newValues: Partial<Config[T]>): void {
-    this.rawConfig[sectionName] = {
-      ...this.rawConfig[sectionName],
+    if (!this.validatedConfig) {
+      throw new Error(`Config is missing! Please make 'spctl setup' command`);
+    }
+    this.validatedConfig[sectionName] = {
+      ...this.validatedConfig[sectionName],
       ...newValues,
     };
 
-    fs.writeFileSync(this.configPath, JSON.stringify(this.rawConfig, null, 4));
+    fs.writeFileSync(this.configPath, JSON.stringify(this.validatedConfig, null, 4));
   }
 
   private setRuntimeDefaults(target: Partial<Config>, sectionName: keyof Config): void {
+    if (!this.validatedConfig) {
+      throw new Error(`Config is missing! Please make 'spctl setup' command`);
+    }
+
     switch (sectionName) {
       case 'analytics':
         target[sectionName] = {
           ...(target[sectionName] as Config['analytics']),
-          spaUrl: this.getSpaUrlByBackendUrl(this.rawConfig.backend.url),
+          spaUrl: this.getSpaUrlByBackendUrl(this.validatedConfig.backend.url),
         };
         break;
 
@@ -165,6 +168,14 @@ class ConfigLoader {
       default:
         return '';
     }
+  }
+
+  private async setupConfig(): Promise<never> {
+    Printer.print('Config file will be generated interactively');
+    const defaultConfig = await setup();
+    ConfigLoader.upsertConfig(this.configPath, defaultConfig);
+    Printer.print('Config file was generated. Please run your command again');
+    process.exit(0);
   }
 }
 

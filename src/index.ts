@@ -1,6 +1,7 @@
-import { HashAlgorithm } from '@super-protocol/dto-js';
+import { Encoding, HashAlgorithm } from '@super-protocol/dto-js';
 import { OfferType } from '@super-protocol/sdk-js';
 import { Wallet } from 'ethers';
+import * as bip39 from 'bip39';
 
 const packageJson = require('../package.json');
 
@@ -50,6 +51,7 @@ import offersGetSlot from './commands/offersGetSlot';
 import offersGetOption from './commands/offersGetOption';
 import { Analytics } from './services/analytics';
 import { checkForUpdates } from './services/checkReleaseVersion';
+import setup from './commands/setup';
 
 async function trackEvent(
   config: Config['analytics'],
@@ -79,13 +81,16 @@ async function main(): Promise<void> {
   program.name(packageJson.name).description(packageJson.description).version(packageJson.version);
 
   program.hook('preAction', async (_thisCommand, actionCommand) => {
+    if (actionCommand.name() === 'setup') {
+      return;
+    }
+
     const configPath = actionCommand.opts().config;
 
     await checkForUpdates(configPath).catch(() => undefined);
-
-    return;
   });
 
+  const setupCommand = program.command('setup');
   const providersCommand = program.command('providers');
   const ordersCommand = program.command('orders');
   const workflowsCommand = program.command('workflows');
@@ -96,6 +101,14 @@ async function main(): Promise<void> {
   const offersCommand = program.command('offers');
   const offersListCommand = offersCommand.command('list');
   const offersGetCommand = offersCommand.command('get');
+
+  setupCommand.description('Setup config.json').action(async (options: any) => {
+    const config = ConfigLoader.getConfig(options.config);
+
+    const defaultConfig = await setup(config);
+
+    ConfigLoader.upsertConfig(options.config, defaultConfig);
+  });
 
   const providersListFields = [
       'address',
@@ -118,7 +131,7 @@ async function main(): Promise<void> {
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend');
+      const backend = await configLoader.loadSection('backend');
 
       validateFields(options.fields, providersGetFields);
 
@@ -151,7 +164,7 @@ async function main(): Promise<void> {
     )
     .action(async (address: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = await configLoader.loadSection('backend');
 
       validateFields(options.fields, providersGetFields);
 
@@ -170,7 +183,7 @@ async function main(): Promise<void> {
     .option('--debug', 'Display debug information', false)
     .action(async (ids: string[], options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -182,7 +195,7 @@ async function main(): Promise<void> {
         actionAccountKey: blockchain.accountPrivateKey,
         ids,
       };
-      const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+      const analytics = await configLoader.loadSection('analytics');
 
       try {
         await ordersCancel(requestParams);
@@ -208,7 +221,7 @@ async function main(): Promise<void> {
     .option('--debug', 'Display debug information', false)
     .action(async (id: string, amount: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -221,7 +234,7 @@ async function main(): Promise<void> {
         id,
         amount,
       };
-      const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+      const analytics = await configLoader.loadSection('analytics');
 
       try {
         await ordersReplenishDeposit(requestParams);
@@ -246,6 +259,36 @@ async function main(): Promise<void> {
       const ecdh = crypto.createECDH('secp256k1');
       ecdh.generateKeys();
       Printer.print(ecdh.getPrivateKey().toString('base64'));
+    });
+
+  workflowsCommand
+    .command('phrase-to-key')
+    .argument('mnemonicPhrase', 'Mnemonic phrase <mnemonicPhrase>')
+    .description('Create workflow private key from mnemonic phrase')
+    .action((mnemonicPhrase: string) => {
+      const entropy = bip39.mnemonicToEntropy(mnemonicPhrase);
+
+      Printer.print(Buffer.from(entropy, 'hex').toString('base64'));
+    });
+
+  workflowsCommand
+    .command('key-to-phrase')
+    .description('Show your workflows private key as mnemonic phrase to use on Marketplace')
+    .option('--key <key>', 'Key in base64 format <key>')
+    .action(async (options: any) => {
+      let keyToPhrase: string;
+      if (options.key) {
+        keyToPhrase = options.key;
+      } else {
+        const configLoader = new ConfigLoader(options.config);
+        const workflowConfig = await configLoader.loadSection('workflow');
+        keyToPhrase = workflowConfig.resultEncryption.key!;
+      }
+
+      const privateKey = Buffer.from(keyToPhrase, Encoding.base64);
+      const mnemonic = bip39.entropyToMnemonic(privateKey);
+
+      Printer.print(mnemonic);
     });
 
   workflowsCommand
@@ -303,14 +346,14 @@ async function main(): Promise<void> {
       }
 
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const backend = await configLoader.loadSection('backend');
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const { pccsServiceApiUrl } = configLoader.loadSection('tii') as Config['tii'];
-      const workflowConfig = configLoader.loadSection('workflow') as Config['workflow'];
+      const { pccsServiceApiUrl } = await configLoader.loadSection('tii');
+      const workflowConfig = await configLoader.loadSection('workflow');
       const wallet = new Wallet(blockchain.accountPrivateKey);
       const userId = wallet.address;
       const requestParams: WorkflowCreateParams = {
@@ -332,7 +375,7 @@ async function main(): Promise<void> {
         ordersLimit: Number(options.ordersLimit),
         pccsServiceApiUrl,
       };
-      const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+      const analytics = await configLoader.loadSection('analytics');
 
       try {
         const id = await workflowsCreate(requestParams);
@@ -396,12 +439,11 @@ async function main(): Promise<void> {
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = await configLoader.loadSection('backend');
 
       let actionAccountKey;
       if (options.myAccount) {
-        actionAccountKey = (configLoader.loadSection('blockchain') as Config['blockchain'])
-          .accountPrivateKey;
+        actionAccountKey = (await configLoader.loadSection('blockchain')).accountPrivateKey;
       }
 
       validateFields(options.fields, ordersListFields);
@@ -480,7 +522,7 @@ async function main(): Promise<void> {
     )
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = await configLoader.loadSection('backend');
 
       validateFields(options.fields, ordersGetFields);
       if (options.suborders) validateFields(options.suborders_fields, subOrdersGetFields);
@@ -502,8 +544,8 @@ async function main(): Promise<void> {
     .option('--debug', 'Display debug information', false)
     .action(async (orderId: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const workflowConfig = configLoader.loadSection('workflow') as Config['workflow'];
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const workflowConfig = await configLoader.loadSection('workflow');
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -516,7 +558,7 @@ async function main(): Promise<void> {
         localPath: options.saveTo,
         resultDecryptionKey: workflowConfig.resultEncryption.key!,
       };
-      const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+      const analytics = await configLoader.loadSection('analytics');
 
       try {
         await ordersDownloadResult(requestParams);
@@ -542,8 +584,8 @@ async function main(): Promise<void> {
     .option('--debug', 'Display debug information', false)
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const blockchain = await configLoader.loadSection('blockchain');
+      const backend = await configLoader.loadSection('backend');
       const wallet = new Wallet(blockchain.accountPrivateKey);
       const userId = wallet.address;
       const requestParams = {
@@ -553,7 +595,7 @@ async function main(): Promise<void> {
         requestMatic: options.matic,
         requestTee: options.tee,
       };
-      const analytics = configLoader.loadSection('analytics') as Config['analytics'];
+      const analytics = await configLoader.loadSection('analytics');
 
       try {
         await tokensRequest(requestParams);
@@ -593,7 +635,7 @@ async function main(): Promise<void> {
     .description('Display the token balance of the account')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -631,7 +673,7 @@ async function main(): Promise<void> {
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = await configLoader.loadSection('backend');
 
       validateFields(options.fields, offersListTeeFields);
 
@@ -669,7 +711,7 @@ async function main(): Promise<void> {
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = await configLoader.loadSection('backend');
 
       validateFields(options.fields, offersListValueFields);
 
@@ -706,7 +748,7 @@ async function main(): Promise<void> {
     )
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = await configLoader.loadSection('backend');
 
       validateFields(options.fields, teeOffersGetFields);
 
@@ -742,7 +784,7 @@ async function main(): Promise<void> {
     )
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = await configLoader.loadSection('backend');
 
       validateFields(options.fields, offersGetFields);
 
@@ -763,7 +805,7 @@ async function main(): Promise<void> {
     .option('--save-to <filepath>', 'Save result to a file')
     .action(async (type: 'tee' | 'value', id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = await configLoader.loadSection('backend');
 
       await offersGetInfo({
         backendUrl: backend.url,
@@ -783,7 +825,7 @@ async function main(): Promise<void> {
     .option('--save-to <path>', 'Directory to save the content to', './')
     .action(async (offerId: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -803,7 +845,7 @@ async function main(): Promise<void> {
     .option('--path <filepath>', 'path to offer info json file', './offerInfo.json')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -828,7 +870,7 @@ async function main(): Promise<void> {
     .requiredOption('--path <filepath>', 'path to offer info', './offerInfo.json')
     .action(async (type: 'tee' | 'value', id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -850,7 +892,7 @@ async function main(): Promise<void> {
     .argument('id', 'Offer <id>')
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -870,7 +912,7 @@ async function main(): Promise<void> {
     .argument('id', 'Offer <id>')
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -890,7 +932,7 @@ async function main(): Promise<void> {
     .requiredOption('--by-providers <filepath>', 'path to providers list', './providers.json')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -908,7 +950,7 @@ async function main(): Promise<void> {
     .requiredOption('--by-providers <filepath>', 'path to providers list', './providers.json')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -929,7 +971,7 @@ async function main(): Promise<void> {
     .option('--save-to <filepath>', 'Save result to a file')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = await configLoader.loadSection('backend');
 
       await offersGetSlot({
         backendUrl: backend.url,
@@ -949,7 +991,7 @@ async function main(): Promise<void> {
     .requiredOption('--path <filepath>', 'path to offer info', './offerSlot.json')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -974,7 +1016,7 @@ async function main(): Promise<void> {
     .requiredOption('--path <filepath>', 'path to offer info', './slotInfo.json')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -999,7 +1041,7 @@ async function main(): Promise<void> {
     .requiredOption('--slot <id>', 'Slot <id>')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1023,7 +1065,7 @@ async function main(): Promise<void> {
     .option('--save-to <filepath>', 'Save result to a file')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend') as Config['backend'];
+      const backend = await configLoader.loadSection('backend');
 
       await offersGetOption({
         backendUrl: backend.url,
@@ -1041,7 +1083,7 @@ async function main(): Promise<void> {
     .requiredOption('--path <filepath>', 'path to option info', './offerOption.json')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1064,7 +1106,7 @@ async function main(): Promise<void> {
     .requiredOption('--path <filepath>', 'path to option info', './offerOption.json')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1087,7 +1129,7 @@ async function main(): Promise<void> {
     .requiredOption('--path <filepath>', 'path to option info', './offerOption.json')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1120,7 +1162,7 @@ async function main(): Promise<void> {
     )
     .action(async (localPath: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const storage = configLoader.loadSection('storage') as Config['storage'];
+      const storage = await configLoader.loadSection('storage');
 
       await upload({
         localPath,
@@ -1157,7 +1199,7 @@ async function main(): Promise<void> {
     .argument('resourcePath', 'Path to a resource file')
     .action(async (resourcePath: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const storage = configLoader.loadSection('storage') as Config['storage'];
+      const storage = await configLoader.loadSection('storage');
 
       await filesDelete({
         resourcePath,
@@ -1243,12 +1285,12 @@ async function main(): Promise<void> {
     .option('--output <path>', 'Path to write the result into', 'tii.json')
     .action(async (resourcePath: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = configLoader.loadSection('blockchain') as Config['blockchain'];
+      const blockchain = await configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const { pccsServiceApiUrl } = configLoader.loadSection('tii') as Config['tii'];
+      const { pccsServiceApiUrl } = await configLoader.loadSection('tii');
 
       await generateTii({
         blockchainConfig,
