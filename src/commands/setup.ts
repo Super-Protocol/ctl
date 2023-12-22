@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import inquirer, { QuestionCollection } from 'inquirer';
 import { Config } from '../config';
 import {
@@ -8,6 +7,7 @@ import {
   SMART_CONTRACT_ADDRESS_DEFAULT,
 } from '../constants';
 import { CryptoAlgorithm, Encoding, StorageType } from '@super-protocol/dto-js';
+import { workflowGenerateKey } from './workflowsGenerateKey';
 
 interface Answers {
   backend: {
@@ -131,11 +131,9 @@ export default async (config?: Config): Promise<Config> => {
   } as Config;
 
   if (!config?.workflow.resultEncryption.key) {
-    const ecdh = crypto.createECDH('secp256k1');
-    ecdh.generateKeys();
     defaultConfig.workflow.resultEncryption = {
       algo: CryptoAlgorithm.ECIES,
-      key: ecdh.getPrivateKey().toString('base64'),
+      key: workflowGenerateKey(),
       encoding: Encoding.base64,
     };
   } else {

@@ -8,7 +8,6 @@ const packageJson = require('../package.json');
 import { Argument, Command, Option } from 'commander';
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
 
 import ConfigLoader, { Config } from './config';
 import download from './commands/filesDownload';
@@ -52,6 +51,7 @@ import offersGetOption from './commands/offersGetOption';
 import { Analytics } from './services/analytics';
 import { checkForUpdates } from './services/checkReleaseVersion';
 import setup from './commands/setup';
+import { workflowGenerateKey } from './commands/workflowsGenerateKey';
 
 async function trackEvent(
   config: Config['analytics'],
@@ -256,9 +256,9 @@ async function main(): Promise<void> {
     .command('generate-key')
     .description('Generate private key to encrypt order results')
     .action(() => {
-      const ecdh = crypto.createECDH('secp256k1');
-      ecdh.generateKeys();
-      Printer.print(ecdh.getPrivateKey().toString('base64'));
+      const privateKey = workflowGenerateKey();
+
+      Printer.print(privateKey);
     });
 
   workflowsCommand
