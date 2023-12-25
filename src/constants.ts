@@ -12,3 +12,5 @@ export const BLOCKCHAIN_RPC_URL_DEFAULT = 'https://mumbai.polygon.superprotocol.
 export const SMART_CONTRACT_ADDRESS_DEFAULT = '0xA7Ff565f26b93926e4e6465Eb81d48EfF456848b';
 export const BASE64_CHECK_REGEX =
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=?|[A-Za-z0-9+/]{4})$/;
+export const JWT_CHECK_REGEX = /(^[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*$)/;
+export const CONFIG_DEFAULT_FILENAME = './config.json';

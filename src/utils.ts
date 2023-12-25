@@ -6,7 +6,7 @@ import { BigNumberish, ethers } from 'ethers';
 import { ErrorMessageOptions, generateErrorMessage } from 'zod-error';
 import { ZodIssue } from 'zod';
 import path from 'path';
-import { TX_REVERTED_BY_EVM_ERROR } from './constants';
+import { CONFIG_DEFAULT_FILENAME, TX_REVERTED_BY_EVM_ERROR } from './constants';
 
 export const exec = promisify(execCallback);
 
@@ -160,4 +160,10 @@ export const formatTeeOptions = (
     },
     { ids: [], counts: [] },
   );
+};
+
+export const getConfigPath = (): string => {
+  const configArgIndex = process.argv.indexOf(`--config`);
+
+  return configArgIndex < 0 ? CONFIG_DEFAULT_FILENAME : process.argv[configArgIndex + 1];
 };

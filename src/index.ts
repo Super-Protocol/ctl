@@ -30,7 +30,7 @@ import tokensBalance from './commands/tokensBalance';
 import offersListTee from './commands/offersListTee';
 import offersListValue from './commands/offersListValue';
 import offersDownloadContent from './commands/offersDownloadContent';
-import { MAX_ORDERS_RUNNING } from './constants';
+import { CONFIG_DEFAULT_FILENAME, MAX_ORDERS_RUNNING } from './constants';
 import offersGet from './commands/offersGet';
 import offersCreate from './commands/offersCreate';
 import offersUpdate from './commands/offersUpdate';
@@ -77,6 +77,8 @@ async function trackEvent(
 }
 
 async function main(): Promise<void> {
+  await ConfigLoader.init();
+
   const program = new Command();
   program.name(packageJson.name).description(packageJson.description).version(packageJson.version);
 
@@ -103,7 +105,7 @@ async function main(): Promise<void> {
   const offersGetCommand = offersCommand.command('get');
 
   setupCommand.description('Setup config.json').action(async (options: any) => {
-    const config = ConfigLoader.getConfig(options.config);
+    const { config } = ConfigLoader.getRawConfig(options.config);
 
     const defaultConfig = await setup(config);
 
@@ -1306,7 +1308,11 @@ async function main(): Promise<void> {
     command.addHelpCommand('help', 'Display help for the command');
     command.helpOption('-h, --help', 'Display help for the command');
     if (!command.commands.length) {
-      command.option('--config <configPath>', 'Path to the configuration file', './config.json');
+      command.option(
+        '--config <configPath>',
+        'Path to the configuration file',
+        `${CONFIG_DEFAULT_FILENAME}`,
+      );
     }
   });
 

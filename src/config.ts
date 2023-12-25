@@ -4,6 +4,7 @@ import { z } from 'zod';
 import Printer from './printer';
 import { DEFAULT_PCCS_SERVICE } from './constants';
 import setup from './commands/setup';
+import { getConfigPath } from './utils';
 
 const defaultSpaAuthKey = '322ed6bd9a802109e1e9692be0a825c6';
 
@@ -88,15 +89,41 @@ export type Config = {
 };
 
 class ConfigLoader {
-  private configPath: string;
-  private validatedConfig: Config | undefined;
+  private static validatedConfig?: Config;
 
-  static getConfig(configPath: string): Config | undefined {
+  static async init(): Promise<void> {
+    const configPath = getConfigPath();
+
+    const { config, error } = ConfigLoader.getRawConfig(configPath);
+
+    if (error) {
+      Printer.error(error);
+    } else {
+      ConfigLoader.validatedConfig = ConfigLoader.validateConfig(config);
+    }
+
+    if (!ConfigLoader.validatedConfig) {
+      Printer.print(`Config file ${configPath} will be generated interactively`);
+      const defaultConfig = await setup(config);
+      ConfigLoader.upsertConfig(configPath, defaultConfig);
+      Printer.print(
+        `Config file was generated and stores to ${configPath}. Please run your command again`,
+      );
+      process.exit(0);
+    }
+  }
+
+  static getRawConfig(configPath: string): { config?: Config; error?: string } {
+    if (!fs.existsSync(configPath)) {
+      return { error: 'Config file was not found' };
+    }
+
     try {
-      const rawConfig = JSON.parse(fs.readFileSync(configPath).toString());
-      return configValidator.parse(rawConfig) as Config;
-    } catch {
-      return;
+      const config = JSON.parse(fs.readFileSync(configPath).toString());
+
+      return { config };
+    } catch (err) {
+      return { error: `Config is not valid JSON. Error: ${(err as Error).message}` };
     }
   }
 
@@ -105,47 +132,52 @@ class ConfigLoader {
     fs.writeFileSync(configPath, configJson);
   }
 
-  constructor(configPath: string) {
-    this.configPath = configPath;
+  private static validateConfig(rawConfig?: Config): Config | undefined {
+    if (!rawConfig) {
+      return;
+    }
 
-    this.validatedConfig = ConfigLoader.getConfig(configPath);
-
-    if (!this.validatedConfig) {
-      Printer.error('Config file does not exist or corrupted');
+    try {
+      return configValidator.parse(rawConfig) as Config;
+    } catch (err) {
+      Printer.error(`Config does not have required or has deprecated fields`);
     }
   }
 
-  async loadSection<T extends keyof Config>(sectionName: T): Promise<Config[T]> {
-    if (!this.validatedConfig) {
-      return await this.setupConfig();
+  constructor(private readonly configPath: string) {}
+
+  loadSection<T extends keyof Config>(sectionName: T): Config[T] {
+    if (!ConfigLoader.validatedConfig) {
+      throw new Error(`Config is missing! Please run 'spctl setup' command`);
     }
 
-    this.setRuntimeDefaults(this.validatedConfig, sectionName);
-    return this.validatedConfig[sectionName];
+    this.setRuntimeDefaults(ConfigLoader.validatedConfig, sectionName);
+    return ConfigLoader.validatedConfig[sectionName];
   }
 
   updateSection<T extends keyof Config>(sectionName: T, newValues: Partial<Config[T]>): void {
-    if (!this.validatedConfig) {
-      throw new Error(`Config is missing! Please make 'spctl setup' command`);
+    if (!ConfigLoader.validatedConfig) {
+      throw new Error(`Config is missing! Please run 'spctl setup' command`);
     }
-    this.validatedConfig[sectionName] = {
-      ...this.validatedConfig[sectionName],
+
+    ConfigLoader.validatedConfig[sectionName] = {
+      ...ConfigLoader.validatedConfig[sectionName],
       ...newValues,
     };
 
-    fs.writeFileSync(this.configPath, JSON.stringify(this.validatedConfig, null, 4));
+    fs.writeFileSync(this.configPath, JSON.stringify(ConfigLoader.validatedConfig, null, 4));
   }
 
   private setRuntimeDefaults(target: Partial<Config>, sectionName: keyof Config): void {
-    if (!this.validatedConfig) {
-      throw new Error(`Config is missing! Please make 'spctl setup' command`);
+    if (!ConfigLoader.validatedConfig) {
+      throw new Error(`Config is missing! Please run 'spctl setup' command`);
     }
 
     switch (sectionName) {
       case 'analytics':
         target[sectionName] = {
           ...(target[sectionName] as Config['analytics']),
-          spaUrl: this.getSpaUrlByBackendUrl(this.validatedConfig.backend.url),
+          spaUrl: this.getSpaUrlByBackendUrl(ConfigLoader.validatedConfig.backend.url),
         };
         break;
 
@@ -168,14 +200,6 @@ class ConfigLoader {
       default:
         return '';
     }
-  }
-
-  private async setupConfig(): Promise<never> {
-    Printer.print('Config file will be generated interactively');
-    const defaultConfig = await setup();
-    ConfigLoader.upsertConfig(this.configPath, defaultConfig);
-    Printer.print('Config file was generated. Please run your command again');
-    process.exit(0);
   }
 }
 
