@@ -56,8 +56,7 @@ const getQuestionsObj = (config?: Config): QuestionCollection => {
     {
       type: 'confirm',
       name: 'storjBucketExists',
-      message:
-        'Do you have StorJ bucket with access tokens (https://docs.superprotocol.com/developers/cli_guides/storages)?: ',
+      message: 'Do you have StorJ bucket with access tokens? ',
     },
     {
       type: 'input',
