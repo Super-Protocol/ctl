@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { writeFile, readFile, mkdir, copyFile, realpath } from 'fs/promises';
+import { writeFile, readFile, mkdir, copyFile, realpath, rm } from 'fs/promises';
 import { existsSync } from 'fs';
 import { assertCommand, exec } from '../utils';
 
@@ -8,6 +8,8 @@ const assertDockerCommand = () =>
     'docker version',
     'Docker was not found in PATH, please verify that Docker is installed',
   );
+
+const solutionMetadataFolder = '.solution-metadata';
 
 export const extractManifest = async (opts: {
   baseImagePath?: string;
@@ -95,6 +97,14 @@ python3 /parse_sigstruct.py
   await writeFile(entrypointSigPath, '');
   await writeFile(entrypointSgxPath, '');
 
+  //remove solution metadata path if exist
+  const solutionMetadataRootPath = join(
+    await realpath(opts.solutionPath),
+    solutionMetadataFolder
+  );
+
+  await rm(solutionMetadataRootPath, { recursive: true, force: true });
+
   const { stdout } = await exec(
     `docker run --hostname localhost --rm -i --entrypoint /bin/sh -v "${keyPath}:/sign.key" -v "${scriptPath}:/script.sh" -v "${entrypointManifestPath}:/entrypoint.manifest" -v "${entrypointSgxPath}:/entrypoint.manifest.sgx" -v "${entrypointSigPath}:/entrypoint.sig" -v "${opts.solutionPath}:/sp/run" "${opts.dockerImage}" /script.sh`,
   );
@@ -109,7 +119,7 @@ python3 /parse_sigstruct.py
   const writeManifest = async (mrenclave: string) => {
     const solutionMetadataPath = join(
       await realpath(opts.solutionPath),
-      '.solution-metadata',
+      solutionMetadataFolder,
       'sgx-gramine',
       'manifests',
       'mrenclave',
