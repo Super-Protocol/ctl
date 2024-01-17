@@ -20,6 +20,7 @@ export type BaseOrder = {
   __typename?: 'BaseOrder';
   /** system identifier */
   _id: Scalars['String'];
+  accumulatedOptionsInfo: OptionInfo;
   accumulatedSlotInfo: SlotInfo;
   accumulatedSlotUsage: SlotUsage;
   authority?: Maybe<Scalars['String']>;
@@ -44,6 +45,7 @@ export type BaseOrder = {
 };
 
 export type BaseOrderInputType = {
+  accumulatedOptionsInfo: OptionInfoInput;
   accumulatedSlotInfo: SlotInfoInput;
   accumulatedSlotUsage: SlotUsageInput;
   awaitingPayment: Scalars['Boolean'];
@@ -398,9 +400,12 @@ export type OfferConfiguration = {
   cpuCores: Scalars['Float'];
   diskUsage: Scalars['Float'];
   externalPort: Scalars['Float'];
+  maxTimeMinutes: Scalars['Float'];
+  minTimeMinutes: Scalars['Float'];
   priceFixed: Scalars['String'];
   pricePerHour: Scalars['String'];
   ram: Scalars['Float'];
+  /** @deprecated use minTimeMinutes/maxTimeMinutes instead */
   time: Array<Scalars['Float']>;
   traffic: Scalars['Float'];
 };
@@ -610,6 +615,7 @@ export type Order = {
   __typename?: 'Order';
   /** system identifier */
   _id: Scalars['String'];
+  accumulatedOptionsInfo: OptionInfo;
   accumulatedSlotInfo: SlotInfo;
   accumulatedSlotUsage: SlotUsage;
   authority?: Maybe<Scalars['String']>;
@@ -702,7 +708,6 @@ export type OrderInfo = {
   externalId: Scalars['String'];
   offerId: Scalars['String'];
   resultPublicKey: Scalars['String'];
-  slots: OrderSlots;
   /**
    * description of values:
    * 
@@ -736,7 +741,6 @@ export type OrderInfoInput = {
   externalId: Scalars['String'];
   offerId: Scalars['String'];
   resultPublicKey: Scalars['String'];
-  slots: OrderSlotsInput;
   /**
    * description of values:
    * 
@@ -764,6 +768,7 @@ export type OrderInfoInput = {
 };
 
 export type OrderInputType = {
+  accumulatedOptionsInfo: OptionInfoInput;
   accumulatedSlotInfo: SlotInfoInput;
   accumulatedSlotUsage: SlotUsageInput;
   awaitingPayment: Scalars['Boolean'];
@@ -788,6 +793,7 @@ export type OrderInputType = {
 
 export type OrderObject = {
   __typename?: 'OrderObject';
+  accumulatedOptionsInfo: OptionInfo;
   accumulatedSlotInfo: SlotInfo;
   accumulatedSlotUsage: SlotUsage;
   awaitingPayment?: Maybe<Scalars['Boolean']>;
@@ -839,21 +845,6 @@ export type OrderResultInput = {
   orderPrice?: InputMaybe<Scalars['String']>;
 };
 
-export type OrderSlots = {
-  __typename?: 'OrderSlots';
-  optionsCount: Array<Scalars['Float']>;
-  optionsIds: Array<Scalars['String']>;
-  slotCount: Scalars['Float'];
-  slotId: Scalars['String'];
-};
-
-export type OrderSlotsInput = {
-  optionsCount: Array<Scalars['Float']>;
-  optionsIds: Array<Scalars['String']>;
-  slotCount: Scalars['Float'];
-  slotId: Scalars['String'];
-};
-
 export type OrderStatusUpdatedInput = {
   /** filter by order ids */
   orderIds?: InputMaybe<Array<Scalars['String']>>;
@@ -903,6 +894,8 @@ export type OrdersFilter = {
   inputOffers?: InputMaybe<Array<Scalars['String']>>;
   /** filter by orderInfo -> offerId */
   offerId?: InputMaybe<Scalars['String']>;
+  /** filter by orderInfo -> offerId */
+  offerIds?: InputMaybe<Array<Scalars['String']>>;
   /** filter by offerType */
   offerType?: InputMaybe<TOfferType>;
   /** filter by orderInfo -> args -> outputOffers */
@@ -942,6 +935,7 @@ export type ParentOrder = {
   __typename?: 'ParentOrder';
   /** system identifier */
   _id: Scalars['String'];
+  accumulatedOptionsInfo: OptionInfo;
   accumulatedSlotInfo: SlotInfo;
   accumulatedSlotUsage: SlotUsage;
   authority?: Maybe<Scalars['String']>;
@@ -967,6 +961,7 @@ export type ParentOrder = {
 };
 
 export type ParentOrderInputType = {
+  accumulatedOptionsInfo: OptionInfoInput;
   accumulatedSlotInfo: SlotInfoInput;
   accumulatedSlotUsage: SlotUsageInput;
   awaitingPayment: Scalars['Boolean'];
@@ -1168,13 +1163,13 @@ export type QueryListErc20Args = {
 
 export type QueryOfferArgs = {
   _id: Scalars['String'];
-  mapTo?: InputMaybe<TIdSource>;
+  mapTo?: TIdSource;
 };
 
 
 export type QueryOfferTypeArgs = {
   _id: Scalars['String'];
-  mapTo?: InputMaybe<TIdSource>;
+  mapTo?: TIdSource;
 };
 
 
@@ -1229,7 +1224,7 @@ export type QueryTeeBalanceOfArgs = {
 
 export type QueryTeeOfferArgs = {
   _id: Scalars['String'];
-  mapTo?: InputMaybe<TIdSource>;
+  mapTo?: TIdSource;
 };
 
 
@@ -1284,11 +1279,16 @@ export type SlotUsageInput = {
   priceType: PriceType;
 };
 
+export enum SortDir {
+  Asc = 'ASC',
+  Desc = 'DESC'
+}
+
 export type SortParam = {
   /** sort field name */
   sortBy: Scalars['String'];
   /** sort directory - ASC or DESC. Default value ASC */
-  sortDir: Scalars['String'];
+  sortDir: SortDir;
 };
 
 export type StatisticPoint = {
@@ -1603,6 +1603,7 @@ export type ValidationErrors = {
   cpuCores?: Maybe<ResourceRequirement>;
   diskUsage?: Maybe<ResourceRequirement>;
   externalPort?: Maybe<ResourceRequirement>;
+  minTimeMinutes?: Maybe<ResourceRequirement>;
   ram?: Maybe<ResourceRequirement>;
   traffic?: Maybe<ResourceRequirement>;
 };
@@ -1651,6 +1652,7 @@ export type ValueSlot = {
 
 export type WorkflowConfigurationValidation = {
   data: Array<ValueOfferWithSlotsAndOptions>;
+  minTimeMinutes?: InputMaybe<Scalars['Float']>;
   solution?: InputMaybe<Array<ValueOfferWithSlotsAndOptions>>;
   storage: ValueOfferWithSlotsAndOptions;
   tee: TeeOfferWithSlotsAndOptions;

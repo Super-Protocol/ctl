@@ -1,10 +1,7 @@
 import { Encoding, HashAlgorithm } from '@super-protocol/dto-js';
-import { OfferType } from '@super-protocol/sdk-js';
+import { OfferType, OrderStatus } from '@super-protocol/sdk-js';
 import { Wallet } from 'ethers';
 import * as bip39 from 'bip39';
-
-const packageJson = require('../package.json');
-
 import { Argument, Command, Option } from 'commander';
 import fs from 'fs';
 import path from 'path';
@@ -52,6 +49,14 @@ import { Analytics } from './services/analytics';
 import { checkForUpdates } from './services/checkReleaseVersion';
 import setup from './commands/setup';
 import { workflowGenerateKey } from './commands/workflowsGenerateKey';
+
+const packageJson = require('../package.json');
+
+const ORDER_STATUS_KEYS = Object.keys(OrderStatus) as Array<keyof typeof OrderStatus>;
+const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce((acc, key) => {
+  acc[key.toLowerCase()] = OrderStatus[key];
+  return acc;
+}, {} as { [Key: string]: OrderStatus });
 
 async function trackEvent(
   config: Config['analytics'],
@@ -439,6 +444,20 @@ async function main(): Promise<void> {
     )
     .option('--limit <number>', 'Number of records to display', '10')
     .option('--cursor <cursorString>', 'Cursor for pagination')
+    .addOption(
+      new Option('--offers <string>', "Offer's ids separated by comma").argParser(
+        commaSeparatedList,
+      ),
+    )
+    .addOption(
+      new Option(
+        '--status <string>',
+        `Order's status. Supported statuses: ${Object.keys(ORDER_STATUS_MAP).join()}`,
+      ).argParser((value) => {
+        const val = value.toLowerCase().trim();
+        return Object.keys(ORDER_STATUS_MAP).includes(val) ? [val] : [];
+      }),
+    )
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = await configLoader.loadSection('backend');
@@ -458,6 +477,8 @@ async function main(): Promise<void> {
         cursor: options.cursor,
         actionAccountKey,
         offerType: ordersListOfferTypes[options.type as keyof typeof ordersListOfferTypes],
+        ...(options.offers && { offerIds: options.offers }),
+        ...(options.status && { status: ORDER_STATUS_MAP[options.status] }),
       });
     });
 

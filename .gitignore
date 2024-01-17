@@ -36,3 +36,5 @@ temp
 
 dist
 libs
+/schema.graphql
+/graphql.config.yml

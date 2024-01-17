@@ -2,7 +2,7 @@ import fetchOrdersService from '../services/fetchOrders';
 import Printer from '../printer';
 import { prepareObjectToPrint } from '../utils';
 import { Wallet } from 'ethers';
-import { OfferType } from '@super-protocol/sdk-js';
+import { OfferType, OrderStatus } from '@super-protocol/sdk-js';
 
 export type OrdersListParams = {
   backendUrl: string;
@@ -12,9 +12,11 @@ export type OrdersListParams = {
   cursor?: string;
   actionAccountKey?: string;
   offerType?: OfferType;
+  offerIds?: string[];
+  status?: OrderStatus;
 };
 
-export default async (params: OrdersListParams) => {
+export default async (params: OrdersListParams): Promise<void> => {
   const orders = await fetchOrdersService({
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
@@ -24,6 +26,8 @@ export default async (params: OrdersListParams) => {
       ? new Wallet(params.actionAccountKey).address
       : undefined,
     offerType: params.offerType,
+    ...(params.offerIds?.length && { offerIds: params.offerIds }),
+    ...(params.status && { status: params.status }),
   });
 
   if (!orders.list.length) {

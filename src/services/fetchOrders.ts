@@ -13,6 +13,8 @@ export type FetchOrdersParams = {
   id?: string;
   customerAddress?: string;
   offerType?: OfferType;
+  offerIds?: string[];
+  status?: OrderStatus;
 };
 
 export default async (params: FetchOrdersParams) => {
@@ -32,6 +34,8 @@ export default async (params: FetchOrdersParams) => {
           id: params.id,
           consumer: params.customerAddress,
           offerType: getObjectKey(params.offerType, OfferType) as TOfferType,
+          ...(params.status && { status: params.status }),
+          ...(params.offerIds && params.offerIds.length && { offerIds: params.offerIds }),
         },
       },
       headers,
