@@ -16,6 +16,11 @@ export type Scalars = {
   DateTime: any;
 };
 
+export type Attestation = {
+  __typename?: 'Attestation';
+  solutions: Array<Solution>;
+};
+
 export type BaseOrder = {
   __typename?: 'BaseOrder';
   /** system identifier */
@@ -892,7 +897,7 @@ export type OrdersFilter = {
   includeStatuses?: InputMaybe<Array<Scalars['String']>>;
   /** filter by orderInfo -> args -> inputOffers */
   inputOffers?: InputMaybe<Array<Scalars['String']>>;
-  /** filter by orderInfo -> offerId */
+  /** This param will be removed in the next version. Use offerIds. */
   offerId?: InputMaybe<Scalars['String']>;
   /** filter by orderInfo -> offerId */
   offerIds?: InputMaybe<Array<Scalars['String']>>;
@@ -1076,6 +1081,7 @@ export type ProviderPageInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  attestation: Attestation;
   balanceOf: Scalars['String'];
   checkAuthToken: Scalars['String'];
   config: Config;
@@ -1277,6 +1283,13 @@ export type SlotUsageInput = {
   minTimeMinutes: Scalars['Float'];
   price: Scalars['String'];
   priceType: PriceType;
+};
+
+export type Solution = {
+  __typename?: 'Solution';
+  mrEnclaves: Array<Scalars['String']>;
+  name: Scalars['String'];
+  offerId: Scalars['String'];
 };
 
 export enum SortDir {
@@ -1675,6 +1688,11 @@ export type WorkflowCreatedPayload = {
   orderId: Scalars['String'];
 };
 
+export type AttestationQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AttestationQuery = { __typename?: 'Query', attestation: { __typename?: 'Attestation', solutions: Array<{ __typename?: 'Solution', name: string, mrEnclaves: Array<string>, offerId: string }> } };
+
 export type PageDataDtoFragmentFragment = { __typename?: 'PageDataDto', count: number, limit: number, offset: number };
 
 export type EventSubscriptionVariables = Exact<{ [key: string]: never; }>;
@@ -1805,6 +1823,17 @@ export const PageDataDtoFragmentFragmentDoc = gql`
   count
   limit
   offset
+}
+    `;
+export const AttestationDocument = gql`
+    query Attestation {
+  attestation {
+    solutions {
+      name
+      mrEnclaves
+      offerId
+    }
+  }
 }
     `;
 export const EventDocument = gql`
@@ -2396,6 +2425,9 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
+    Attestation(variables?: AttestationQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AttestationQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AttestationQuery>(AttestationDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Attestation', 'query');
+    },
     Event(variables?: EventSubscriptionVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<EventSubscription> {
       return withWrapper((wrappedRequestHeaders) => client.request<EventSubscription>(EventDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Event', 'subscription');
     },

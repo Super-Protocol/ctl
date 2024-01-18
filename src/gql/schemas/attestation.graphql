@@ -1,0 +1,9 @@
+query Attestation {
+  attestation {
+    solutions {
+      name
+      mrEnclaves
+      offerId
+    }
+  }
+}

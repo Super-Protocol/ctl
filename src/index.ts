@@ -49,6 +49,7 @@ import { Analytics } from './services/analytics';
 import { checkForUpdates } from './services/checkReleaseVersion';
 import setup from './commands/setup';
 import { workflowGenerateKey } from './commands/workflowsGenerateKey';
+import quotesValidate from './commands/quotesValidate';
 
 const packageJson = require('../package.json');
 
@@ -108,6 +109,7 @@ async function main(): Promise<void> {
   const offersCommand = program.command('offers');
   const offersListCommand = offersCommand.command('list');
   const offersGetCommand = offersCommand.command('get');
+  const quotesCommand = program.command('quotes');
 
   setupCommand.description('Setup config.json').action(async (options: any) => {
     const { config } = ConfigLoader.getRawConfig(options.config);
@@ -1322,6 +1324,21 @@ async function main(): Promise<void> {
         outputPath: options.output,
         pccsServiceApiUrl,
       });
+    });
+
+  quotesCommand
+    .command('validate')
+    .description('Validate a quote')
+    .argument(
+      'url',
+      'a valid URL with only the domain, excluding any path, for instance, https://ugli-etch-vic.superprotocol.io',
+    )
+    .action(async (url: string, options: { config: string }) => {
+      const configLoader = new ConfigLoader(options.config);
+      const backend = configLoader.loadSection('backend');
+      const { pccsServiceApiUrl } = configLoader.loadSection('tii');
+
+      await quotesValidate({ url, pccsServiceApiUrl, backend });
     });
 
   // Add global options
