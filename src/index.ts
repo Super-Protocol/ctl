@@ -868,6 +868,11 @@ async function main(): Promise<void> {
     .description('Create offer')
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
     .option('--path <filepath>', 'path to offer info json file', './offerInfo.json')
+    .option(
+      '--yes',
+      'if true, then the command automatically refills the security deposit to create an offer',
+      false,
+    )
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = await configLoader.loadSection('blockchain');
@@ -884,6 +889,7 @@ async function main(): Promise<void> {
         authorityAccountKey,
         actionAccountKey,
         offerInfoPath: options.path,
+        enableAutoDeposit: options.yes,
       });
     });
 

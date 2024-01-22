@@ -2,11 +2,14 @@ import BlockchainConnector, { BlockchainId, TeeOfferInfo, TeeOffers } from '@sup
 import crypto from 'crypto';
 import Printer from '../printer';
 import doWithRetries from './doWithRetries';
+import checkBalanceToCreateOffer from './checkBalanceToCreateOffer';
 
 export type CreateTeeOfferParams = {
   authority: string;
   action: string;
   offerInfo: TeeOfferInfo;
+  contractAddress: string;
+  enableAutoDeposit: boolean;
 };
 
 export default async (params: CreateTeeOfferParams): Promise<BlockchainId> => {
@@ -21,11 +24,20 @@ export default async (params: CreateTeeOfferParams): Promise<BlockchainId> => {
   // TODO: make as option parameter with possibility to enable/disable by update command
   const enable = true;
 
+  await checkBalanceToCreateOffer({
+    contractAddress: params.contractAddress,
+    enableAutoDeposit: params.enableAutoDeposit,
+    authorityAddress,
+    offerType: 'tee',
+  });
+
   Printer.print('Creating TEE offer');
 
-  TeeOffers.create(authorityAddress, params.offerInfo, externalId, enable, { from: actionAddress });
+  await TeeOffers.create(authorityAddress, params.offerInfo, externalId, enable, {
+    from: actionAddress,
+  });
 
-  const offerLoaderFn = () =>
+  const offerLoaderFn = (): Promise<string> =>
     TeeOffers.getByExternalId({ externalId, creator: actionAddress }).then((event) => {
       if (event && event?.offerId !== '-1') {
         return event.offerId;

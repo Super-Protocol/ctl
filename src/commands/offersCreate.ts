@@ -12,9 +12,10 @@ export type OffersCreateParams = {
   authorityAccountKey: string;
   actionAccountKey: string;
   offerInfoPath: string;
+  enableAutoDeposit: boolean;
 };
 
-export default async (params: OffersCreateParams) => {
+export default async (params: OffersCreateParams): Promise<void> => {
   await initBlockchainConnector({
     blockchainConfig: params.blockchainConfig,
     actionAccountKey: params.actionAccountKey,
@@ -30,6 +31,8 @@ export default async (params: OffersCreateParams) => {
       id = await createTeeOffer({
         authority: params.authorityAccountKey,
         action: params.actionAccountKey,
+        contractAddress: params.blockchainConfig.contractAddress,
+        enableAutoDeposit: params.enableAutoDeposit,
         offerInfo: teeOfferInfo,
       });
       break;
@@ -42,6 +45,8 @@ export default async (params: OffersCreateParams) => {
       id = await createValueOffer({
         authority: params.authorityAccountKey,
         action: params.actionAccountKey,
+        contractAddress: params.blockchainConfig.contractAddress,
+        enableAutoDeposit: params.enableAutoDeposit,
         offerInfo,
       });
       break;
