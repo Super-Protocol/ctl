@@ -27,6 +27,7 @@ export default async (params: CreateTeeOfferParams): Promise<BlockchainId> => {
   await checkBalanceToCreateOffer({
     contractAddress: params.contractAddress,
     enableAutoDeposit: params.enableAutoDeposit,
+    actionAddress,
     authorityAddress,
     offerType: 'tee',
   });

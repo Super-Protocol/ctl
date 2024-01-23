@@ -26,6 +26,7 @@ export default async (params: CreateOfferParams): Promise<BlockchainId> => {
   await checkBalanceToCreateOffer({
     contractAddress: params.contractAddress,
     enableAutoDeposit: params.enableAutoDeposit,
+    actionAddress,
     authorityAddress,
     offerType: 'value',
   });

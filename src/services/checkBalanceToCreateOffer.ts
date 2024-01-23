@@ -40,6 +40,7 @@ async function getSecDepositToCreateOffer(
 }
 
 interface CheckBalanceToCreateOfferParams extends GetSecDepositToCreateOfferParams {
+  actionAddress: string;
   contractAddress: string;
   enableAutoDeposit: boolean;
 }
@@ -47,7 +48,7 @@ interface CheckBalanceToCreateOfferParams extends GetSecDepositToCreateOfferPara
 export default async function checkBalanceToCreateOffer(
   params: CheckBalanceToCreateOfferParams,
 ): Promise<void> {
-  const { contractAddress, authorityAddress, offerType } = params;
+  const { contractAddress, actionAddress, authorityAddress, offerType } = params;
   const secDepositToCreateOffer = await getSecDepositToCreateOffer({ authorityAddress, offerType });
 
   if (secDepositToCreateOffer.isZero()) {
@@ -76,8 +77,10 @@ export default async function checkBalanceToCreateOffer(
 
   if (await isDepositConfirmed()) {
     const amount = secDepositToCreateOffer.toString();
-    await SuperproToken.approve(contractAddress, amount, { from: authorityAddress });
-    await ProviderRegistry.refillSecurityDepositFor(amount, authorityAddress);
+    await SuperproToken.approve(contractAddress, amount, { from: actionAddress });
+    await ProviderRegistry.refillSecurityDepositFor(amount, authorityAddress, {
+      from: actionAddress,
+    });
     return Printer.print(`Reffiled security deposit on ${weiToEther(secDepositToCreateOffer)} TEE`);
   }
 
