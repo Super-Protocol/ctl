@@ -6,7 +6,7 @@ export type CheckOrderParams = {
   statuses?: OrderStatus[];
 };
 
-const checkOrder = async (params: CheckOrderParams) => {
+const checkOrder = async (params: CheckOrderParams): Promise<void> => {
   const order = new Order(params.id);
   if (!(await order.isExist())) {
     throw Error('Order does not exist');
@@ -18,7 +18,7 @@ const checkOrder = async (params: CheckOrderParams) => {
     if (!params.statuses.includes(info.status)) {
       const current = getObjectKey(info.status, OrderStatus);
       const supported = params.statuses.map((s) => getObjectKey(s, OrderStatus)).join(', ');
-      throw new Error(
+      throw Error(
         `Order status ${current} is not supported for this command, supported order statuses are: ${supported}`,
       );
     }

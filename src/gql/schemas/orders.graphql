@@ -115,6 +115,11 @@ query Order($id: String!) {
         orderInfo {
             status
             offerId
+            args {
+                inputOffers
+                outputOffer
+            }
+            resultPublicKey
         }
         teeOfferInfo {
             name
@@ -122,6 +127,10 @@ query Order($id: String!) {
         }
         orderResult {
             encryptedResult
+        }
+        parentOrder {
+            id
+            offerType
         }
     }
 }

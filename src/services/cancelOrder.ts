@@ -5,11 +5,11 @@ export type CancelOrderParams = {
   id: string;
 };
 
-export default async (params: CancelOrderParams) => {
+export default async (params: CancelOrderParams): Promise<void> => {
   const order = new Order(params.id);
   try {
     await order.cancelOrder();
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof Web3TransactionRevertedByEvmError)
       throw ErrorTxRevertedByEvm(error.originalError);
     else throw error;

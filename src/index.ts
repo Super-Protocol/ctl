@@ -15,6 +15,7 @@ import providersGet from './commands/providersGet';
 import ordersList from './commands/ordersList';
 import ordersGet from './commands/ordersGet';
 import ordersCancel from './commands/ordersCancel';
+import ordersComplete, { OrderCompleteParams } from './commands/ordersComplete';
 import ordersReplenishDeposit from './commands/ordersReplenishDeposit';
 import workflowsCreate, { WorkflowCreateParams } from './commands/workflowsCreate';
 import Printer from './printer';
@@ -50,6 +51,7 @@ import { checkForUpdates } from './services/checkReleaseVersion';
 import setup from './commands/setup';
 import { workflowGenerateKey } from './commands/workflowsGenerateKey';
 import quotesValidate from './commands/quotesValidate';
+import { TerminatedOrderStatus } from './services/completeOrder';
 
 const packageJson = require('../package.json');
 
@@ -259,6 +261,50 @@ async function main(): Promise<void> {
         });
         throw error;
       }
+    });
+
+  ordersCommand
+    .command('complete')
+    .description('Complete order with <id>')
+    .argument('<ids...>', 'Order <ids>')
+    .option('--debug', 'Display debug information', false)
+    .addOption(
+      new Option(
+        '--status <string>',
+        'Order status. Available statuses: Done, Error, Canceled.',
+      ).argParser((value) => {
+        const val = value.toLowerCase().trim();
+        const availableStatuses = [OrderStatus.Canceled, OrderStatus.Done, OrderStatus.Error];
+        if (!availableStatuses.includes(ORDER_STATUS_MAP[val])) {
+          throw Error(
+            'Unsupported value of "status" option. Supported values: done, error, canceled',
+          );
+        }
+        return val;
+      }),
+    )
+    .option('--result <string>', "path to file with result's resource information")
+    .action(async (ids: string[], options: Record<string, string>) => {
+      const configLoader = new ConfigLoader(options.config);
+      const blockchain = configLoader.loadSection('blockchain');
+      const tii = configLoader.loadSection('tii');
+      const backend = configLoader.loadSection('backend');
+      const blockchainConfig = {
+        contractAddress: blockchain.smartContractAddress,
+        blockchainUrl: blockchain.rpcUrl,
+      };
+      const requestParams: OrderCompleteParams = {
+        blockchainConfig,
+        actionAccountKey: blockchain.accountPrivateKey,
+        ids,
+        status: ORDER_STATUS_MAP[options.status] as TerminatedOrderStatus,
+        resourcePath: options.result,
+        pccsApiUrl: tii.pccsServiceApiUrl,
+        accessToken: backend.accessToken,
+        backendUrl: backend.url,
+      };
+
+      await ordersComplete(requestParams);
     });
 
   workflowsCommand
