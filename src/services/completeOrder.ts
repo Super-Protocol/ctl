@@ -6,7 +6,8 @@ import {
   Web3TransactionRevertedByEvmError,
 } from '@super-protocol/sdk-js';
 import { ErrorTxRevertedByEvm, ErrorWithCustomMessage } from '../utils';
-import readResourceFile, { ResourceFile } from './readResourceFile';
+import readResourceFile from './readResourceFile';
+import readJsonFile from './readJsonFile';
 import { getSdk, Order as SdkOrder, OrderInfo, ParentOrder, TOfferType } from '../gql';
 import { GraphQLClient } from 'graphql-request';
 import getGqlHeaders from './gqlHeaders';
@@ -29,8 +30,7 @@ type IOrder = Pick<SdkOrder, 'id' | 'offerType'> & {
   parentOrder?: IParenOrder | null;
   orderInfo: IOrderInfo;
 };
-type ResourceInfo = Pick<ResourceFile, 'resource' | 'encryption'>;
-type GetEncryptedResultFn = (order: IOrder, resource: ResourceInfo) => Promise<string>;
+type GetEncryptedResultFn = (order: IOrder, path: string) => Promise<string>;
 const ZERO_ID = '0';
 
 export default async (params: CompleteOrderParams): Promise<void> => {
@@ -57,12 +57,13 @@ export default async (params: CompleteOrderParams): Promise<void> => {
       `Order(id=${order.id}) has offer type: ${order.offerType}. Such orders couldn't be transferred to the terminal state manually.`,
     );
   };
-  const dataOfferResolver: GetEncryptedResultFn = async (order, resource) => {
+  const dataOfferResolver: GetEncryptedResultFn = async (order, path) => {
     if (
       order.parentOrder?.id &&
       order.parentOrder?.id !== ZERO_ID &&
       order.parentOrder.offerType === TOfferType.TeeOffer
     ) {
+      const resource = await readResourceFile({ path });
       if (!resource.encryption) {
         throw Error(
           `Order(id=${order.id}) has offer type: ${order.offerType} and resource doesn't have encryption info. Such orders couldn't be transferred to the terminal state manually`,
@@ -78,14 +79,15 @@ export default async (params: CompleteOrderParams): Promise<void> => {
       );
     }
 
-    return storageOfferResolver(order, resource);
+    return storageOfferResolver(order, path);
   };
-  const storageOfferResolver: GetEncryptedResultFn = async (order, resource) => {
+  const storageOfferResolver: GetEncryptedResultFn = async (order, path) => {
     if (!order.orderInfo.resultPublicKey) {
       throw Error(
         `Order(id=${order.id}) with offer type ${order.offerType} should have result public key. Such orders couldn't be transferred to the terminal state manually`,
       );
     }
+    const resource = await readJsonFile({ path });
     const encryption = await Crypto.encrypt(
       JSON.stringify(resource),
       JSON.parse(order.orderInfo.resultPublicKey),
@@ -100,15 +102,13 @@ export default async (params: CompleteOrderParams): Promise<void> => {
     [TOfferType.Storage]: storageOfferResolver,
   };
   let encryptedResult = '';
-  let dbOrder: IOrder | undefined;
-  let resource: ResourceInfo | undefined;
+  const dbOrder = await getOrderById(id);
 
-  if (path) {
-    [resource, dbOrder] = await Promise.all([readResourceFile({ path }), getOrderById(id)]);
-    encryptedResult = await resultPublicResolvers[dbOrder.offerType](dbOrder, resource);
-  }
   if (status === OrderStatus.Canceled && dbOrder?.orderInfo.status !== OrderStatus.Canceling) {
     throw Error(`Cancel order is possible only from "canceling" status`);
+  }
+  if (path) {
+    encryptedResult = await resultPublicResolvers[dbOrder.offerType](dbOrder, path);
   }
   try {
     const order = new Order(id);
