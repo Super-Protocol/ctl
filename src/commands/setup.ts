@@ -30,14 +30,14 @@ const getQuestionsObj = (config?: Config): QuestionCollection => {
     {
       type: 'input',
       name: 'backend.accessToken',
-      message: 'Enter JWT token: ',
+      message: 'Enter Access token: ',
       default: config?.backend?.accessToken,
       validate: (token: string): string | boolean => {
         if (JWT_CHECK_REGEX.test(token)) {
           return true;
         }
 
-        return 'Please, enter valid JWT token';
+        return 'Please, enter valid Access token';
       },
     },
     {
@@ -57,6 +57,7 @@ const getQuestionsObj = (config?: Config): QuestionCollection => {
       type: 'confirm',
       name: 'storjBucketExists',
       message: 'Do you have StorJ bucket with access tokens? ',
+      default: false,
     },
     {
       type: 'input',
