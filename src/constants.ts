@@ -14,3 +14,4 @@ export const BASE64_CHECK_REGEX =
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=?|[A-Za-z0-9+/]{4})$/;
 export const JWT_CHECK_REGEX = /(^[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*$)/;
 export const CONFIG_DEFAULT_FILENAME = './config.json';
+export const DEFAULT_TEE_AMOUNT_FOR_APPROVE = 1e10;

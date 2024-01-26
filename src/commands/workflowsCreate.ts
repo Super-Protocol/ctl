@@ -1,38 +1,35 @@
 import {
   Config as BlockchainConfig,
   TIIGenerator,
-  SuperproToken,
-  Orders,
   OrderStatus,
   Offer,
   OfferType,
-  Web3TransactionRevertedByEvmError,
+  Orders,
 } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
 import validateOfferWorkflowService from '../services/validateOfferWorkflow';
-import { CryptoAlgorithm, Encoding, Encryption } from '@super-protocol/dto-js';
+import { Encryption } from '@super-protocol/dto-js';
 import createWorkflowService, { ValueOfferParams } from '../services/createWorkflow';
 import parseInputResourcesService from '../services/parseInputResources';
 import calcWorkflowDepositService from '../services/calcWorkflowDeposit';
-import getTeeBalance from '../services/getTeeBalance';
-import {
-  ErrorTxRevertedByEvm,
-  etherToWei,
-  formatTeeOptions,
-  getObjectKey,
-  weiToEther,
-} from '../utils';
-import getPublicFromPrivate from '../services/getPublicFromPrivate';
+import { formatTeeOptions } from '../utils';
 import fetchOrdersCountService from '../services/fetchOrdersCount';
 import { TOfferType } from '../gql';
-import fetchOffers, { OfferItem } from '../services/fetchOffers';
 import fetchTeeOffers from '../services/fetchTeeOffers';
-import { BigNumber } from 'ethers';
 import automatchTeeSlot from '../services/automatchTeeSlot';
-import { calculateValueOffersMinTimeMinutes } from '../services/workflowHelpers';
+import {
+  calculateValueOffersMinTimeMinutes,
+  checkFetchedOffers,
+  checkSlot,
+  getHoldDeposit,
+  FethchedOffer,
+  getFetchedOffers,
+  getResultEncryption,
+} from '../services/workflowHelpers';
 import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 import { MINUTES_IN_HOUR } from '../constants';
+import approveTeeTokens from '../services/approveTeeTokens';
 
 export type WorkflowCreateParams = {
   backendUrl: string;
@@ -57,17 +54,8 @@ export type WorkflowCreateParams = {
   pccsServiceApiUrl: string;
 };
 
-export type FethchedOffer = {
-  id: NonNullable<OfferItem>['id'];
-  offerInfo: NonNullable<OfferItem>['offerInfo'];
-  slots: NonNullable<OfferItem>['slots'];
-};
-
 const workflowCreate = async (params: WorkflowCreateParams): Promise<string | void> => {
-  if (params.resultEncryption.algo !== CryptoAlgorithm.ECIES)
-    throw Error('Only ECIES result encryption is supported');
-  if (params.resultEncryption.encoding !== Encoding.base64)
-    throw new Error('Only base64 result encryption is supported');
+  const resultEncryption = getResultEncryption(params.resultEncryption);
 
   Printer.print('Connecting to the blockchain');
   const consumerAddress = await initBlockchainConnectorService({
@@ -88,12 +76,6 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
       `You have reached a limit on the number of active orders: ${params.ordersLimit}\nThis restriction was introduced temporarily due to the limited computing resources available during the Testnet phase`,
     );
   }
-
-  const resultEncryption: Encryption = {
-    algo: params.resultEncryption.algo,
-    encoding: params.resultEncryption.encoding,
-    key: getPublicFromPrivate(params.resultEncryption.key!),
-  };
 
   const tee: ValueOfferParams = params.tee
     ? await parseInputResourcesService({
@@ -117,20 +99,12 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
   const valueOfferIds = [...solutionIds, ...dataIds, storage.id];
 
-  const fetchedValueOffers = await fetchOffers({
+  const fetchedValueOffers = await getFetchedOffers({
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
     limit: valueOfferIds.length,
     ids: valueOfferIds,
-  }).then(
-    ({ list }) => <FethchedOffer[]>list
-        .filter((item) => Boolean(item))
-        .map((item) => ({
-          offerInfo: item?.offerInfo || {},
-          slots: item?.slots || [],
-          id: item?.id,
-        })),
-  );
+  });
 
   const offersMap = new Map<string, FethchedOffer>(fetchedValueOffers.map((o) => [o.id, o]));
 
@@ -269,6 +243,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
       fetchedTeeOffer.slots?.find((slot) => slot.id === tee.slotId)?.usage.minTimeMinutes || 0, // We do not count TEE options minTimeMinutes
     ) || MINUTES_IN_HOUR;
 
+  // eslint-disable-next-line prefer-const
   let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(
     solutionIds.concat(dataIds),
   );
@@ -339,53 +314,19 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     valueOffers: offersMap,
   });
 
-  if (params.userDepositAmount) {
-    const userDeposit = etherToWei(params.userDepositAmount);
-    if (userDeposit.lt(holdDeposit)) {
-      Printer.error(
-        `Provided deposit is less than the minimum required deposit of (${weiToEther(
-          holdDeposit,
-        )} TEE)`,
-      );
-      return;
-    }
-    holdDeposit = userDeposit;
-
-    const balance = await getTeeBalance({ address: consumerAddress! });
-    if (balance.lt(holdDeposit)) {
-      Printer.error(
-        `Balance of your account (${weiToEther(
-          balance,
-        )} TEE) is less than the workflow payment deposit (${weiToEther(holdDeposit)} TEE)`,
-      );
-      return;
-    }
-  }
-
-  Printer.print(
-    `Total deposit is ${weiToEther(
-      holdDeposit.mul(params.workflowNumber),
-    )} TEE tokens for ${workflowMinTimeMinutes} minutes`,
-  );
+  holdDeposit = await getHoldDeposit({
+    holdDeposit,
+    userDepositAmount: params.userDepositAmount,
+    consumerAddress: consumerAddress!,
+    minRentMinutes: workflowMinTimeMinutes,
+  });
 
   const workflowPromises = new Array(params.workflowNumber);
-
-  const allowance = await SuperproToken.allowance(consumerAddress!, Orders.address);
-  if (holdDeposit.gt(allowance)) {
-    Printer.print('Approving TEE tokens');
-    try {
-      await SuperproToken.approve(
-        Orders.address,
-        etherToWei(BigNumber.from(1e10).toString()).toString(),
-        { from: consumerAddress! },
-      );
-    } catch (error: any) {
-      if (error instanceof Web3TransactionRevertedByEvmError)
-        throw ErrorTxRevertedByEvm(error.originalError);
-      else throw error;
-    }
-  }
-
+  await approveTeeTokens({
+    amount: holdDeposit,
+    from: consumerAddress!,
+    to: Orders.address,
+  });
   const inputOffersParams = [...solutions.offers, ...data.offers];
 
   Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
@@ -421,57 +362,3 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 };
 
 export default workflowCreate;
-
-const checkSlot = (
-  availableSlots: (string | undefined)[],
-  offer: string,
-  targetSlotId: string,
-  offerType: OfferType,
-): void => {
-  if (!targetSlotId) {
-    throw new Error(
-      `${getObjectKey(
-        offerType,
-        OfferType,
-      )} ${offer} slot is not specified, please use slot from this list: ${availableSlots}. For example: 8,${
-        availableSlots?.[0]
-      }`,
-    );
-  }
-  if (!availableSlots?.includes(targetSlotId)) {
-    throw new Error(
-      `${getObjectKey(
-        offerType,
-        OfferType,
-      )} ${offer} doesn't have slot ${targetSlotId}, please use slot from this list: ${availableSlots}`,
-    );
-  }
-};
-
-const checkFetchedOffers = (
-  ids: Array<{ id: string; slotId: string }>,
-  offers: Map<string, FethchedOffer>,
-  type: OfferType,
-): void => {
-  ids.forEach(({ id, slotId }) => {
-    const fetchedOffer = offers.get(id);
-
-    if (!fetchedOffer) {
-      throw new Error(`Offer ${id} does not exist`);
-      // TODO: move prettifying of offers from fetching to separate service and remove getObjectKey here
-    } else if (fetchedOffer.offerInfo.offerType !== type) {
-      throw new Error(
-        `Offer ${id} has wrong type ${getObjectKey(
-          fetchedOffer.offerInfo.offerType,
-          OfferType,
-        )} instead of ${getObjectKey(type, OfferType)}`,
-      );
-    } else
-      checkSlot(
-        fetchedOffer.slots?.map((slot) => slot.id),
-        id,
-        slotId,
-        fetchedOffer.offerInfo.offerType,
-      );
-  });
-};

@@ -1,14 +1,9 @@
 import inquirer, { QuestionCollection } from 'inquirer';
-import {
-  Provider,
-  ProviderRegistry,
-  ParamName,
-  Superpro,
-  SuperproToken,
-} from '@super-protocol/sdk-js';
+import { Provider, ProviderRegistry, ParamName, Superpro } from '@super-protocol/sdk-js';
 import { BigNumber } from 'ethers';
 import Printer from '../printer';
 import { weiToEther } from '../utils';
+import approveTeeTokens from './approveTeeTokens';
 
 type OfferType = 'tee' | 'value';
 
@@ -76,11 +71,18 @@ export default async function checkBalanceToCreateOffer(
   };
 
   if (await isDepositConfirmed()) {
-    const amount = secDepositToCreateOffer.toString();
-    await SuperproToken.approve(contractAddress, amount, { from: actionAddress });
-    await ProviderRegistry.refillSecurityDepositFor(amount, authorityAddress, {
+    await approveTeeTokens({
+      amount: secDepositToCreateOffer,
       from: actionAddress,
+      to: contractAddress,
     });
+    await ProviderRegistry.refillSecurityDepositFor(
+      secDepositToCreateOffer.toString(),
+      authorityAddress,
+      {
+        from: actionAddress,
+      },
+    );
     return Printer.print(`Reffiled security deposit on ${weiToEther(secDepositToCreateOffer)} TEE`);
   }
 

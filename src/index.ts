@@ -52,6 +52,7 @@ import setup from './commands/setup';
 import { workflowGenerateKey } from './commands/workflowsGenerateKey';
 import quotesValidate from './commands/quotesValidate';
 import { TerminatedOrderStatus } from './services/completeOrder';
+import ordersCreate, { OrderCreateParams } from './commands/ordersCreate';
 
 const packageJson = require('../package.json');
 
@@ -645,6 +646,50 @@ async function main(): Promise<void> {
         });
         throw error;
       }
+    });
+
+  ordersCommand
+    .command('create')
+    .description('create order')
+    .requiredOption('--offer <id>', 'Offer id')
+    .requiredOption('--slot <id>', 'Slot id')
+    .option(
+      '--input-offers <id...>',
+      'offers <id> (accepts multiple values) for which sub-orders should be created',
+      collectOptions,
+      [],
+    )
+    .option(
+      '--deposit <TEE>',
+      'Amount of the payment deposit in TEE tokens (if not specified, the minimum deposit required is used)',
+    )
+    .option('--min-rent-minutes <number>', 'Minutes of TEE processing that will be paid in advance')
+    .option('--output-offer <id>', 'Storage sub-order. This is the required option for tee-order.')
+    .action(async (options) => {
+      const configLoader = new ConfigLoader(options.config);
+      const backend = configLoader.loadSection('backend');
+      const blockchain = configLoader.loadSection('blockchain');
+      const workflowConfig = configLoader.loadSection('workflow');
+      const params: OrderCreateParams = {
+        accessToken: backend.accessToken,
+        actionAccountKey: blockchain.accountPrivateKey,
+        args: {
+          inputOffers: options.inputOffers,
+          outputOffer: options.outputOffer || '0',
+        },
+        backendUrl: backend.url,
+        blockchainConfig: {
+          blockchainUrl: blockchain.rpcUrl,
+          contractAddress: blockchain.smartContractAddress,
+        },
+        offerId: options.offer,
+        resultEncryption: workflowConfig.resultEncryption,
+        slotId: options.slot,
+        userDepositAmount: options.deposit,
+        ...(options.minRentMinutes && { minRentMinutes: Number(options.minRentMinutes) }),
+      };
+
+      await ordersCreate(params);
     });
 
   tokensCommand

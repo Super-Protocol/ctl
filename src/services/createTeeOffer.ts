@@ -1,8 +1,8 @@
 import BlockchainConnector, { BlockchainId, TeeOfferInfo, TeeOffers } from '@super-protocol/sdk-js';
-import crypto from 'crypto';
 import Printer from '../printer';
 import doWithRetries from './doWithRetries';
 import checkBalanceToCreateOffer from './checkBalanceToCreateOffer';
+import { generateExternalId } from '../utils';
 
 export type CreateTeeOfferParams = {
   authority: string;
@@ -13,7 +13,7 @@ export type CreateTeeOfferParams = {
 };
 
 export default async (params: CreateTeeOfferParams): Promise<BlockchainId> => {
-  const externalId = crypto.randomBytes(8).toString('hex');
+  const externalId = generateExternalId();
   const actionAddress = await BlockchainConnector.getInstance().initializeActionAccount(
     params.action,
   );

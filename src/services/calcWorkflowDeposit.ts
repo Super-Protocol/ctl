@@ -7,12 +7,10 @@ import {
 } from '@super-protocol/sdk-js';
 import { BigNumber } from 'ethers';
 import { TeeOfferParams, ValueOfferParams } from './createWorkflow';
-import { FethchedOffer } from '../commands/workflowsCreate';
+import { FethchedOffer } from './workflowHelpers';
 import { TeeOfferItem } from './fetchTeeOffers';
 import { PriceType, SlotUsage } from '../gql';
 import { MINUTES_IN_HOUR } from '../constants';
-
-export class DepositCalculationError extends Error {}
 
 export type CalcWorkflowDepositParams = {
   tee: TeeOfferParams;
