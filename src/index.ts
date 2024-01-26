@@ -51,6 +51,8 @@ import { checkForUpdates } from './services/checkReleaseVersion';
 import setup from './commands/setup';
 import { workflowGenerateKey } from './commands/workflowsGenerateKey';
 import quotesValidate from './commands/quotesValidate';
+import providersCreate from './commands/providersCreate';
+import providersUpdate from './commands/providersUpdate';
 import { TerminatedOrderStatus } from './services/completeOrder';
 import ordersCreate, { OrderCreateParams } from './commands/ordersCreate';
 
@@ -169,6 +171,7 @@ async function main(): Promise<void> {
     .command('get')
     .description('Display detailed information on provider with <address>')
     .argument('address', 'Provider address')
+    .option('--save-to <filepath>', 'Save result to a file')
     .addOption(
       new Option('--fields <fields>', `Available fields: ${providersListFields.join(', ')}`)
         .argParser(commaSeparatedList)
@@ -176,7 +179,7 @@ async function main(): Promise<void> {
     )
     .action(async (address: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       validateFields(options.fields, providersGetFields);
 
@@ -185,6 +188,45 @@ async function main(): Promise<void> {
         backendUrl: backend.url,
         accessToken: backend.accessToken,
         address,
+        saveTo: options.saveTo,
+      });
+    });
+  providersCommand
+    .command('create')
+    .description('Create a provider')
+    .option('--path <filepath>', 'path to the provider info json file', './providerInfo.json')
+    .action(async (options: { path: string; config: string }) => {
+      const configLoader = new ConfigLoader(options.config);
+      const blockchain = configLoader.loadSection('blockchain');
+      const blockchainConfig = {
+        contractAddress: blockchain.smartContractAddress,
+        blockchainUrl: blockchain.rpcUrl,
+      };
+
+      await providersCreate({
+        blockchainConfig,
+        providerInfoFilePath: options.path,
+        authorityAccountKey: blockchain.authorityAccountPrivateKey,
+        actionAccountKey: blockchain.accountPrivateKey,
+      });
+    });
+  providersCommand
+    .command('update')
+    .description('Update a provider')
+    .option('--path <filepath>', 'path to the provider info json file', './providerInfo.json')
+    .action(async (options: { path: string; config: string }) => {
+      const configLoader = new ConfigLoader(options.config);
+      const blockchain = configLoader.loadSection('blockchain');
+      const blockchainConfig = {
+        contractAddress: blockchain.smartContractAddress,
+        blockchainUrl: blockchain.rpcUrl,
+      };
+
+      await providersUpdate({
+        blockchainConfig,
+        providerInfoFilePath: options.path,
+        authorityAccountKey: blockchain.authorityAccountPrivateKey,
+        actionAccountKey: blockchain.accountPrivateKey,
       });
     });
 

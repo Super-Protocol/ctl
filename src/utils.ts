@@ -2,7 +2,7 @@ import { promisify } from 'util';
 import { exec as execCallback } from 'child_process';
 import { Command } from 'commander';
 import { DateTime } from 'luxon';
-import { BigNumberish, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { ErrorMessageOptions, generateErrorMessage } from 'zod-error';
 import { ZodIssue } from 'zod';
 import path from 'path';
@@ -166,4 +166,8 @@ export const getConfigPath = (): string => {
   const configArgIndex = process.argv.indexOf(`--config`);
 
   return configArgIndex < 0 ? CONFIG_DEFAULT_FILENAME : process.argv[configArgIndex + 1];
+};
+
+export const toTEE = (num: bigint | BigNumber): string => {
+  return `${weiToEther(String(num))} TEE`;
 };

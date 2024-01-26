@@ -38,6 +38,7 @@ export default async (params: FetchProviderParams) => {
           authorityAccount: item.node?.authority,
           actionAccount: item.node?.providerInfo.actionAccount,
           modifiedDate: formatDate(item.node?.origins?.modifiedDate),
+          providerInfo: item.node?.providerInfo,
         })) || [],
       cursor: result.page.pageInfo!.endCursor,
     };
