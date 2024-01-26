@@ -6,7 +6,7 @@
     "author": "SuperProtocol",
     "bin": "build/index.js",
     "scripts": {
-        "dev": "ts-node ./src/index.ts",
+        "dev": "ts-node --transpileOnly ./src/index.ts",
         "build:prepare": "tsc -p tsconfig.build.json",
         "build:linux": "npm run build:prepare && pkg --target linux-x64 -o dist/spctl .",
         "build:mac": "npm run build:prepare  && pkg --target macos-x64 -o dist/spctl .",

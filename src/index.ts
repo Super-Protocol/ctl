@@ -1152,7 +1152,7 @@ async function main(): Promise<void> {
     .description('Add slot to offer')
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
     .requiredOption('--offer <id>', 'Offer <id>')
-    .requiredOption('--path <filepath>', 'path to offer info', './offerSlot.json')
+    .requiredOption('--path <filepath>', 'path to slot info', './offerSlot.json')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = await configLoader.loadSection('blockchain');
@@ -1177,7 +1177,7 @@ async function main(): Promise<void> {
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
     .requiredOption('--offer <id>', 'Offer <id>')
     .requiredOption('--slot <id>', 'Slot <id>')
-    .requiredOption('--path <filepath>', 'path to offer info', './slotInfo.json')
+    .requiredOption('--path <filepath>', 'path to slot info', './offerSlot.json')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = await configLoader.loadSection('blockchain');
@@ -1266,7 +1266,7 @@ async function main(): Promise<void> {
     .command('update-option')
     .description('Update option by id (TEE offers only)')
     .requiredOption('--offer <id>', 'Offer <id>')
-    .requiredOption('--option <id>', 'Offer <id>')
+    .requiredOption('--option <id>', 'Option <id>')
     .requiredOption('--path <filepath>', 'path to option info', './offerOption.json')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
@@ -1288,12 +1288,12 @@ async function main(): Promise<void> {
 
   offersCommand
     .command('delete-option')
-    .description('Delete option to id (TEE offers only)')
+    .description('Delete option by id (TEE offers only)')
     .requiredOption('--offer <id>', 'Offer <id>')
-    .requiredOption('--path <filepath>', 'path to option info', './offerOption.json')
+    .requiredOption('--option <id>', 'Option <id>')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
