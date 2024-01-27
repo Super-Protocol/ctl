@@ -11,7 +11,7 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                     id
                     authority
                     disabledAfter
-                    providerAddress
+                    authority
                     origins {
                         createdBy
                         createdDate
@@ -35,6 +35,7 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                         hardwareInfo {
                             slotInfo {
                                 cpuCores
+                                gpuCores
                                 ram
                                 diskUsage
                             }
@@ -50,6 +51,7 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                         id
                         info {
                             cpuCores
+                            gpuCores
                             diskUsage
                             ram
                         }

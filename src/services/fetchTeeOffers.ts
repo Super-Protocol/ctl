@@ -38,7 +38,7 @@ export const formatFetchedTeeOffer = (item: TeeOfferItem): TeeOfferDto => {
     name: item?.teeOfferInfo?.name,
     description: item?.teeOfferInfo?.description,
     providerName: item?.providerInfo.name,
-    providerAddress: item?.origins?.createdBy,
+    providerAddress: item?.authority,
     totalCores: item?.teeOfferInfo?.hardwareInfo?.slotInfo?.cpuCores,
     freeCores: item?.stats?.freeCores,
     slots: item?.slots,

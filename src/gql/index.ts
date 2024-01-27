@@ -132,8 +132,10 @@ export type ConnectionArgs = {
 export type CoresStatisticPoint = {
   __typename?: 'CoresStatisticPoint';
   timestamp: Scalars['Float'];
-  totalCores: Scalars['Float'];
-  useCores: Scalars['Float'];
+  totalCpuCores: Scalars['Float'];
+  totalGpuCores: Scalars['Float'];
+  useCpuCores: Scalars['Float'];
+  useGpuCores: Scalars['Float'];
 };
 
 export type Erc20 = {
@@ -405,6 +407,7 @@ export type OfferConfiguration = {
   cpuCores: Scalars['Float'];
   diskUsage: Scalars['Float'];
   externalPort: Scalars['Float'];
+  gpuCores: Scalars['Float'];
   maxTimeMinutes: Scalars['Float'];
   minTimeMinutes: Scalars['Float'];
   priceFixed: Scalars['String'];
@@ -1261,12 +1264,14 @@ export type SlotInfo = {
   __typename?: 'SlotInfo';
   cpuCores: Scalars['Float'];
   diskUsage: Scalars['Float'];
+  gpuCores: Scalars['Float'];
   ram: Scalars['Float'];
 };
 
 export type SlotInfoInput = {
   cpuCores: Scalars['Float'];
   diskUsage: Scalars['Float'];
+  gpuCores: Scalars['Float'];
   ram: Scalars['Float'];
 };
 
@@ -1443,14 +1448,13 @@ export type TeeOffer = {
   __typename?: 'TeeOffer';
   /** system identifier */
   _id: Scalars['String'];
-  authority?: Maybe<Scalars['String']>;
+  authority: Scalars['String'];
   disabledAfter: Scalars['Float'];
   enabled: Scalars['Boolean'];
   /** blockchain id */
   id: Scalars['String'];
   options: Array<TeeOfferOption>;
   origins?: Maybe<Origins>;
-  providerAddress: Scalars['String'];
   providerInfo: ProviderInformation;
   slots: Array<TeeOfferSlot>;
   stats?: Maybe<Stats>;
@@ -1480,6 +1484,8 @@ export type TeeOfferFilter = {
   enabled?: InputMaybe<Scalars['Boolean']>;
   /** filter by teeOfferInfo.hardwareInfo.optionInfo → externalPort */
   externalPort?: InputMaybe<Scalars['Float']>;
+  /** filter by teeOfferInfo.hardwareInfo.slotInfo → gpuCores */
+  gpuCores?: InputMaybe<Array<Scalars['Float']>>;
   /** filter by blockchain id */
   id?: InputMaybe<Scalars['String']>;
   /** filter by TEE offer ids */
@@ -1520,10 +1526,10 @@ export type TeeOfferInfoInput = {
 };
 
 export type TeeOfferInputType = {
+  authority: Scalars['String'];
   disabledAfter: Scalars['Float'];
   enabled: Scalars['Boolean'];
   options: Array<TeeOfferOptionInput>;
-  providerAddress: Scalars['String'];
   providerInfo: ProviderInformationInput;
   slots: Array<TeeOfferSlotInput>;
   stats?: InputMaybe<StatsInput>;
@@ -1616,6 +1622,7 @@ export type ValidationErrors = {
   cpuCores?: Maybe<ResourceRequirement>;
   diskUsage?: Maybe<ResourceRequirement>;
   externalPort?: Maybe<ResourceRequirement>;
+  gpuCores?: Maybe<ResourceRequirement>;
   minTimeMinutes?: Maybe<ResourceRequirement>;
   ram?: Maybe<ResourceRequirement>;
   traffic?: Maybe<ResourceRequirement>;
@@ -1716,7 +1723,7 @@ export type OffersQueryVariables = Exact<{
 }>;
 
 
-export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, metadata: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, linkage: string, hash: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
+export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, metadata: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, linkage: string, hash: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
 
 export type OffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1800,7 +1807,7 @@ export type TeeOffersQueryVariables = Exact<{
 }>;
 
 
-export type TeeOffersQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', _id: string, id: string, authority?: string | null, disabledAfter: number, providerAddress: string, enabled: boolean, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, teeOfferInfo: { __typename?: 'TeeOfferInfo', name: string, description: string, teeType: string, properties: string, tlb: string, argsPublicKey: string, hardwareInfo: { __typename?: 'HardwareInfo', slotInfo: { __typename?: 'SlotInfo', cpuCores: number, ram: number, diskUsage: number }, optionInfo: { __typename?: 'OptionInfo', bandwidth: number, traffic: number, externalPort: number } } }, slots: Array<{ __typename?: 'TeeOfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, options: Array<{ __typename?: 'TeeOfferOption', id: string, info: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, stats?: { __typename?: 'Stats', freeCores?: number | null, ordersInQueue?: number | null, new?: number | null, processing?: number | null } | null } | null }> | null, pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
+export type TeeOffersQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', _id: string, id: string, authority: string, disabledAfter: number, enabled: boolean, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, teeOfferInfo: { __typename?: 'TeeOfferInfo', name: string, description: string, teeType: string, properties: string, tlb: string, argsPublicKey: string, hardwareInfo: { __typename?: 'HardwareInfo', slotInfo: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, ram: number, diskUsage: number }, optionInfo: { __typename?: 'OptionInfo', bandwidth: number, traffic: number, externalPort: number } } }, slots: Array<{ __typename?: 'TeeOfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, options: Array<{ __typename?: 'TeeOfferOption', id: string, info: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, stats?: { __typename?: 'Stats', freeCores?: number | null, ordersInQueue?: number | null, new?: number | null, processing?: number | null } | null } | null }> | null, pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
 
 export type TeeOffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1898,6 +1905,7 @@ export const OffersDocument = gql`
             id
             info {
               cpuCores
+              gpuCores
               diskUsage
               ram
             }
@@ -2266,7 +2274,7 @@ export const TeeOffersDocument = gql`
           id
           authority
           disabledAfter
-          providerAddress
+          authority
           origins {
             createdBy
             createdDate
@@ -2290,6 +2298,7 @@ export const TeeOffersDocument = gql`
             hardwareInfo {
               slotInfo {
                 cpuCores
+                gpuCores
                 ram
                 diskUsage
               }
@@ -2305,6 +2314,7 @@ export const TeeOffersDocument = gql`
             id
             info {
               cpuCores
+              gpuCores
               diskUsage
               ram
             }

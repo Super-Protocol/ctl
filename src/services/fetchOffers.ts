@@ -19,7 +19,7 @@ export type OfferDto = {
   description: string | undefined;
   type: string | undefined;
   providerName: string | undefined;
-  providerAddress: string | undefined;
+  providerAddress: string | null | undefined;
   cancelable: boolean | undefined;
   modifiedDate: string | undefined;
   dependsOnOffers: string[];
@@ -37,7 +37,7 @@ export const formatFetchedOffer = (item: OfferItem): OfferDto => {
     description: item?.offerInfo?.description,
     type: getObjectKey(item?.offerInfo.offerType, OfferType),
     providerName: item?.providerInfo.name,
-    providerAddress: item?.origins?.createdBy,
+    providerAddress: item?.authority,
     cancelable: item?.offerInfo?.cancelable,
     modifiedDate: formatDate(item?.origins?.modifiedDate),
     dependsOnOffers: item?.offerInfo.restrictions?.offers || [],
