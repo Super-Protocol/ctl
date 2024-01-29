@@ -165,8 +165,15 @@ async function main(): Promise<void> {
       'authority_account',
       'action_account',
       'modified_date',
+      'metadata',
     ],
-    providersGetDefaultFields = ['name', 'description', 'authority_account', 'action_account'];
+    providersGetDefaultFields = [
+      'name',
+      'description',
+      'authority_account',
+      'action_account',
+      'metadata',
+    ];
   providersCommand
     .command('get')
     .description('Display detailed information on provider with <address>')

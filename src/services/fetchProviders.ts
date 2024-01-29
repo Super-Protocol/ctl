@@ -35,6 +35,7 @@ export default async (params: FetchProviderParams) => {
           address: item.node?.address,
           name: item.node?.providerInfo.name,
           description: item.node?.providerInfo.description,
+          metadata: item.node?.providerInfo.metadata,
           authorityAccount: item.node?.authority,
           actionAccount: item.node?.providerInfo.actionAccount,
           modifiedDate: formatDate(item.node?.origins?.modifiedDate),
