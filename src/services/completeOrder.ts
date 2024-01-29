@@ -30,7 +30,11 @@ type IOrder = Pick<SdkOrder, 'id' | 'offerType'> & {
   parentOrder?: IParenOrder | null;
   orderInfo: IOrderInfo;
 };
-type GetEncryptedResultFn = (order: IOrder, path: string) => Promise<string>;
+type GetEncryptedResultFn = (
+  order: IOrder,
+  path: string,
+  newStatus: OrderStatus,
+) => Promise<string>;
 const ZERO_ID = '0';
 
 export default async (params: CompleteOrderParams): Promise<void> => {
@@ -52,12 +56,14 @@ export default async (params: CompleteOrderParams): Promise<void> => {
       throw ErrorWithCustomMessage(message, error);
     }
   };
+
   const teeOfferResolver: GetEncryptedResultFn = (order) => {
     throw Error(
       `Order(id=${order.id}) has offer type: ${order.offerType}. Such orders couldn't be transferred to the terminal state manually.`,
     );
   };
-  const dataOfferResolver: GetEncryptedResultFn = async (order, path) => {
+
+  const dataOfferResolver: GetEncryptedResultFn = async (order, path, newStatus) => {
     if (
       order.parentOrder?.id &&
       order.parentOrder?.id !== ZERO_ID &&
@@ -70,16 +76,18 @@ export default async (params: CompleteOrderParams): Promise<void> => {
         );
       }
 
-      return TIIGenerator.generate(
-        order.id,
-        resource.resource,
-        order.orderInfo.args,
-        resource.encryption,
-        pccsApiUrl,
-      );
+      return newStatus === OrderStatus.Done
+        ? await TIIGenerator.generate(
+            order.id,
+            resource.resource,
+            order.orderInfo.args,
+            resource.encryption,
+            pccsApiUrl,
+          )
+        : JSON.stringify(resource);
     }
 
-    return storageOfferResolver(order, path);
+    return storageOfferResolver(order, path, newStatus);
   };
   const storageOfferResolver: GetEncryptedResultFn = async (order, path) => {
     if (!order.orderInfo.resultPublicKey) {
@@ -105,10 +113,10 @@ export default async (params: CompleteOrderParams): Promise<void> => {
   const dbOrder = await getOrderById(id);
 
   if (status === OrderStatus.Canceled && dbOrder?.orderInfo.status !== OrderStatus.Canceling) {
-    throw Error(`Cancel order is possible only from "canceling" status`);
+    throw Error(`Order cancellation is possible only from "canceling" status`);
   }
   if (path) {
-    encryptedResult = await resultPublicResolvers[dbOrder.offerType](dbOrder, path);
+    encryptedResult = await resultPublicResolvers[dbOrder.offerType](dbOrder, path, status);
   }
   try {
     const order = new Order(id);

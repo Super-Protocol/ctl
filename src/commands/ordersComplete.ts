@@ -6,6 +6,8 @@ import completeOrderService, {
   TerminatedOrderStatus,
   AVAILABLE_STATUSES,
 } from '../services/completeOrder';
+import { getObjectKey } from '../utils';
+import { OrderStatus } from '@super-protocol/sdk-js';
 
 export type OrderCompleteParams = OrderCancelParams & {
   accessToken: string;
@@ -59,7 +61,12 @@ export default async (params: OrderCompleteParams): Promise<void> => {
           backendUrl: params.backendUrl,
           accessToken: params.accessToken,
         });
-        Printer.print(`Order ${id} has been completed successfully: status=${params.status}`);
+        Printer.print(
+          `Order ${id} has been completed successfully: status=${getObjectKey(
+            params.status,
+            OrderStatus,
+          )}`,
+        );
       } catch (err: unknown) {
         Printer.print(`Order ${id} was not completed: ${(err as Error).message}`);
       }
