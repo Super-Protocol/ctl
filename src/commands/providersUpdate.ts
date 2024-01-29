@@ -4,9 +4,9 @@ import BlockchainConnector, {
   ProviderInfo,
   ProviderRegistry,
 } from '@super-protocol/sdk-js';
-import z from 'zod';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import readJsonFile from '../services/readJsonFile';
+import { ProviderInfoValidator } from '../validators';
 
 interface ProvidersUpdateParams {
   blockchainConfig: BlockchainConfig;
@@ -14,14 +14,6 @@ interface ProvidersUpdateParams {
   authorityAccountKey: string;
   actionAccountKey: string;
 }
-
-const ProviderInfoFileValidator = z.object({
-  name: z.string(),
-  description: z.string(),
-  tokenReceiver: z.string(),
-  actionAccount: z.string(),
-  metadata: z.string(),
-});
 
 export default async function providersUpdate(params: ProvidersUpdateParams): Promise<void> {
   await initBlockchainConnector({
@@ -38,7 +30,7 @@ export default async function providersUpdate(params: ProvidersUpdateParams): Pr
 
   const providerInfo: ProviderInfo = await readJsonFile({
     path: params.providerInfoFilePath,
-    validator: ProviderInfoFileValidator,
+    validator: ProviderInfoValidator,
   });
 
   const provider = new Provider(authorityAddress);

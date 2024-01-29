@@ -8,7 +8,6 @@ import BlockchainConnector, {
 } from '@super-protocol/sdk-js';
 import { BigNumber } from 'ethers';
 import inquirer, { QuestionCollection } from 'inquirer';
-import z from 'zod';
 import Printer from '../printer';
 import approveTeeTokens from '../services/approveTeeTokens';
 import doWithRetries from '../services/doWithRetries';
@@ -16,6 +15,7 @@ import getTeeBalance from '../services/getTeeBalance';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import readJsonFile from '../services/readJsonFile';
 import { toTEE } from '../utils';
+import { ProviderInfoValidator } from '../validators';
 
 interface ProvidersCreateParams {
   blockchainConfig: BlockchainConfig;
@@ -23,14 +23,6 @@ interface ProvidersCreateParams {
   authorityAccountKey: string;
   actionAccountKey: string;
 }
-
-const ProviderInfoFileValidator = z.object({
-  name: z.string(),
-  description: z.string(),
-  tokenReceiver: z.string(),
-  actionAccount: z.string(),
-  metadata: z.string(),
-});
 
 async function waitProviderRegistrationFinish(authorityAddress: string): Promise<void> {
   return await doWithRetries(async () => {
@@ -106,7 +98,7 @@ async function checkBalanceToCreateProvider(
 export default async function providersCreate(params: ProvidersCreateParams): Promise<void> {
   const providerInfo: ProviderInfo = await readJsonFile({
     path: params.providerInfoFilePath,
-    validator: ProviderInfoFileValidator,
+    validator: ProviderInfoValidator,
   });
 
   await initBlockchainConnector({
