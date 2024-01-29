@@ -692,21 +692,32 @@ async function main(): Promise<void> {
 
   ordersCommand
     .command('create')
-    .description('create order')
+    .description('Create an order, supported only value values')
     .requiredOption('--offer <id>', 'Offer id')
     .requiredOption('--slot <id>', 'Slot id')
-    .option(
-      '--input-offers <id...>',
-      'offers <id> (accepts multiple values) for which sub-orders should be created',
-      collectOptions,
-      [],
+    .addOption(
+      new Option(
+        '--input-offers <id...>',
+        'offers <id> (accepts multiple values) for which sub-orders should be created',
+      )
+        .argParser(commaSeparatedList)
+        .default([])
+        .hideHelp(),
     )
     .option(
       '--deposit <TEE>',
       'Amount of the payment deposit in TEE tokens (if not specified, the minimum deposit required is used)',
     )
-    .option('--min-rent-minutes <number>', 'Minutes of TEE processing that will be paid in advance')
-    .option('--output-offer <id>', 'Storage sub-order. This is the required option for tee-order.')
+    .option(
+      '--min-rent-minutes <number>',
+      'Minutes of TEE processing that will be paid in advance. If less than minTimeMinutes in slot, the latter is used',
+    )
+    .addOption(
+      new Option(
+        '--output-offer <id>',
+        'Storage sub-order. This is the required option for tee-order.',
+      ).hideHelp(),
+    )
     .action(async (options) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = configLoader.loadSection('backend');

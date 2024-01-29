@@ -27,7 +27,7 @@ import {
 import { PriceType, SlotUsage } from '../gql';
 import { BigNumber } from 'ethers';
 import { MINUTES_IN_HOUR } from '../constants';
-import { generateExternalId } from '../utils';
+import { generateExternalId, getObjectKey } from '../utils';
 import approveTeeTokens from '../services/approveTeeTokens';
 
 export type OrderCreateParams = {
@@ -64,7 +64,7 @@ const getCheckedOfferById = async (params: {
 
   const offer: FethchedOffer = offers[0];
   if (offer.offerInfo.offerType === OfferType.TeeOffer) {
-    throw Error(`Unsupported offer type: ${offer.offerInfo.offerType}`);
+    throw Error(`Unsupported offer type: ${getObjectKey(offer.offerInfo.offerType, OfferType)}`);
   }
 
   if (offer.offerInfo.restrictions?.offers?.length || offer.offerInfo.restrictions?.types?.length) {
