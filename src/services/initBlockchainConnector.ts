@@ -39,11 +39,21 @@ const checkPendingLoop = async (pk: string): Promise<void> => {
   }
 };
 
-export default async (params: InitBlockchainConnectorParams): Promise<string | void> => {
-  await BlockchainConnector.getInstance().initialize(params.blockchainConfig);
+let initialized = false;
+let consumerAddress = '';
 
-  if (params.actionAccountKey) {
-    await checkPendingLoop(params.actionAccountKey);
-    return BlockchainConnector.getInstance().initializeActionAccount(params.actionAccountKey);
+export default async (params: InitBlockchainConnectorParams): Promise<string> => {
+  if (!initialized) {
+    await BlockchainConnector.getInstance().initialize(params.blockchainConfig);
+
+    if (params.actionAccountKey) {
+      await checkPendingLoop(params.actionAccountKey);
+      consumerAddress = await BlockchainConnector.getInstance().initializeActionAccount(
+        params.actionAccountKey,
+      );
+    }
+    initialized = true;
   }
+
+  return consumerAddress;
 };

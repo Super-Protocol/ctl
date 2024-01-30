@@ -16,7 +16,7 @@ import { Crypto, Config as BlockchainConfig, OrderStatus } from '@super-protocol
 import downloadFileByUrl from '../services/downloadFileByUrl';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import getPublicFromPrivate from '../services/getPublicFromPrivate';
-import { preparePath } from '../utils';
+import { preparePath, tryParse } from '../utils';
 import checkOrderService from '../services/checkOrder';
 
 export type FilesDownloadParams = {
@@ -54,9 +54,8 @@ export default async (params: FilesDownloadParams): Promise<void> => {
 
   Printer.print('Decrypting file');
 
-  const encryptedResultObject: { resource: Encryption; encryption?: Encryption } = await tryParse(
-    encrypted,
-  );
+  const encryptedResultObject: { resource: Encryption; encryption?: Encryption } =
+    tryParse(encrypted);
   if (!encryptedResultObject) {
     await writeResult(
       localTxtPath,
@@ -84,8 +83,8 @@ export default async (params: FilesDownloadParams): Promise<void> => {
       );
       return;
     }
-    decrypted.resource = await tryParse(decryptedResourceStr);
-    decrypted.encryption = await tryParse(decryptedEncryptionStr);
+    decrypted.resource = tryParse(decryptedResourceStr);
+    decrypted.encryption = tryParse(decryptedEncryptionStr);
     if (!decrypted.resource || !decrypted.encryption) {
       await writeResult(
         localTxtPath,
@@ -185,14 +184,6 @@ async function tryDecrypt(
   try {
     encryption.key = decryptionKey;
     return await Crypto.decrypt(encryption);
-  } catch (e) {
-    return;
-  }
-}
-
-async function tryParse(text: string): Promise<any> {
-  try {
-    return JSON.parse(text);
   } catch (e) {
     return;
   }

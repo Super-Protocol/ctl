@@ -6,7 +6,6 @@ import { BigNumber } from 'ethers';
 import Printer from '../printer';
 import { MINUTES_IN_HOUR } from '../constants';
 import getTeeBalance from './getTeeBalance';
-import { OrderCreateParams } from '../commands/ordersCreate';
 import { CryptoAlgorithm, Encoding, Encryption } from '@super-protocol/dto-js';
 import getPublicFromPrivate from './getPublicFromPrivate';
 
@@ -103,7 +102,7 @@ export const getFetchedOffers = async (params: {
 
 export const getHoldDeposit = async (params: {
   holdDeposit: BigNumber;
-  userDepositAmount: OrderCreateParams['userDepositAmount'];
+  userDepositAmount?: string;
   consumerAddress: string;
   minRentMinutes?: number;
 }): Promise<BigNumber> => {

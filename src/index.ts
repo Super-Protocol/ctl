@@ -28,7 +28,7 @@ import tokensBalance from './commands/tokensBalance';
 import offersListTee from './commands/offersListTee';
 import offersListValue from './commands/offersListValue';
 import offersDownloadContent from './commands/offersDownloadContent';
-import { CONFIG_DEFAULT_FILENAME, MAX_ORDERS_RUNNING } from './constants';
+import { CONFIG_DEFAULT_FILENAME, MAX_ORDERS_RUNNING, MINUTES_IN_HOUR } from './constants';
 import offersGet from './commands/offersGet';
 import offersCreate from './commands/offersCreate';
 import offersUpdate from './commands/offersUpdate';
@@ -1342,22 +1342,46 @@ async function main(): Promise<void> {
       '--maximum-concurrent <number>',
       'Maximum concurrent pieces to upload at once per transfer',
     )
+    .option(
+      '--storage <id,slot>',
+      'Storage offer <id,slot>. If used, credentials for temporary storage will be created to upload the file.',
+      collectOptions,
+      [],
+    )
+    .option(
+      '--min-rent-minutes <number>',
+      'Storage rent time to be paid in advance. ("storage" option is required)',
+      String(MINUTES_IN_HOUR),
+    )
     .action(async (localPath: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const storage = await configLoader.loadSection('storage');
+      const storageConfig = configLoader.loadSection('storage');
+      const backendConfig = configLoader.loadSection('backend');
+      const blockchain = configLoader.loadSection('blockchain');
+      const workflowConfig = configLoader.loadSection('workflow');
 
       await upload({
         localPath,
-        storageType: storage.type,
-        writeAccessToken: storage.writeAccessToken,
-        readAccessToken: storage.readAccessToken,
-        bucket: storage.bucket,
-        prefix: storage.prefix,
+        storageType: storageConfig.type,
+        writeAccessToken: storageConfig.writeAccessToken,
+        readAccessToken: storageConfig.readAccessToken,
+        bucket: storageConfig.bucket,
+        prefix: storageConfig.prefix,
         remotePath: options.filename,
         outputPath: options.output,
         metadataPath: options.metadata,
         withEncryption: !options.skipEncryption,
         maximumConcurrent: options.maximumConcurrent,
+        storage: options.storage,
+        minRentMinutes: Number(options.minRentMinutes),
+        accessToken: backendConfig.accessToken,
+        backendUrl: backendConfig.url,
+        actionAccountKey: blockchain.accountPrivateKey,
+        blockchainConfig: {
+          blockchainUrl: blockchain.rpcUrl,
+          contractAddress: blockchain.smartContractAddress,
+        },
+        resultEncryption: workflowConfig.resultEncryption,
       });
     });
 

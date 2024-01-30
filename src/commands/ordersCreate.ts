@@ -30,6 +30,10 @@ import { MINUTES_IN_HOUR } from '../constants';
 import { generateExternalId, getObjectKey } from '../utils';
 import approveTeeTokens from '../services/approveTeeTokens';
 
+interface IOrderCreateCommandOptions {
+  onlyOfferType: OfferType.Storage | OfferType.Data | OfferType.Solution;
+}
+
 export type OrderCreateParams = {
   accessToken: string;
   actionAccountKey: string;
@@ -41,6 +45,7 @@ export type OrderCreateParams = {
   slotId: BlockchainId;
   userDepositAmount?: string;
   minRentMinutes?: number;
+  options?: Partial<IOrderCreateCommandOptions>;
 };
 
 const ONE_MB = 1 << 20;
@@ -50,6 +55,7 @@ const getCheckedOfferById = async (params: {
   backendUrl: OrderCreateParams['backendUrl'];
   offerId: OrderCreateParams['offerId'];
   slotId: OrderCreateParams['slotId'];
+  options?: Partial<IOrderCreateCommandOptions>;
 }): Promise<FethchedOffer> => {
   const offers: FethchedOffer[] = await getFetchedOffers({
     backendUrl: params.backendUrl,
@@ -65,6 +71,11 @@ const getCheckedOfferById = async (params: {
   const offer: FethchedOffer = offers[0];
   if (offer.offerInfo.offerType === OfferType.TeeOffer) {
     throw Error(`Unsupported offer type: ${getObjectKey(offer.offerInfo.offerType, OfferType)}`);
+  }
+  if (params.options?.onlyOfferType && params.options.onlyOfferType !== offer.offerInfo.offerType) {
+    throw Error(
+      `Only ${getObjectKey(params.options.onlyOfferType, OfferType)} offer type is supported`,
+    );
   }
 
   if (offer.offerInfo.restrictions?.offers?.length || offer.offerInfo.restrictions?.types?.length) {
@@ -181,7 +192,7 @@ const calcDepositBySlot = async (
   return depositSum.gte(orderMinDeposit) ? depositSum : BigNumber.from(orderMinDeposit);
 };
 
-export default async (params: OrderCreateParams): Promise<void> => {
+export default async (params: OrderCreateParams): Promise<string | undefined> => {
   try {
     const offer: FethchedOffer = await getCheckedOfferById(params);
     const slot = offer.slots.find((slot) => slot.id === params.slotId) as ValueOfferSlot;
@@ -218,11 +229,13 @@ export default async (params: OrderCreateParams): Promise<void> => {
       deposit: holdDeposit.toString(),
     });
     Printer.print(`Order (id=${orderId}) has been created successfully`);
+
+    return orderId;
   } catch (err: unknown) {
     if (err instanceof Error) {
-      Printer.error(`Order was not completed: ${err.message}`);
+      Printer.error(`Order was not created: ${err.message}`);
     } else {
-      Printer.error(`Order was not completed by unknown reason: ${util.inspect(err)}`);
+      Printer.error(`Order was not created by unknown reason: ${util.inspect(err)}`);
     }
   }
 };

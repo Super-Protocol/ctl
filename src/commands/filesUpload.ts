@@ -4,9 +4,18 @@ import uploadService from '../services/uploadFile';
 import { Encryption, ResourceType, StorageType } from '@super-protocol/dto-js';
 import Printer from '../printer';
 import { isCommandSupported } from '../services/uplinkSetupHelper';
-import { generateExternalId, preparePath } from '../utils';
+import { generateExternalId, preparePath, tryParse } from '../utils';
 import readJsonFileService from '../services/readJsonFile';
 import generateEncryptionService from '../services/generateEncryption';
+import ordersCreateCommand from './ordersCreate';
+import { Crypto, OfferType } from '@super-protocol/sdk-js';
+import { Config as BlockchainConfig } from '@super-protocol/sdk-js/build/connectors/BaseConnector';
+import doWithRetries from '../services/doWithRetries';
+import getOrderResult from '../services/getOrderResult';
+import cancelOrder from '../services/cancelOrder';
+
+const MAX_ATTEMPT_COUNT = 12;
+const RETRY_TIMEOUT = 5000;
 
 export type FilesUploadParams = {
   localPath: string;
@@ -20,10 +29,131 @@ export type FilesUploadParams = {
   readAccessToken: string;
   withEncryption: boolean;
   maximumConcurrent?: string;
+  storage: string[];
+  minRentMinutes: number;
+  backendUrl: string;
+  accessToken: string;
+  actionAccountKey: string;
+  blockchainConfig: BlockchainConfig;
+  resultEncryption: Encryption;
 };
 
-export default async (params: FilesUploadParams) => {
-  if (!isCommandSupported()) return;
+const createOrder = async (params: {
+  storage: FilesUploadParams['storage'];
+  minRentMinutes: FilesUploadParams['minRentMinutes'];
+  backendUrl: FilesUploadParams['backendUrl'];
+  accessToken: FilesUploadParams['accessToken'];
+  actionAccountKey: FilesUploadParams['actionAccountKey'];
+  blockchainConfig: FilesUploadParams['blockchainConfig'];
+  resultEncryption: FilesUploadParams['resultEncryption'];
+}): Promise<string> => {
+  const {
+    storage,
+    minRentMinutes,
+    backendUrl,
+    accessToken,
+    actionAccountKey,
+    blockchainConfig,
+    resultEncryption,
+  } = params;
+  Printer.print('Storage order creating...');
+  if (!Array.isArray(storage) || storage.length !== 2) {
+    throw Error('Invalid storage param');
+  }
+
+  const [offerId, slotId] = storage;
+  const orderId = await ordersCreateCommand({
+    accessToken,
+    actionAccountKey,
+    args: {
+      inputOffers: [],
+      outputOffer: '0',
+    },
+    backendUrl,
+    blockchainConfig,
+    minRentMinutes,
+    offerId,
+    options: { onlyOfferType: OfferType.Storage },
+    resultEncryption,
+    slotId,
+  });
+
+  if (!orderId) {
+    throw Error('Storage order was not created');
+  }
+
+  return orderId;
+};
+
+interface ICredentials {
+  token: string;
+  bucket: string;
+  prefix: string;
+}
+const getCredentials = async (params: {
+  orderId: string;
+  key: string;
+}): Promise<{
+  read: ICredentials;
+  write: ICredentials;
+}> => {
+  const { orderId, key } = params;
+  let attemptCount = 1;
+  const orderReadyFn = async (): Promise<Encryption> => {
+    Printer.print(`Getting encrypted data: attempt ${attemptCount++}/${MAX_ATTEMPT_COUNT}`);
+    const orderResult = await getOrderResult({ orderId });
+
+    if (orderResult?.encryptedResult) {
+      return tryParse(orderResult.encryptedResult);
+    }
+    throw new Error(
+      `Storage order ${orderId} has not been processed well. Encrypted result is invalid.`,
+    );
+  };
+
+  try {
+    const encryptedResult = await doWithRetries(orderReadyFn, MAX_ATTEMPT_COUNT, RETRY_TIMEOUT);
+    Printer.print('Decrypting data...');
+    const decryptedResult = await Crypto.decrypt({
+      ...encryptedResult,
+      key,
+    });
+
+    Printer.print('Extracting data...');
+    const result = tryParse(decryptedResult) as {
+      downloadCredentials: string;
+      uploadCredentials: string;
+    };
+    const setCredentials = (deserializedValue: string): ICredentials => {
+      const credentials = tryParse(deserializedValue);
+      if (!credentials) {
+        throw Error('Invalid credentials');
+      }
+      return {
+        token: credentials.token,
+        bucket: credentials.bucket,
+        prefix: credentials.prefix,
+      };
+    };
+
+    return {
+      read: setCredentials(result.downloadCredentials),
+      write: setCredentials(result.uploadCredentials),
+    };
+  } catch (err: any) {
+    Printer.error(`Failed to get storage credentials. Error: ${err.message}`);
+    Printer.print(`Trying to cancel created order ${orderId}.`);
+    await cancelOrder({ id: orderId });
+    Printer.print(`Order ${orderId} was canceled.`);
+    throw err;
+  }
+};
+
+export default async (params: FilesUploadParams): Promise<void> => {
+  Printer.print('File uploading command is starting...');
+  if (!isCommandSupported()) {
+    return;
+  }
 
   let metadata = {};
   if (params.metadataPath) {
@@ -53,12 +183,12 @@ export default async (params: FilesUploadParams) => {
     fileEncryption = encryptionResult.encryption;
   }
 
-  const writeCredentials = {
+  let writeCredentials = {
     token: params.writeAccessToken,
     bucket: params.bucket,
     prefix: params.prefix,
   };
-  const readCredentials = {
+  let readCredentials = {
     token: params.readAccessToken,
     bucket: params.bucket,
     prefix: params.prefix,
@@ -73,6 +203,30 @@ export default async (params: FilesUploadParams) => {
   }
 
   try {
+    if (params.storage.length) {
+      if (!params.resultEncryption.key) {
+        throw Error('Invalid encryption key');
+      }
+
+      const orderId = await createOrder({
+        storage: params.storage[0].split(','),
+        minRentMinutes: params.minRentMinutes,
+        backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
+        actionAccountKey: params.actionAccountKey,
+        blockchainConfig: params.blockchainConfig,
+        resultEncryption: params.resultEncryption,
+      });
+
+      Printer.print('Getting storage credentials from created order...');
+      const credentials = await getCredentials({
+        orderId,
+        key: params.resultEncryption.key,
+      });
+      readCredentials = credentials.read;
+      writeCredentials = credentials.write;
+    }
+
     await uploadService(
       localPath,
       remotePath,

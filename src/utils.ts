@@ -171,3 +171,11 @@ export const getConfigPath = (): string => {
 export const toTEE = (num: bigint | BigNumber): string => {
   return `${weiToEther(String(num))} TEE`;
 };
+
+export const tryParse = (text: string) => {
+  try {
+    return JSON.parse(text);
+  } catch {
+    /* empty */
+  }
+};
