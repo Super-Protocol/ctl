@@ -124,7 +124,10 @@ const buildOrderInfo = async (params: {
     params.offerType === OfferType.Storage
       ? await getEncryptedArgs(
           params.offerArgsPublicKey,
-          params.minRentMinutes,
+          getMinRentMinutes({
+            custom: params.minRentMinutes,
+            slot: params.slot?.usage.minTimeMinutes,
+          }),
           params.slot?.info.diskUsage,
         )
       : '';
@@ -139,6 +142,9 @@ const buildOrderInfo = async (params: {
     status: OrderStatus.New,
   };
 };
+
+const getMinRentMinutes = (minRentMinutes: { custom?: number; slot?: number }): number =>
+  Math.max(minRentMinutes.custom ?? 0, minRentMinutes.slot ?? 0) || MINUTES_IN_HOUR;
 
 const buildOrderSlots = (params: { slotId: OrderCreateParams['slotId'] }): OrderSlots => ({
   slotId: params.slotId,
@@ -164,10 +170,7 @@ const initBlockchain = async (params: {
   return consumerAddress;
 };
 
-const calcDepositBySlot = async (
-  slot: ValueOfferSlot,
-  minRentMinutes = MINUTES_IN_HOUR,
-): Promise<BigNumber> => {
+const calcDepositBySlot = async (slot: ValueOfferSlot, minRentMinutes = 0): Promise<BigNumber> => {
   const deposit = {
     fixed: BigNumber.from(0),
     perHour: BigNumber.from(0),
@@ -177,7 +180,12 @@ const calcDepositBySlot = async (
       deposit.perHour = deposit.perHour.add(
         BigNumber.from(usage.price)
           .mul(count)
-          .mul(Math.max(minRentMinutes, usage.minTimeMinutes))
+          .mul(
+            getMinRentMinutes({
+              custom: minRentMinutes,
+              slot: usage.minTimeMinutes,
+            }),
+          )
           .div(MINUTES_IN_HOUR),
       );
     } else if (usage.priceType === PriceType.Fixed) {
@@ -200,7 +208,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       args: params.args,
       offerId: params.offerId,
       resultEncryption: params.resultEncryption,
-      minRentMinutes: params.minRentMinutes,
+      minRentMinutes: params.minRentMinutes ?? 0,
       slot,
       offerType: offer.offerInfo.offerType as OfferType,
       offerArgsPublicKey: offer.offerInfo.argsPublicKey,
