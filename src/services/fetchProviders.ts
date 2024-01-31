@@ -38,6 +38,7 @@ export default async (params: FetchProviderParams) => {
           metadata: item.node?.providerInfo.metadata,
           authorityAccount: item.node?.authority,
           actionAccount: item.node?.providerInfo.actionAccount,
+          tokenReceiver: item.node?.providerInfo.tokenReceiver,
           modifiedDate: formatDate(item.node?.origins?.modifiedDate),
           providerInfo: item.node?.providerInfo,
         })) || [],

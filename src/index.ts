@@ -124,15 +124,16 @@ async function main(): Promise<void> {
     ConfigLoader.upsertConfig(options.config, defaultConfig);
   });
 
+  const providersListDefaultFields = ['address', 'name'];
   const providersListFields = [
-      'address',
-      'name',
-      'description',
-      'authority_account',
-      'action_account',
-      'modified_date',
-    ],
-    providersListDefaultFields = ['address', 'name'];
+    ...providersListDefaultFields,
+    'description',
+    'authority_account',
+    'action_account',
+    'token_receiver',
+    'modified_date',
+  ];
+
   providersCommand
     .command('list')
     .description('List providers')
@@ -158,22 +159,16 @@ async function main(): Promise<void> {
       });
     });
 
-  const providersGetFields = [
-      'address',
-      'name',
-      'description',
-      'authority_account',
-      'action_account',
-      'modified_date',
-      'metadata',
-    ],
-    providersGetDefaultFields = [
-      'name',
-      'description',
-      'authority_account',
-      'action_account',
-      'metadata',
-    ];
+  const providersGetDefaultFields = [
+    'name',
+    'description',
+    'authority_account',
+    'action_account',
+    'token_receiver',
+    'metadata',
+  ];
+  const providersGetFields = [...providersGetDefaultFields, 'address', 'modified_date'];
+
   providersCommand
     .command('get')
     .description('Display detailed information on provider with <address>')
