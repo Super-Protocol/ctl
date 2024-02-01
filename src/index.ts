@@ -694,7 +694,7 @@ async function main(): Promise<void> {
 
   ordersCommand
     .command('create')
-    .description('Create an order, supported only value values')
+    .description('Create an order, supported only value offers')
     .requiredOption('--offer <id>', 'Offer id')
     .requiredOption('--slot <id>', 'Slot id')
     .addOption(

@@ -221,7 +221,10 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       consumerAddress,
       userDepositAmount: params.userDepositAmount,
       holdDeposit,
-      minRentMinutes: params.minRentMinutes,
+      minRentMinutes: getMinRentMinutes({
+        custom: params.minRentMinutes,
+        slot: slot.usage.minTimeMinutes,
+      }),
     });
 
     await approveTeeTokens({
