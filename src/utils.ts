@@ -52,8 +52,26 @@ export const snakeToCamel = (str: string) =>
 
 export const prepareObjectToPrint = (object: { [key: string]: any }, fields: string[]) => {
   const newObject: { [key: string]: any } = {};
+  const formatValue = (val: unknown): unknown => {
+    if (typeof val == 'undefined' || val === null) {
+      return '<empty>';
+    }
+
+    if (Array.isArray(val)) {
+      if (val.length === 0) {
+        return '<empty>';
+      }
+
+      if (val.every((v) => typeof v === 'number' || typeof v === 'string')) {
+        return val.join(', ');
+      }
+    }
+
+    return val;
+  };
+
   fields.forEach((key) => {
-    newObject[key] = object[snakeToCamel(key)];
+    newObject[key] = formatValue(object[snakeToCamel(key)]);
   });
   return newObject;
 };

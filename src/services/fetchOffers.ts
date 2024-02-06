@@ -23,6 +23,7 @@ export type OfferDto = {
   cancelable: boolean | undefined;
   modifiedDate: string | undefined;
   dependsOnOffers: string[];
+  slots: string[];
   enabled?: boolean;
 };
 
@@ -41,6 +42,7 @@ export const formatFetchedOffer = (item: OfferItem): OfferDto => {
     cancelable: item?.offerInfo?.cancelable,
     modifiedDate: formatDate(item?.origins?.modifiedDate),
     dependsOnOffers: item?.offerInfo.restrictions?.offers || [],
+    slots: item?.slots.map((slot) => slot.id) || [],
     enabled: item?.enabled,
   };
 };
