@@ -408,16 +408,16 @@ async function main(): Promise<void> {
       collectOptions,
       [],
     )
-    .requiredOption('--storage <id,slot>', 'Storage offer <id> (required)')
+    .requiredOption('--storage <id,slot> --storage <id>', 'Storage offer <id> (required)')
     .requiredOption(
-      '--solution <id,slot> --solution <filepath>',
-      'Solution offer <id,slot> or resource file path (required and accepts multiple values)',
+      '--solution <id,slot> --solution <id> --solution <filepath>',
+      'Solution offer <id,slot> or <id>(slot will be auto selected) or resource file path (required and accepts multiple values)',
       collectOptions,
       [],
     )
     .option(
-      '--data <id,slot> --data <filepath>',
-      'Data offer <id,slot> or resource file path (accepts multiple values)',
+      '--data <id,slot> --date <id> --data <filepath>',
+      'Data offer <id,slot> or <id>(slot will be auto selected) or resource file path (accepts multiple values)',
       collectOptions,
       [],
     )
@@ -696,7 +696,7 @@ async function main(): Promise<void> {
     .command('create')
     .description('Create an order, supported only value offers')
     .requiredOption('--offer <id>', 'Offer id')
-    .requiredOption('--slot <id>', 'Slot id')
+    .option('--slot <id>', 'Slot id. It will be selected automatically if not specified')
     .addOption(
       new Option(
         '--input-offers <id...>',

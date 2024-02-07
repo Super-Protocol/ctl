@@ -218,6 +218,8 @@ export type EventDataFilter = {
   name?: InputMaybe<Scalars['String']>;
   /** filter by order ID */
   orderId?: InputMaybe<Scalars['String']>;
+  /** filter by order IDs */
+  orderIds?: InputMaybe<Array<Scalars['String']>>;
   /** filter by parent order ID */
   parentOrderId?: InputMaybe<Scalars['String']>;
 };
@@ -449,6 +451,8 @@ export type OfferFilter = {
   providerActionAccounts?: InputMaybe<Array<Scalars['String']>>;
   /** filter by offerInfo -> restrictions -> offers */
   restrictions?: InputMaybe<Array<Scalars['String']>>;
+  /** get only compatible with selected offers */
+  selectedOfferIds?: InputMaybe<Array<Scalars['String']>>;
 };
 
 export type OfferInfo = {
@@ -569,6 +573,12 @@ export type OfferSlotInput = {
   info: SlotInfoInput;
   option: OptionInfoInput;
   usage: SlotUsageInput;
+};
+
+export type OfferSlotPair = {
+  __typename?: 'OfferSlotPair';
+  offerId: Scalars['String'];
+  slotId: Scalars['String'];
 };
 
 export type OfferStats = {
@@ -1085,6 +1095,7 @@ export type ProviderPageInfo = {
 export type Query = {
   __typename?: 'Query';
   attestation: Attestation;
+  autoSelectValueSlots: Array<OfferSlotPair>;
   balanceOf: Scalars['String'];
   checkAuthToken: Scalars['String'];
   config: Config;
@@ -1111,6 +1122,11 @@ export type Query = {
   teeOffers: ListTeeOffersResponse;
   uniqConsumersStatistic: Array<StatisticPoint>;
   validateConfiguraion: ValidationResult;
+};
+
+
+export type QueryAutoSelectValueSlotsArgs = {
+  offerIds: Array<Scalars['String']>;
 };
 
 
@@ -1755,6 +1771,13 @@ export type ValidateConfiguraionQueryVariables = Exact<{
 
 export type ValidateConfiguraionQuery = { __typename?: 'Query', result: { __typename?: 'ValidationResult', success: boolean, errors?: { __typename?: 'ValidationErrors', cpuCores?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, diskUsage?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, ram?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, bandwidth?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, traffic?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, externalPort?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null } | null } };
 
+export type AutoSelectValueSlotsQueryVariables = Exact<{
+  offerIds: Array<Scalars['String']> | Scalars['String'];
+}>;
+
+
+export type AutoSelectValueSlotsQuery = { __typename?: 'Query', result: Array<{ __typename?: 'OfferSlotPair', offerId: string, slotId: string }> };
+
 export type OrdersQueryVariables = Exact<{
   pagination: ConnectionArgs;
   filter?: InputMaybe<OrdersFilter>;
@@ -2028,6 +2051,14 @@ export const ValidateConfiguraionDocument = gql`
         provided
       }
     }
+  }
+}
+    `;
+export const AutoSelectValueSlotsDocument = gql`
+    query autoSelectValueSlots($offerIds: [String!]!) {
+  result: autoSelectValueSlots(offerIds: $offerIds) {
+    offerId
+    slotId
   }
 }
     `;
@@ -2470,6 +2501,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     validateConfiguraion(variables: ValidateConfiguraionQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ValidateConfiguraionQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<ValidateConfiguraionQuery>(ValidateConfiguraionDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'validateConfiguraion', 'query');
+    },
+    autoSelectValueSlots(variables: AutoSelectValueSlotsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AutoSelectValueSlotsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AutoSelectValueSlotsQuery>(AutoSelectValueSlotsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'autoSelectValueSlots', 'query');
     },
     Orders(variables: OrdersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<OrdersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<OrdersQuery>(OrdersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Orders', 'query');

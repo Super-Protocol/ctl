@@ -29,6 +29,7 @@ import { BigNumber } from 'ethers';
 import { MINUTES_IN_HOUR } from '../constants';
 import { generateExternalId, getObjectKey } from '../utils';
 import approveTeeTokens from '../services/approveTeeTokens';
+import fetchMatchingValueSlots from '../services/fetchMatchingValueSlots';
 
 interface IOrderCreateCommandOptions {
   onlyOfferType: OfferType.Storage | OfferType.Data | OfferType.Solution;
@@ -42,7 +43,7 @@ export type OrderCreateParams = {
   blockchainConfig: BlockchainConfig;
   offerId: BlockchainId;
   resultEncryption: Encryption;
-  slotId: BlockchainId;
+  slotId?: BlockchainId;
   userDepositAmount?: string;
   minRentMinutes?: number;
   options?: Partial<IOrderCreateCommandOptions>;
@@ -54,7 +55,7 @@ const getCheckedOfferById = async (params: {
   accessToken: OrderCreateParams['accessToken'];
   backendUrl: OrderCreateParams['backendUrl'];
   offerId: OrderCreateParams['offerId'];
-  slotId: OrderCreateParams['slotId'];
+  slotId: string;
   options?: Partial<IOrderCreateCommandOptions>;
 }): Promise<FethchedOffer> => {
   const offers: FethchedOffer[] = await getFetchedOffers({
@@ -146,7 +147,7 @@ const buildOrderInfo = async (params: {
 const getMinRentMinutes = (minRentMinutes: { custom?: number; slot?: number }): number =>
   Math.max(minRentMinutes.custom ?? 0, minRentMinutes.slot ?? 0) || MINUTES_IN_HOUR;
 
-const buildOrderSlots = (params: { slotId: OrderCreateParams['slotId'] }): OrderSlots => ({
+const buildOrderSlots = (params: { slotId: string }): OrderSlots => ({
   slotId: params.slotId,
   slotCount: 0,
   optionsIds: [],
@@ -202,8 +203,21 @@ const calcDepositBySlot = async (slot: ValueOfferSlot, minRentMinutes = 0): Prom
 
 export default async (params: OrderCreateParams): Promise<string | undefined> => {
   try {
-    const offer: FethchedOffer = await getCheckedOfferById(params);
-    const slot = offer.slots.find((slot) => slot.id === params.slotId) as ValueOfferSlot;
+    let slotId = params.slotId;
+    if (!slotId) {
+      const result = await fetchMatchingValueSlots({
+        backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
+        offerIds: [params.offerId.toString()],
+      });
+
+      slotId = result[0].slotId;
+    }
+    const offer: FethchedOffer = await getCheckedOfferById({
+      ...params,
+      slotId,
+    });
+    const slot = offer.slots.find((slot) => slot.id === slotId) as ValueOfferSlot;
     const orderInfo = await buildOrderInfo({
       args: params.args,
       offerId: params.offerId,
@@ -213,7 +227,10 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       offerType: offer.offerInfo.offerType as OfferType,
       offerArgsPublicKey: offer.offerInfo.argsPublicKey,
     });
-    const slots = buildOrderSlots(params);
+    const slots = buildOrderSlots({
+      ...params,
+      slotId,
+    });
     const consumerAddress = await initBlockchain(params);
     let holdDeposit = await calcDepositBySlot(slot, params.minRentMinutes);
 

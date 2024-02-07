@@ -3,9 +3,12 @@ import { AESEncryption, Cipher, CryptoAlgorithm, Encoding } from '@super-protoco
 import { preparePath } from '../utils';
 import readJsonFile from './readJsonFile';
 import { ValueOfferParams } from './createWorkflow';
+import fetchMatchingValueSlots from './fetchMatchingValueSlots';
 
 export type ParseInputResourcesParams = {
   options: string[];
+  backendUrl: string;
+  accessToken: string;
 };
 
 const idRegexp = /^(?:\d+,)?\d+$/;
@@ -17,7 +20,17 @@ export default async (params: ParseInputResourcesParams) => {
   await Promise.all(
     params.options.map(async (param) => {
       if (idRegexp.test(param)) {
-        const [offerId, slotId] = param.split(',');
+        // eslint-disable-next-line prefer-const
+        let [offerId, slotId] = param.split(',');
+        if (!slotId) {
+          const result = await fetchMatchingValueSlots({
+            backendUrl: params.backendUrl,
+            accessToken: params.accessToken,
+            offerIds: [param],
+          });
+
+          slotId = result[0].slotId;
+        }
         offers.push({ id: offerId, slotId });
         return;
       }

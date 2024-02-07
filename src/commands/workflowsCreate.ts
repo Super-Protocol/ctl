@@ -80,20 +80,28 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   const tee: ValueOfferParams = params.tee
     ? await parseInputResourcesService({
         options: [params.tee],
+        backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
       }).then(({ offers }) => offers[0])
     : { id: '', slotId: '' };
 
   const storage = await parseInputResourcesService({
     options: [params.storage],
+    backendUrl: params.backendUrl,
+    accessToken: params.accessToken,
   }).then(({ offers }) => offers[0]);
 
   const solutions = await parseInputResourcesService({
     options: params.solution,
+    backendUrl: params.backendUrl,
+    accessToken: params.accessToken,
   });
   const solutionIds = solutions.offers.map((offer) => offer.id);
 
   const data = await parseInputResourcesService({
     options: params.data,
+    backendUrl: params.backendUrl,
+    accessToken: params.accessToken,
   });
   const dataIds = data.offers.map((offer) => offer.id);
 

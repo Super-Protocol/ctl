@@ -161,3 +161,10 @@ query validateConfiguraion($input: WorkflowConfigurationValidation!) {
     }
   }
 }
+
+query autoSelectValueSlots($offerIds: [String!]!) {
+    result: autoSelectValueSlots(offerIds: $offerIds) {
+        offerId
+        slotId
+    }
+}
