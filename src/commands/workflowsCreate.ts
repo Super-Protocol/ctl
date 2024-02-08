@@ -82,6 +82,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         options: [params.tee],
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
+        isTee: true,
       }).then(({ offers }) => offers[0])
     : { id: '', slotId: '' };
 

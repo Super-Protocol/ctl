@@ -9,6 +9,7 @@ export type ParseInputResourcesParams = {
   options: string[];
   backendUrl: string;
   accessToken: string;
+  isTee?: boolean;
 };
 
 const idRegexp = /^(?:\d+,)?\d+$/;
@@ -22,7 +23,7 @@ export default async (params: ParseInputResourcesParams) => {
       if (idRegexp.test(param)) {
         // eslint-disable-next-line prefer-const
         let [offerId, slotId] = param.split(',');
-        if (!slotId) {
+        if (!slotId && !params.isTee) {
           const result = await fetchMatchingValueSlots({
             backendUrl: params.backendUrl,
             accessToken: params.accessToken,
