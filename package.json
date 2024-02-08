@@ -29,7 +29,7 @@
         "@amplitude/node": "^1.10.2",
         "@iarna/toml": "^2.2.5",
         "@super-protocol/dto-js": "^0.0.29",
-        "@super-protocol/sdk-js": "2.1.0",
+        "@super-protocol/sdk-js": "2.1.1-beta.5",
         "axios": "^0.27.2",
         "bip39": "^3.1.0",
         "cli-progress": "^3.9.1",
