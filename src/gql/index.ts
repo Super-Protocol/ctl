@@ -1784,7 +1784,7 @@ export type OrdersQueryVariables = Exact<{
 }>;
 
 
-export type OrdersQuery = { __typename?: 'Query', result: { __typename?: 'ListOrdersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OrderConnection', edges?: Array<{ __typename?: 'OrderEdge', cursor?: string | null, node?: { __typename?: 'Order', _id: string, id: string, authority?: string | null, consumer: string, orderDeposit?: string | null, depositSpent?: string | null, totalDeposit?: string | null, totalDepositSpent?: string | null, offerType: TOfferType, parentOrder?: { __typename?: 'ParentOrder', id: string } | null, offerInfo?: { __typename?: 'OfferInfo', name: string, description: string, cancelable: boolean } | null, orderInfo: { __typename?: 'OrderInfo', offerId: string, status: string }, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, subOrders?: Array<{ __typename?: 'BaseOrder', id: string, depositSpent?: string | null, offerType: TOfferType, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, offerInfo?: { __typename?: 'OfferInfo', name: string, description: string, cancelable: boolean } | null, orderInfo: { __typename?: 'OrderInfo', offerId: string, status: string }, origins?: { __typename?: 'Origins', modifiedDate: number } | null }> | null } | null }> | null, pageInfo?: { __typename?: 'OrderPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
+export type OrdersQuery = { __typename?: 'Query', result: { __typename?: 'ListOrdersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OrderConnection', edges?: Array<{ __typename?: 'OrderEdge', cursor?: string | null, node?: { __typename?: 'Order', _id: string, id: string, authority?: string | null, consumer: string, orderDeposit?: string | null, depositSpent?: string | null, totalDeposit?: string | null, totalDepositSpent?: string | null, offerType: TOfferType, parentOrder?: { __typename?: 'ParentOrder', id: string } | null, offerInfo?: { __typename?: 'OfferInfo', name: string, description: string, cancelable: boolean } | null, orderInfo: { __typename?: 'OrderInfo', offerId: string, status: string }, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, selectedUsage?: { __typename?: 'OrderUsage', optionIds: Array<string>, optionsCount: Array<number> } | null, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, subOrders?: Array<{ __typename?: 'BaseOrder', id: string, depositSpent?: string | null, offerType: TOfferType, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, offerInfo?: { __typename?: 'OfferInfo', name: string, description: string, cancelable: boolean } | null, orderInfo: { __typename?: 'OrderInfo', offerId: string, status: string }, origins?: { __typename?: 'Origins', modifiedDate: number } | null }> | null } | null }> | null, pageInfo?: { __typename?: 'OrderPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
 
 export type OrdersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -2098,6 +2098,10 @@ export const OrdersDocument = gql`
             createdDate
             modifiedBy
             modifiedDate
+          }
+          selectedUsage {
+            optionIds
+            optionsCount
           }
           teeOfferInfo {
             name

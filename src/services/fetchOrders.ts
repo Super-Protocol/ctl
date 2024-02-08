@@ -1,4 +1,4 @@
-import { getSdk, TOfferType } from '../gql';
+import { getSdk, OrdersQuery, TOfferType } from '../gql';
 import { GraphQLClient } from 'graphql-request';
 import { OfferType, OrderStatus } from '@super-protocol/sdk-js';
 import { ErrorWithCustomMessage, formatDate, getObjectKey, weiToEther } from '../utils';
@@ -16,6 +16,8 @@ export type FetchOrdersParams = {
   offerIds?: string[];
   status?: OrderStatus;
 };
+
+export type OrderItem = NonNullable<OrdersQuery['result']['page']['edges']>[number]['node'];
 
 export default async (params: FetchOrdersParams) => {
   const sdk = getSdk(new GraphQLClient(params.backendUrl));
@@ -63,6 +65,7 @@ export default async (params: FetchOrdersParams) => {
           ),
           cancelable: item.node?.offerInfo?.cancelable || false,
           modifiedDate: formatDate(item.node?.origins?.modifiedDate),
+          selectedUsage: item.node?.selectedUsage,
           subOrdersCount: item.node?.subOrders?.length,
           subOrders: item.node?.subOrders?.map((subItem) => ({
             id: subItem.id,

@@ -37,25 +37,32 @@ const configValidator = z.object({
   }),
   analytics: z
     .object({
+      enabled: z.boolean().default(true),
+      logEnabled: z.boolean().default(false),
       spaAuthKey: z.string().default(defaultSpaAuthKey),
       spaUrl: z.string().optional(),
     })
-    .optional()
-    .default({
-      spaAuthKey: defaultSpaAuthKey,
-    }),
+    .default({}),
   tii: z
     .object({
       pccsServiceApiUrl: z.string().default(DEFAULT_PCCS_SERVICE),
     })
-    .optional()
-    .default({ pccsServiceApiUrl: DEFAULT_PCCS_SERVICE }),
+    .default({
+      pccsServiceApiUrl: DEFAULT_PCCS_SERVICE,
+    }),
   metadata: z
     .object({
       lastCheckForUpdates: z.number().optional(),
     })
     .optional(),
 });
+
+export interface IAnalyticsConfig {
+  enabled: boolean;
+  logEnabled: boolean;
+  spaAuthKey: string;
+  spaUrl: string;
+}
 
 export type Config = {
   backend: {
@@ -78,10 +85,7 @@ export type Config = {
   workflow: {
     resultEncryption: Encryption;
   };
-  analytics: {
-    spaUrl: string;
-    spaAuthKey: string;
-  };
+  analytics: IAnalyticsConfig;
   tii: {
     pccsServiceApiUrl: string;
   };
@@ -174,13 +178,16 @@ class ConfigLoader {
     }
 
     switch (sectionName) {
-      case 'analytics':
+      case 'analytics': {
+        const sectionConfig = target[sectionName] as Config['analytics'];
         target[sectionName] = {
-          ...(target[sectionName] as Config['analytics']),
-          spaUrl: this.getSpaUrlByBackendUrl(ConfigLoader.validatedConfig.backend.url),
+          ...sectionConfig,
+          ...(!sectionConfig.spaUrl && {
+            spaUrl: this.getSpaUrlByBackendUrl(ConfigLoader.validatedConfig.backend.url),
+          }),
         };
         break;
-
+      }
       default:
         break;
     }

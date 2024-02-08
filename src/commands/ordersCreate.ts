@@ -1,4 +1,5 @@
 import {
+  Analytics,
   BlockchainId,
   Config as BlockchainConfig,
   Crypto,
@@ -13,10 +14,8 @@ import {
   ValueOfferSlot,
 } from '@super-protocol/sdk-js';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
-import createOrderService from '../services/createOrder';
 import { Encryption } from '@super-protocol/dto-js';
 import Printer from '../printer';
-import util from 'util';
 import {
   checkFetchedOffers,
   FethchedOffer,
@@ -24,12 +23,15 @@ import {
   getHoldDeposit,
   getResultEncryption,
 } from '../services/workflowHelpers';
-import { PriceType, SlotUsage } from '../gql';
+import { PriceType, SlotUsage, TOfferType } from '../gql';
 import { BigNumber } from 'ethers';
 import { MINUTES_IN_HOUR } from '../constants';
 import { generateExternalId, getObjectKey } from '../utils';
 import approveTeeTokens from '../services/approveTeeTokens';
 import fetchMatchingValueSlots from '../services/fetchMatchingValueSlots';
+import createOrderService from '../services/createOrder';
+import { AnalyticsEvent } from '@super-protocol/sdk-js/build/analytics/types';
+import { AnalyticEvent, IOrderEventProperties } from '../services/analytics';
 
 interface IOrderCreateCommandOptions {
   onlyOfferType: OfferType.Storage | OfferType.Data | OfferType.Solution;
@@ -38,6 +40,7 @@ interface IOrderCreateCommandOptions {
 export type OrderCreateParams = {
   accessToken: string;
   actionAccountKey: string;
+  analytics?: Analytics<AnalyticsEvent> | null;
   args: OrderArgs;
   backendUrl: string;
   blockchainConfig: BlockchainConfig;
@@ -232,12 +235,10 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       slotId,
     });
     const consumerAddress = await initBlockchain(params);
-    let holdDeposit = await calcDepositBySlot(slot, params.minRentMinutes);
-
-    holdDeposit = await getHoldDeposit({
+    const holdDeposit = await getHoldDeposit({
       consumerAddress,
       userDepositAmount: params.userDepositAmount,
-      holdDeposit,
+      holdDeposit: await calcDepositBySlot(slot, params.minRentMinutes),
       minRentMinutes: getMinRentMinutes({
         custom: params.minRentMinutes,
         slot: slot.usage.minTimeMinutes,
@@ -258,12 +259,34 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
     });
     Printer.print(`Order (id=${orderId}) has been created successfully`);
 
+    const eventProperties: IOrderEventProperties = {
+      orderId,
+      offers: [
+        {
+          offer: params.offerId,
+          offerType: getObjectKey(offer.offerInfo.offerType, OfferType) as TOfferType,
+          slot: {
+            id: slot.id,
+            count: 1,
+          },
+        },
+      ],
+    };
+    await params.analytics?.trackEventCatched({
+      eventName: AnalyticEvent.ORDER_CREATED,
+      eventProperties,
+    });
+
     return orderId;
   } catch (err: unknown) {
-    if (err instanceof Error) {
-      Printer.error(`Order was not created: ${err.message}`);
-    } else {
-      Printer.error(`Order was not created by unknown reason: ${util.inspect(err)}`);
-    }
+    const errorMessage = (err as Error).message;
+    Printer.error(`Order was not completed: ${errorMessage}`);
+    await params.analytics?.trackEventCatched({
+      eventName: AnalyticEvent.ORDER_CREATED,
+      eventProperties: {
+        result: 'error',
+        error: errorMessage,
+      },
+    });
   }
 };

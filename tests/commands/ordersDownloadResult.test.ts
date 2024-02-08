@@ -93,6 +93,8 @@ describe('ordersDownloadResult', () => {
 
   it('should save order result to txt file when it does not have resource', async () => {
     await ordersDownloadResult({
+      accessToken: 'secret',
+      backendUrl: 'https://backend.com',
       blockchainConfig,
       orderId: '1',
       localPath,
@@ -106,6 +108,8 @@ describe('ordersDownloadResult', () => {
 
   it('should save order result to txt file when it does not have resource', async () => {
     await ordersDownloadResult({
+      accessToken: 'secret',
+      backendUrl: 'https://backend.com',
       blockchainConfig,
       orderId: '2',
       localPath,
@@ -119,6 +123,8 @@ describe('ordersDownloadResult', () => {
 
   it('should save order encrypted result to txt file when it is not a valid json', async () => {
     await ordersDownloadResult({
+      accessToken: 'secret',
+      backendUrl: 'https://backend.com',
       blockchainConfig,
       orderId: '3',
       localPath,

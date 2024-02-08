@@ -1,12 +1,11 @@
 import { Encoding, HashAlgorithm } from '@super-protocol/dto-js';
 import { OfferType, OrderStatus } from '@super-protocol/sdk-js';
-import { Wallet } from 'ethers';
 import * as bip39 from 'bip39';
 import { Argument, Command, Option } from 'commander';
 import fs from 'fs';
 import path from 'path';
 
-import ConfigLoader, { Config } from './config';
+import ConfigLoader from './config';
 import download from './commands/filesDownload';
 import upload from './commands/filesUpload';
 import filesDelete from './commands/filesDelete';
@@ -22,7 +21,7 @@ import Printer from './printer';
 import { collectOptions, commaSeparatedList, processSubCommands, validateFields } from './utils';
 import generateSolutionKey from './commands/solutionsGenerateKey';
 import prepareSolution from './commands/solutionsPrepare';
-import ordersDownloadResult from './commands/ordersDownloadResult';
+import ordersDownloadResult, { FilesDownloadParams } from './commands/ordersDownloadResult';
 import tokensRequest from './commands/tokensRequest';
 import tokensBalance from './commands/tokensBalance';
 import offersListTee from './commands/offersListTee';
@@ -46,7 +45,6 @@ import offersUpdateOption from './commands/offersUpdateOption';
 import offersDeleteOption from './commands/offersDeleteOption';
 import offersGetSlot from './commands/offersGetSlot';
 import offersGetOption from './commands/offersGetOption';
-import { Analytics } from './services/analytics';
 import { checkForUpdates } from './services/checkReleaseVersion';
 import setup from './commands/setup';
 import { workflowGenerateKey } from './commands/workflowsGenerateKey';
@@ -55,6 +53,7 @@ import providersCreate from './commands/providersCreate';
 import providersUpdate from './commands/providersUpdate';
 import { TerminatedOrderStatus } from './services/completeOrder';
 import ordersCreate, { OrderCreateParams } from './commands/ordersCreate';
+import { AnalyticEvent, createAnalyticsService } from './services/analytics';
 
 const packageJson = require('../package.json');
 
@@ -63,29 +62,6 @@ const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduc
   acc[key.toLowerCase()] = OrderStatus[key];
   return acc;
 }, {} as { [Key: string]: OrderStatus });
-
-async function trackEvent(
-  config: Config['analytics'],
-  eventType: string,
-  userId: string,
-  eventProperties?: object,
-): Promise<void> {
-  const shouldSendAnalytics = config.spaUrl !== '';
-
-  if (shouldSendAnalytics) {
-    try {
-      const client = new Analytics({
-        userId,
-        apiUrl: config.spaUrl,
-        apiKey: config.spaAuthKey,
-      });
-
-      await client.trackEvent(eventType, eventProperties);
-    } catch {
-      return;
-    }
-  }
-}
 
 async function main(): Promise<void> {
   await ConfigLoader.init();
@@ -239,34 +215,18 @@ async function main(): Promise<void> {
     .option('--debug', 'Display debug information', false)
     .action(async (ids: string[], options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const wallet = new Wallet(blockchain.accountPrivateKey);
-      const userId = wallet.address;
       const requestParams = {
         blockchainConfig,
         actionAccountKey: blockchain.accountPrivateKey,
         ids,
       };
-      const analytics = await configLoader.loadSection('analytics');
 
-      try {
-        await ordersCancel(requestParams);
-        await trackEvent(analytics, 'order_cancel', userId, {
-          result: 'success',
-          ...requestParams,
-        });
-      } catch (error) {
-        await trackEvent(analytics, 'order_cancel', userId, {
-          result: 'error',
-          error: (error as Error)?.message || '',
-          ...requestParams,
-        });
-        throw error;
-      }
+      await ordersCancel(requestParams);
     });
 
   ordersCommand
@@ -282,30 +242,14 @@ async function main(): Promise<void> {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const wallet = new Wallet(blockchain.accountPrivateKey);
-      const userId = wallet.address;
       const requestParams = {
         blockchainConfig,
         actionAccountKey: blockchain.accountPrivateKey,
         id,
         amount,
       };
-      const analytics = await configLoader.loadSection('analytics');
 
-      try {
-        await ordersReplenishDeposit(requestParams);
-        await trackEvent(analytics, 'replenish_deposit', userId, {
-          result: 'success',
-          ...requestParams,
-        });
-      } catch (error) {
-        await trackEvent(analytics, 'replenish_deposit', userId, {
-          result: 'error',
-          error: (error as Error)?.message || '',
-          ...requestParams,
-        });
-        throw error;
-      }
+      await ordersReplenishDeposit(requestParams);
     });
 
   ordersCommand
@@ -454,9 +398,8 @@ async function main(): Promise<void> {
       };
       const { pccsServiceApiUrl } = await configLoader.loadSection('tii');
       const workflowConfig = await configLoader.loadSection('workflow');
-      const wallet = new Wallet(blockchain.accountPrivateKey);
-      const userId = wallet.address;
       const requestParams: WorkflowCreateParams = {
+        analytics: createAnalyticsService(configLoader),
         backendUrl: backend.url,
         accessToken: backend.accessToken,
         blockchainConfig,
@@ -475,22 +418,8 @@ async function main(): Promise<void> {
         ordersLimit: Number(options.ordersLimit),
         pccsServiceApiUrl,
       };
-      const analytics = await configLoader.loadSection('analytics');
 
-      try {
-        const id = await workflowsCreate(requestParams);
-        await trackEvent(analytics, 'order_created', userId, {
-          id,
-          ...requestParams,
-        });
-      } catch (error) {
-        await trackEvent(analytics, 'order_create', userId, {
-          result: 'error',
-          error: (error as Error)?.message || '',
-          ...requestParams,
-        });
-        throw error;
-      }
+      await workflowsCreate(requestParams);
     });
 
   const ordersListFields = [
@@ -660,36 +589,24 @@ async function main(): Promise<void> {
     .option('--debug', 'Display debug information', false)
     .action(async (orderId: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const workflowConfig = await configLoader.loadSection('workflow');
-      const blockchain = await configLoader.loadSection('blockchain');
+      const workflowConfig = configLoader.loadSection('workflow');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const wallet = new Wallet(blockchain.accountPrivateKey);
-      const userId = wallet.address;
-      const requestParams = {
+      const backendConfig = configLoader.loadSection('backend');
+      const requestParams: FilesDownloadParams = {
+        analytics: createAnalyticsService(configLoader),
         blockchainConfig,
         orderId,
         localPath: options.saveTo,
         resultDecryptionKey: workflowConfig.resultEncryption.key!,
+        accessToken: backendConfig.accessToken,
+        backendUrl: backendConfig.url,
       };
-      const analytics = await configLoader.loadSection('analytics');
 
-      try {
-        await ordersDownloadResult(requestParams);
-        await trackEvent(analytics, 'order_result_download', userId, {
-          result: 'success',
-          ...requestParams,
-        });
-      } catch (error) {
-        await trackEvent(analytics, 'order_result_download', userId, {
-          result: 'error',
-          error: (error as Error)?.message || '',
-          ...requestParams,
-        });
-        throw error;
-      }
+      await ordersDownloadResult(requestParams);
     });
 
   ordersCommand
@@ -726,6 +643,7 @@ async function main(): Promise<void> {
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
       const params: OrderCreateParams = {
+        analytics: createAnalyticsService(configLoader),
         accessToken: backend.accessToken,
         actionAccountKey: blockchain.accountPrivateKey,
         args: {
@@ -755,10 +673,8 @@ async function main(): Promise<void> {
     .option('--debug', 'Display debug information', false)
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
-      const backend = await configLoader.loadSection('backend');
-      const wallet = new Wallet(blockchain.accountPrivateKey);
-      const userId = wallet.address;
+      const blockchain = configLoader.loadSection('blockchain');
+      const backend = configLoader.loadSection('backend');
       const requestParams = {
         backendUrl: backend.url,
         accessToken: backend.accessToken,
@@ -766,38 +682,40 @@ async function main(): Promise<void> {
         requestMatic: options.matic,
         requestTee: options.tee,
       };
-      const analytics = await configLoader.loadSection('analytics');
-
+      const analytics = createAnalyticsService(configLoader);
       try {
         await tokensRequest(requestParams);
+        const eventProperties = { result: 'success' };
         if (options.tee) {
-          await trackEvent(analytics, 'get_tee', userId, {
-            result: 'success',
-            ...requestParams,
+          await analytics?.trackEventCatched({
+            eventName: AnalyticEvent.TEE_TOKENS_REPLENISHED,
+            eventProperties,
           });
         }
         if (options.matic) {
-          await trackEvent(analytics, 'get_matic', userId, {
-            result: 'success',
-            ...requestParams,
+          await analytics?.trackEventCatched({
+            eventName: AnalyticEvent.MATIC_TOKENS_REPLENISHED,
+            eventProperties,
           });
         }
-      } catch (error) {
+      } catch (err) {
+        const eventProperties = {
+          result: 'error',
+          error: (err as Error).message,
+        };
         if (options.tee) {
-          await trackEvent(analytics, 'get_tee', userId, {
-            result: 'error',
-            error: (error as Error)?.message || '',
-            ...requestParams,
+          await analytics?.trackEventCatched({
+            eventName: AnalyticEvent.TEE_TOKENS_REPLENISHED,
+            eventProperties,
           });
         }
         if (options.matic) {
-          await trackEvent(analytics, 'get_matic', userId, {
-            result: 'error',
-            error: (error as Error)?.message || '',
-            ...requestParams,
+          await analytics?.trackEventCatched({
+            eventName: AnalyticEvent.MATIC_TOKENS_REPLENISHED,
+            eventProperties,
           });
         }
-        throw error;
+        throw err;
       }
     });
 
@@ -1356,6 +1274,7 @@ async function main(): Promise<void> {
       const workflowConfig = configLoader.loadSection('workflow');
 
       await upload({
+        analytics: createAnalyticsService(configLoader),
         localPath,
         storageType: storageConfig.type,
         writeAccessToken: storageConfig.writeAccessToken,

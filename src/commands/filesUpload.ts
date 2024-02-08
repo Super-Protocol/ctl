@@ -8,16 +8,19 @@ import { generateExternalId, preparePath, tryParse } from '../utils';
 import readJsonFileService from '../services/readJsonFile';
 import generateEncryptionService from '../services/generateEncryption';
 import ordersCreateCommand from './ordersCreate';
-import { Crypto, OfferType } from '@super-protocol/sdk-js';
+import { Analytics, Crypto, OfferType } from '@super-protocol/sdk-js';
 import { Config as BlockchainConfig } from '@super-protocol/sdk-js/build/connectors/BaseConnector';
 import doWithRetries from '../services/doWithRetries';
-import getOrderResult from '../services/getOrderResult';
+import getOrderResult, { OrderResultError } from '../services/getOrderResult';
 import cancelOrder from '../services/cancelOrder';
+import { AnalyticsEvent } from '@super-protocol/sdk-js/build/analytics/types';
+import { AnalyticEvent, AnalyticsUtils } from '../services/analytics';
 
 const MAX_ATTEMPT_COUNT = 12;
 const RETRY_TIMEOUT = 5000;
 
 export type FilesUploadParams = {
+  analytics?: Analytics<AnalyticsEvent> | null;
   localPath: string;
   remotePath?: string;
   outputPath: string;
@@ -39,6 +42,7 @@ export type FilesUploadParams = {
 };
 
 const createOrder = async (params: {
+  analytics?: FilesUploadParams['analytics'];
   storage: FilesUploadParams['storage'];
   minRentMinutes: FilesUploadParams['minRentMinutes'];
   backendUrl: FilesUploadParams['backendUrl'];
@@ -48,6 +52,7 @@ const createOrder = async (params: {
   resultEncryption: FilesUploadParams['resultEncryption'];
 }): Promise<string> => {
   const {
+    analytics,
     storage,
     minRentMinutes,
     backendUrl,
@@ -63,6 +68,7 @@ const createOrder = async (params: {
 
   const [offerId, slotId] = storage;
   const orderId = await ordersCreateCommand({
+    ...(analytics && { analytics }),
     accessToken,
     actionAccountKey,
     args: {
@@ -91,8 +97,11 @@ interface ICredentials {
   prefix: string;
 }
 const getCredentials = async (params: {
-  orderId: string;
+  accessToken: string;
+  analytics?: Analytics<AnalyticsEvent> | null;
+  backendUrl: string;
   key: string;
+  orderId: string;
 }): Promise<{
   read: ICredentials;
   write: ICredentials;
@@ -106,13 +115,21 @@ const getCredentials = async (params: {
     if (orderResult?.encryptedResult) {
       return tryParse(orderResult.encryptedResult);
     }
-    throw new Error(
+    throw new OrderResultError(
       `Storage order ${orderId} has not been processed well. Encrypted result is invalid.`,
     );
   };
 
   try {
     const encryptedResult = await doWithRetries(orderReadyFn, MAX_ATTEMPT_COUNT, RETRY_TIMEOUT);
+    await params.analytics?.trackEventCatched({
+      eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD,
+      eventProperties: await AnalyticsUtils.getOrderEventPropertiesByOrder({
+        orderId: params.orderId,
+        backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
+      }),
+    });
     Printer.print('Decrypting data...');
     const decryptedResult = await Crypto.decrypt({
       ...encryptedResult,
@@ -140,8 +157,17 @@ const getCredentials = async (params: {
       read: setCredentials(result.downloadCredentials),
       write: setCredentials(result.uploadCredentials),
     };
-  } catch (err: any) {
-    Printer.error(`Failed to get storage credentials. Error: ${err.message}`);
+  } catch (err: unknown) {
+    if (err instanceof OrderResultError) {
+      await params.analytics?.trackEventCatched({
+        eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD,
+        eventProperties: {
+          result: 'error',
+          error: (err as Error).message,
+        },
+      });
+    }
+    Printer.error(`Failed to get storage credentials. Error: ${(err as Error).message}`);
     Printer.print(`Trying to cancel created order ${orderId}.`);
     await cancelOrder({ id: orderId });
     Printer.print(`Order ${orderId} was canceled.`);
@@ -220,8 +246,11 @@ export default async (params: FilesUploadParams): Promise<void> => {
 
       Printer.print('Getting storage credentials from created order...');
       const credentials = await getCredentials({
-        orderId,
+        accessToken: params.accessToken,
+        analytics: params.analytics,
+        backendUrl: params.backendUrl,
         key: params.resultEncryption.key,
+        orderId,
       });
       readCredentials = credentials.read;
       writeCredentials = credentials.write;
@@ -256,6 +285,17 @@ export default async (params: FilesUploadParams): Promise<void> => {
     const outputpath = preparePath(params.outputPath);
     await fs.writeFile(outputpath, JSON.stringify(result, null, 2));
     Printer.print(`Resource file was created in ${outputpath}`);
+
+    await params.analytics?.trackEventCatched({
+      eventName: AnalyticEvent.FILE_UPLOAD,
+      eventProperties: { result: 'success' },
+    });
+  } catch (err: unknown) {
+    await params.analytics?.trackEventCatched({
+      eventName: AnalyticEvent.FILE_UPLOAD,
+      eventProperties: { result: 'error', error: (err as Error).message },
+    });
+    Printer.print(`File was not uploaded. Error: ${(err as Error).message}`);
   } finally {
     if (params.withEncryption) {
       Printer.print('Deleting temp files');

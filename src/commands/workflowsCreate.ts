@@ -1,4 +1,5 @@
 import {
+  Analytics,
   Config as BlockchainConfig,
   TIIGenerator,
   OrderStatus,
@@ -13,7 +14,7 @@ import { Encryption } from '@super-protocol/dto-js';
 import createWorkflowService, { ValueOfferParams } from '../services/createWorkflow';
 import parseInputResourcesService from '../services/parseInputResources';
 import calcWorkflowDepositService from '../services/calcWorkflowDeposit';
-import { formatTeeOptions } from '../utils';
+import { formatTeeOptions, getObjectKey } from '../utils';
 import fetchOrdersCountService from '../services/fetchOrdersCount';
 import { TOfferType } from '../gql';
 import fetchTeeOffers from '../services/fetchTeeOffers';
@@ -30,8 +31,11 @@ import {
 import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 import { MINUTES_IN_HOUR } from '../constants';
 import approveTeeTokens from '../services/approveTeeTokens';
+import { AnalyticsEvent } from '@super-protocol/sdk-js/build/analytics/types';
+import { AnalyticEvent, IEventProperties, IOrderEventProperties } from '../services/analytics';
 
 export type WorkflowCreateParams = {
+  analytics?: Analytics<AnalyticsEvent> | null;
   backendUrl: string;
   accessToken: string;
   blockchainConfig: BlockchainConfig;
@@ -339,7 +343,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   const inputOffersParams = [...solutions.offers, ...data.offers];
 
   Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
-
+  const properties: (IOrderEventProperties | IEventProperties)[] = [];
   for (let pos = 0; pos < params.workflowNumber; pos++) {
     workflowPromises[pos] = new Promise((resolve) => {
       createWorkflowService({
@@ -354,15 +358,60 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         holdDeposit: holdDeposit.toString(),
         consumerAddress: consumerAddress!,
       })
-        .then((workflowId) => resolve(workflowId))
+        .then((workflowId) => {
+          properties.push({
+            orderId: workflowId,
+            offers: [
+              {
+                offer: teeOfferParams.id,
+                slot: {
+                  id: teeOfferParams.slotId,
+                  count: teeOfferParams.slotCount,
+                },
+                offerType: getObjectKey(
+                  teeOfferParams.offer.teeOfferInfo.teeType,
+                  OfferType,
+                ) as TOfferType,
+                ...(teeOfferParams.optionsIds.length && {
+                  options: teeOfferParams.optionsIds.map((_, index) => ({
+                    id: teeOfferParams.optionsIds[index],
+                    count: teeOfferParams.optionsCount[index],
+                  })),
+                }),
+              },
+              ...fetchedValueOffers.map((offer) => ({
+                offer: offer.id,
+                ...(offer.slots.length && {
+                  slot: {
+                    id: offer.slots[0].id,
+                    count: 1,
+                  },
+                }),
+                offerType: getObjectKey(offer.offerInfo.offerType, OfferType) as TOfferType,
+              })),
+            ],
+          });
+          resolve(workflowId);
+        })
         .catch((error) => {
           Printer.error(`Error creating workflow ${error}`);
+          properties.push({
+            result: 'error',
+            error: error.message,
+          });
           resolve(null);
         });
     });
   }
 
   const results = await Promise.all(workflowPromises);
+  if (properties.length) {
+    const events = properties.map((event) => ({
+      eventName: AnalyticEvent.ORDER_CREATED,
+      eventProperties: event,
+    }));
+    await params.analytics?.trackEventsCatched({ events });
+  }
   const id = JSON.stringify(results);
 
   Printer.print(`Workflow was created, TEE order id: ${id}`);

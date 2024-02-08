@@ -12,17 +12,28 @@ import {
   StorageProviderResource,
   UrlResource,
 } from '@super-protocol/dto-js';
-import { Crypto, Config as BlockchainConfig, OrderStatus } from '@super-protocol/sdk-js';
+import {
+  Crypto,
+  Config as BlockchainConfig,
+  OrderStatus,
+  OrderResult,
+  Analytics,
+} from '@super-protocol/sdk-js';
 import downloadFileByUrl from '../services/downloadFileByUrl';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import getPublicFromPrivate from '../services/getPublicFromPrivate';
 import { preparePath, tryParse } from '../utils';
 import checkOrderService from '../services/checkOrder';
+import { AnalyticsEvent } from '@super-protocol/sdk-js/build/analytics/types';
+import { AnalyticEvent, AnalyticsUtils } from '../services/analytics';
 
 export type FilesDownloadParams = {
+  accessToken: string;
+  analytics?: Analytics<AnalyticsEvent> | null;
+  backendUrl: string;
   blockchainConfig: BlockchainConfig;
-  orderId: string;
   localPath?: string;
+  orderId: string;
   resultDecryptionKey: string;
 };
 
@@ -45,9 +56,28 @@ export default async (params: FilesDownloadParams): Promise<void> => {
   });
 
   Printer.print('Fetching order result');
-  const orderResult = await getOrderResult({ orderId: params.orderId });
-  const encrypted = orderResult.encryptedResult;
-  if (!encrypted.length) {
+  let orderResult: OrderResult | undefined;
+  try {
+    orderResult = await getOrderResult({ orderId: params.orderId });
+    await params.analytics?.trackEventCatched({
+      eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD,
+      eventProperties: await AnalyticsUtils.getOrderEventPropertiesByOrder({
+        orderId: params.orderId,
+        backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
+      }),
+    });
+  } catch (err: unknown) {
+    await params.analytics?.trackEventCatched({
+      eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD,
+      eventProperties: {
+        result: 'error',
+        error: (err as Error).message,
+      },
+    });
+  }
+  const encrypted = orderResult?.encryptedResult;
+  if (!encrypted?.length) {
     Printer.print('There is no result in the specified order');
     return;
   }
@@ -133,7 +163,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
       });
       break;
 
-    case ResourceType.StorageProvider:
+    case ResourceType.StorageProvider: {
       if (!isCommandSupported()) return;
       const storageProviderResource = resource as StorageProviderResource;
       localPathEncrypted = getEncryptedResultPath(
@@ -149,6 +179,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
         },
       );
       break;
+    }
     default:
       throw Error(`Resource type ${resource.type} is not supported`);
   }
@@ -189,13 +220,13 @@ async function tryDecrypt(
   }
 }
 
-async function writeResult(localPath: string, content: string, message: string) {
+async function writeResult(localPath: string, content: string, message: string): Promise<void> {
   Printer.print(message);
   await fs.writeFile(path.join(process.cwd(), localPath), content);
   Printer.print(`Order result metadata was saved to ${localPath}`);
 }
 
-function getEncryptedResultPath(customPath?: string, sourcePath?: string) {
+function getEncryptedResultPath(customPath?: string, sourcePath?: string): string {
   if (customPath) {
     if (sourcePath) {
       const sourceExtension = /\..+$/.exec(sourcePath.replace(/\.encrypted$/, ''));

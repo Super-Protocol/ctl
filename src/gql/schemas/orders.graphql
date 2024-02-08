@@ -34,6 +34,10 @@ query Orders($pagination: ConnectionArgs!, $filter: OrdersFilter) {
                         modifiedBy
                         modifiedDate
                     }
+                    selectedUsage {
+                        optionIds
+                        optionsCount
+                    }
                     teeOfferInfo {
                         name
                         description
