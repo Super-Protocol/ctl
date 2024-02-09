@@ -23,16 +23,16 @@ cd linux_builder && ./build.sh && cd ..
 ```
 Can be run on any os with Docker support.</br>
 Result will be saved at `./dist/spctl-linux`
-#### Build on native os (linux only):
+#### Build on native os:
 ```
-npm run build:linux
+npm run build
 ```
 IMPORTANT: to make `upload` and `download` commands works correctly, requires to make this build on Linux only</br>
 Result will be saved at `./dist/spctl`
 
 ### MacOS
 ```
-npm run build:mac
+npm run build
 ```
 IMPORTANT: to make `upload` and `download` commands works correctly, requires to make this build on MacOS only</br>
 Result will be saved at `./dist/spctl`
@@ -43,9 +43,14 @@ Before making a release, please decide what version tag this release should have
 Then you need to make PR to master and merge it with `Rebase and Merge` after approve. Then go the Releases Page and create new release with the name as new tag.
 
 ## Commands
-`npm run build` – compiles typescript with tcs.</br>
-`npm run build:linux` – builds a linux binary file ready for distribution</br>
-`npm run build:macos` – builds a macos binary file ready for distribution</br>
+`npm run build:prepare` – compiles typescript with tcs.</br>
+`npm run build` - builds a binary file (target will be autodetected)</br>
+`npm run build:win:x64` - builds a binary file for Windows with arch x64</br>
+`npm run build:win:arm64` - builds a binary file for Windows with arch arm64</br>
+`npm run build:linux:x64` – builds a binary file for Linux with arch x64</br>
+`npm run build:linux:arm64` – builds a binary file for Linux with arch arm64</br>
+`npm run build:macos:x64` – builds a macos binary file for MacOS with arch x64</br>
+`npm run build:macos:arm64` – builds a macos binary file for MacOS with arch arm64</br>
 `npm run dev -- [command]` – runs command in dev mode</br>
 `npm run prettier` – runs code auto formatting
 

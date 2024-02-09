@@ -31,12 +31,12 @@ jobs:
             - name: Build binary for macOS
               if: ${{ runner.os == 'macOS' }}
               run: >
-                  npm run build:mac
+                  npm run build
                   && mv ./dist/spctl ./dist/spctl-macos-x64
             - name: Build binary for Linux
               if: ${{ runner.os == 'Linux' }}
               run: >
-                  npm run build:linux
+                  npm run build
                   && mv ./dist/spctl ./dist/spctl-linux-x64
             - name: "Save build results for release job"
               uses: actions/upload-artifact@v2
