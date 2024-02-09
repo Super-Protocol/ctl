@@ -8,7 +8,13 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [ubuntu-20.04, macos-latest]
+                include:
+                    - os: macos-12 # Intel Mac
+                      output: spctl-macos-x64
+                    - os: ubuntu-20.04
+                      output: spctl-linux-x64
+                    - os: macos-14 # M1 Mac
+                      output: spctl-macos-arm64
         steps:
             - name: Checkout repository
               uses: actions/checkout@v2
@@ -24,20 +30,13 @@ jobs:
               uses: actions/setup-node@v2.5.1
               with:
                   node-version: 16.15.0
-                  architecture: x64
                   scope: super-protocol
             - name: Install dependencies
               run: npm ci
-            - name: Build binary for macOS
-              if: ${{ runner.os == 'macOS' }}
-              run: >
+            - name: Build binary
+              run: |
                   npm run build
-                  && mv ./dist/spctl ./dist/spctl-macos-x64
-            - name: Build binary for Linux
-              if: ${{ runner.os == 'Linux' }}
-              run: >
-                  npm run build
-                  && mv ./dist/spctl ./dist/spctl-linux-x64
+                  mv ./dist/spctl ./dist/${{ matrix.output }}
             - name: "Save build results for release job"
               uses: actions/upload-artifact@v2
               with:
@@ -58,3 +57,4 @@ jobs:
                   files: |
                       spctl-macos-x64
                       spctl-linux-x64
+                      spctl-macos-arm64
