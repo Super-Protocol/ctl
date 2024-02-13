@@ -162,8 +162,8 @@ query validateConfiguraion($input: WorkflowConfigurationValidation!) {
   }
 }
 
-query autoSelectValueSlots($offerIds: [String!]!) {
-    result: autoSelectValueSlots(offerIds: $offerIds) {
+query autoSelectValueSlots($minTimeMinutes: Int, $offerIds: [String!]!) {
+    result: autoSelectValueSlots(minTimeMinutes: $minTimeMinutes, offerIds: $offerIds) {
         offerId
         slotId
     }

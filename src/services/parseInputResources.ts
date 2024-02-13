@@ -10,11 +10,18 @@ export type ParseInputResourcesParams = {
   backendUrl: string;
   accessToken: string;
   isTee?: boolean;
+  minRentMinutes?: number;
 };
 
 const idRegexp = /^(?:\d+,)?\d+$/;
 
-export default async (params: ParseInputResourcesParams) => {
+export default async (
+  params: ParseInputResourcesParams,
+): Promise<{
+  resourceFiles: ResourceFile[];
+  offers: ValueOfferParams[];
+  tiis: string[];
+}> => {
   const resourceFiles: ResourceFile[] = [],
     offers: ValueOfferParams[] = [],
     tiis: string[] = [];
@@ -28,6 +35,7 @@ export default async (params: ParseInputResourcesParams) => {
             backendUrl: params.backendUrl,
             accessToken: params.accessToken,
             offerIds: [param],
+            minRentMinutes: params.minRentMinutes,
           });
 
           slotId = result[0].slotId;

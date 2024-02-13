@@ -94,12 +94,14 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     options: [params.storage],
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
+    minRentMinutes: params.minRentMinutes,
   }).then(({ offers }) => offers[0]);
 
   const solutions = await parseInputResourcesService({
     options: params.solution,
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
+    minRentMinutes: params.minRentMinutes,
   });
   const solutionIds = solutions.offers.map((offer) => offer.id);
 
@@ -107,6 +109,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     options: params.data,
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
+    minRentMinutes: params.minRentMinutes,
   });
   const dataIds = data.offers.map((offer) => offer.id);
 

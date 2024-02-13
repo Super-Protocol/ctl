@@ -212,6 +212,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
         offerIds: [params.offerId.toString()],
+        minRentMinutes: params.minRentMinutes,
       });
 
       slotId = result[0].slotId;

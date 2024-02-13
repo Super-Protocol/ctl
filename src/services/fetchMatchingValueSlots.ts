@@ -7,6 +7,7 @@ export type FetchMatchingValueSlotsParams = {
   backendUrl: string;
   accessToken: string;
   offerIds: string[];
+  minRentMinutes?: number;
 };
 
 type MatchingValueSlots = OfferSlotPair[];
@@ -18,6 +19,7 @@ export default async (params: FetchMatchingValueSlotsParams): Promise<MatchingVa
     const { result } = await sdk.autoSelectValueSlots(
       {
         offerIds: params.offerIds,
+        minTimeMinutes: params.minRentMinutes,
       },
       headers,
     );

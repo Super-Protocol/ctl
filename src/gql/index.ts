@@ -189,8 +189,10 @@ export type Erc20rFilter = {
 export type Event = {
   __typename?: 'Event';
   _id: Scalars['String'];
+  change?: Maybe<Scalars['String']>;
   consumer?: Maybe<Scalars['String']>;
   contract: Scalars['String'];
+  deposit?: Maybe<Scalars['String']>;
   externalId?: Maybe<Scalars['String']>;
   from?: Maybe<Scalars['String']>;
   name: Scalars['String'];
@@ -199,6 +201,7 @@ export type Event = {
   orderStatus?: Maybe<Scalars['String']>;
   owner?: Maybe<Scalars['String']>;
   parentOrderId?: Maybe<Scalars['String']>;
+  profit?: Maybe<Scalars['String']>;
   spender?: Maybe<Scalars['String']>;
   to?: Maybe<Scalars['String']>;
   transactionBlockNumber: Scalars['Float'];
@@ -226,8 +229,10 @@ export type EventDataFilter = {
 
 export type EventDataInput = {
   _id: Scalars['String'];
+  change?: InputMaybe<Scalars['String']>;
   consumer?: InputMaybe<Scalars['String']>;
   contract: Scalars['String'];
+  deposit?: InputMaybe<Scalars['String']>;
   externalId?: InputMaybe<Scalars['String']>;
   from?: InputMaybe<Scalars['String']>;
   name: Scalars['String'];
@@ -236,6 +241,7 @@ export type EventDataInput = {
   orderStatus?: InputMaybe<Scalars['String']>;
   owner?: InputMaybe<Scalars['String']>;
   parentOrderId?: InputMaybe<Scalars['String']>;
+  profit?: InputMaybe<Scalars['String']>;
   spender?: InputMaybe<Scalars['String']>;
   to?: InputMaybe<Scalars['String']>;
   transactionBlockNumber: Scalars['Float'];
@@ -1126,6 +1132,7 @@ export type Query = {
 
 
 export type QueryAutoSelectValueSlotsArgs = {
+  minTimeMinutes?: InputMaybe<Scalars['Int']>;
   offerIds: Array<Scalars['String']>;
 };
 
@@ -1772,6 +1779,7 @@ export type ValidateConfiguraionQueryVariables = Exact<{
 export type ValidateConfiguraionQuery = { __typename?: 'Query', result: { __typename?: 'ValidationResult', success: boolean, errors?: { __typename?: 'ValidationErrors', cpuCores?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, diskUsage?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, ram?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, bandwidth?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, traffic?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, externalPort?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null } | null } };
 
 export type AutoSelectValueSlotsQueryVariables = Exact<{
+  minTimeMinutes?: InputMaybe<Scalars['Int']>;
   offerIds: Array<Scalars['String']> | Scalars['String'];
 }>;
 
@@ -2055,8 +2063,11 @@ export const ValidateConfiguraionDocument = gql`
 }
     `;
 export const AutoSelectValueSlotsDocument = gql`
-    query autoSelectValueSlots($offerIds: [String!]!) {
-  result: autoSelectValueSlots(offerIds: $offerIds) {
+    query autoSelectValueSlots($minTimeMinutes: Int, $offerIds: [String!]!) {
+  result: autoSelectValueSlots(
+    minTimeMinutes: $minTimeMinutes
+    offerIds: $offerIds
+  ) {
     offerId
     slotId
   }
