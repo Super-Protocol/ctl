@@ -393,6 +393,16 @@ export type Mutation = {
   transfer: Scalars['Boolean'];
 };
 
+
+export type MutationTeeTransferArgs = {
+  destinationAddress?: InputMaybe<Scalars['String']>;
+};
+
+
+export type MutationTransferArgs = {
+  destinationAddress?: InputMaybe<Scalars['String']>;
+};
+
 export type Offer = {
   __typename?: 'Offer';
   /** system identifier */
@@ -1730,12 +1740,16 @@ export type EventSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 export type EventSubscription = { __typename?: 'Subscription', event: { __typename?: 'SubscriptionPayload', data?: Array<string> | null, type: SubscriptionType, subscriptionSource: SubscriptionSource } };
 
-export type TransferMutationVariables = Exact<{ [key: string]: never; }>;
+export type TransferMutationVariables = Exact<{
+  destinationAddress?: InputMaybe<Scalars['String']>;
+}>;
 
 
 export type TransferMutation = { __typename?: 'Mutation', transfer: boolean };
 
-export type TeeTransferMutationVariables = Exact<{ [key: string]: never; }>;
+export type TeeTransferMutationVariables = Exact<{
+  destinationAddress?: InputMaybe<Scalars['String']>;
+}>;
 
 
 export type TeeTransferMutation = { __typename?: 'Mutation', teeTransfer: boolean };
@@ -1884,13 +1898,13 @@ export const EventDocument = gql`
 }
     `;
 export const TransferDocument = gql`
-    mutation Transfer {
-  transfer
+    mutation Transfer($destinationAddress: String) {
+  transfer(destinationAddress: $destinationAddress)
 }
     `;
 export const TeeTransferDocument = gql`
-    mutation TeeTransfer {
-  teeTransfer
+    mutation TeeTransfer($destinationAddress: String) {
+  teeTransfer(destinationAddress: $destinationAddress)
 }
     `;
 export const OffersDocument = gql`

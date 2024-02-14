@@ -6,6 +6,7 @@ import { ErrorWithCustomMessage } from '../utils';
 export type RequestTeeParams = {
   backendUrl: string;
   accessToken: string;
+  destinationAddress?: string;
 };
 
 export default async (params: RequestTeeParams) => {
@@ -13,7 +14,12 @@ export default async (params: RequestTeeParams) => {
   const headers = getGqlHeaders(params.accessToken);
 
   try {
-    await sdk.TeeTransfer({}, headers);
+    await sdk.TeeTransfer(
+      {
+        ...(params.destinationAddress && { destinationAddress: params.destinationAddress }),
+      },
+      headers,
+    );
   } catch (error: any) {
     throw ErrorWithCustomMessage(
       error?.response?.errors[0]?.message || 'TEE tokens request error',

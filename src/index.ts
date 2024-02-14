@@ -671,6 +671,12 @@ async function main(): Promise<void> {
     .option('--matic', 'Request Polygon Mumbai MATIC tokens', false)
     .option('--tee', 'Request Super Protocol TEE tokens', false)
     .option('--debug', 'Display debug information', false)
+    .addOption(
+      new Option(
+        '--custom-key <key>',
+        'Custom account for replenish balance instead of using the main authority account',
+      ).hideHelp(),
+    )
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
@@ -681,6 +687,7 @@ async function main(): Promise<void> {
         actionAccountPrivateKey: blockchain.accountPrivateKey,
         requestMatic: options.matic,
         requestTee: options.tee,
+        customAccountPrivateKey: options.customKey,
       };
       const analytics = createAnalyticsService(configLoader);
       try {
