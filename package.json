@@ -77,7 +77,7 @@
     "pkg": {
         "assets": [
             "config.example.json",
-            "node_modules/@super-protocol/uplink-nodejs/build/Release/uplink.node",
+            "node_modules/@super-protocol/uplink-nodejs/build/Release/*",
             "node_modules/axios/**/*"
         ]
     }
