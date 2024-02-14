@@ -729,9 +729,15 @@ async function main(): Promise<void> {
   tokensCommand
     .command('balance')
     .description('Display the token balance of the account')
+    .addOption(
+      new Option(
+        '--custom-key <key>',
+        'Custom account for checking balance instead of using the action account',
+      ).hideHelp(),
+    )
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -740,6 +746,7 @@ async function main(): Promise<void> {
       await tokensBalance({
         blockchainConfig,
         actionAccountPrivateKey: blockchain.accountPrivateKey,
+        customAccountPrivateKey: options.customKey,
       });
     });
 
