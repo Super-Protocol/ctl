@@ -1,4 +1,4 @@
-name: Create binary files for every supported platform
+name: Build
 on:
     release:
         types: [published]
@@ -15,17 +15,11 @@ jobs:
                       output: spctl-linux-x64
                     - os: macos-14 # M1 Mac
                       output: spctl-macos-arm64
+                    - os: windows-latest
+                      output: spctl-win32-x64
         steps:
             - name: Checkout repository
               uses: actions/checkout@v2
-            - name: Setup Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: '3.10'
-            - name: Setup Go environment
-              uses: actions/setup-go@v2.1.5
-              with:
-                  go-version: 1.18
             - name: Setup Node.js environment
               uses: actions/setup-node@v2.5.1
               with:
@@ -58,3 +52,4 @@ jobs:
                       spctl-macos-x64
                       spctl-linux-x64
                       spctl-macos-arm64
+                      spctl-win32-x64
