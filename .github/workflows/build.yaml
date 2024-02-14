@@ -57,4 +57,4 @@ jobs:
                       spctl-macos-x64
                       spctl-linux-x64
                       spctl-macos-arm64
-                      spctl-win32-x64
+                      spctl-win-x64
