@@ -43,7 +43,7 @@ export default async (params: OrdersListParams): Promise<void> => {
 
   if (!orders.list.length) {
     Printer.print('No orders found');
-    await saveResultIfNeeded(orders.list);
+    await saveResultIfNeeded(orders);
     return;
   }
 
