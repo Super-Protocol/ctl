@@ -480,6 +480,7 @@ async function main(): Promise<void> {
         return Object.keys(ORDER_STATUS_MAP).includes(val) ? [val] : [];
       }),
     )
+    .option('--save-to <filepath>', 'Save result to a file')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = await configLoader.loadSection('backend');
@@ -501,6 +502,7 @@ async function main(): Promise<void> {
         offerType: ordersListOfferTypes[options.type as keyof typeof ordersListOfferTypes],
         ...(options.offers && { offerIds: options.offers }),
         ...(options.status && { status: ORDER_STATUS_MAP[options.status] }),
+        ...(options.saveTo && { saveTo: options.saveTo }),
       });
     });
 

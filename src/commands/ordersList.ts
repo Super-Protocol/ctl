@@ -1,3 +1,5 @@
+import { promises as fs } from 'fs';
+import path from 'path';
 import fetchOrdersService from '../services/fetchOrders';
 import Printer from '../printer';
 import { prepareObjectToPrint } from '../utils';
@@ -14,6 +16,7 @@ export type OrdersListParams = {
   offerType?: OfferType;
   offerIds?: string[];
   status?: OrderStatus;
+  saveTo?: string;
 };
 
 export default async (params: OrdersListParams): Promise<void> => {
@@ -30,8 +33,17 @@ export default async (params: OrdersListParams): Promise<void> => {
     ...(params.status && { status: params.status }),
   });
 
+  const saveResultIfNeeded = async (result: unknown): Promise<void> => {
+    if (params.saveTo) {
+      const pathToSaveResult = path.resolve(process.cwd(), params.saveTo);
+      await fs.writeFile(pathToSaveResult, JSON.stringify(result, null, 2));
+      Printer.print(`Saved result to ${pathToSaveResult}`);
+    }
+  };
+
   if (!orders.list.length) {
     Printer.print('No orders found');
+    await saveResultIfNeeded(orders.list);
     return;
   }
 
@@ -39,4 +51,6 @@ export default async (params: OrdersListParams): Promise<void> => {
 
   Printer.table(rows);
   Printer.print('Last pagination cursor: ' + orders.cursor);
+
+  await saveResultIfNeeded(orders);
 };
