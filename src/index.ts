@@ -173,7 +173,12 @@ async function main(): Promise<void> {
     .command('create')
     .description('Create a provider')
     .option('--path <filepath>', 'path to the provider info json file', './providerInfo.json')
-    .action(async (options: { path: string; config: string }) => {
+    .addOption(
+      new Option('--yes', 'Silent question mode. All answers will be yes')
+        .default(false)
+        .hideHelp(),
+    )
+    .action(async (options: { path: string; config: string; yes: boolean }) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
@@ -186,6 +191,7 @@ async function main(): Promise<void> {
         providerInfoFilePath: options.path,
         authorityAccountKey: blockchain.authorityAccountPrivateKey,
         actionAccountKey: blockchain.accountPrivateKey,
+        silent: options.yes,
       });
     });
   providersCommand
