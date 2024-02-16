@@ -709,8 +709,10 @@ export enum OrderEventType {
 export type OrderEventsUpdated = {
   __typename?: 'OrderEventsUpdated';
   _id: Scalars['String'];
+  change?: Maybe<Scalars['String']>;
   consumer?: Maybe<Scalars['String']>;
   contract: Scalars['String'];
+  deposit?: Maybe<Scalars['String']>;
   externalId?: Maybe<Scalars['String']>;
   from?: Maybe<Scalars['String']>;
   name: Scalars['String'];
@@ -719,6 +721,7 @@ export type OrderEventsUpdated = {
   orderStatus?: Maybe<Scalars['String']>;
   owner?: Maybe<Scalars['String']>;
   parentOrderId?: Maybe<Scalars['String']>;
+  profit?: Maybe<Scalars['String']>;
   spender?: Maybe<Scalars['String']>;
   to?: Maybe<Scalars['String']>;
   transactionBlockNumber: Scalars['Float'];
@@ -1790,7 +1793,7 @@ export type ValidateConfiguraionQueryVariables = Exact<{
 }>;
 
 
-export type ValidateConfiguraionQuery = { __typename?: 'Query', result: { __typename?: 'ValidationResult', success: boolean, errors?: { __typename?: 'ValidationErrors', cpuCores?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, diskUsage?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, ram?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, bandwidth?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, traffic?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, externalPort?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null } | null } };
+export type ValidateConfiguraionQuery = { __typename?: 'Query', result: { __typename?: 'ValidationResult', success: boolean, errors?: { __typename?: 'ValidationErrors', cpuCores?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, diskUsage?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, ram?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, bandwidth?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, traffic?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, externalPort?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, gpuCores?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null } | null } };
 
 export type AutoSelectValueSlotsQueryVariables = Exact<{
   minTimeMinutes?: InputMaybe<Scalars['Int']>;
@@ -2069,6 +2072,10 @@ export const ValidateConfiguraionDocument = gql`
         provided
       }
       externalPort {
+        required
+        provided
+      }
+      gpuCores {
         required
         provided
       }
