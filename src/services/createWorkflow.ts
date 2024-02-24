@@ -7,7 +7,6 @@ import BlockchainConnector, {
   OrderStatus,
   TeeOffer,
 } from '@super-protocol/sdk-js';
-import { Encryption } from '@super-protocol/dto-js';
 import Printer from '../printer';
 import { generateExternalId } from '../utils';
 import doWithRetries from './doWithRetries';
@@ -29,7 +28,8 @@ export type CreateWorkflowParams = {
   teeOffer: TeeOfferParams;
   storageOffer: ValueOfferParams;
   inputOffers: ValueOfferParams[];
-  resultPublicKey: Encryption;
+  resultPublicKey: string;
+  encryptedInfo: string;
   argsToEncrypt: string;
   holdDeposit: string;
   consumerAddress: string;
@@ -57,8 +57,8 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       outputOffer: params.storageOffer.id,
     },
     encryptedArgs: JSON.stringify(encryptedArgs),
-    resultPublicKey: JSON.stringify(params.resultPublicKey),
-    encryptedRequirements: '',
+    publicKey: params.resultPublicKey,
+    encryptedInfo: params.encryptedInfo,
   };
   const parentOrderSlot: OrderSlots = {
     slotId: params.teeOffer.slotId,
@@ -75,9 +75,9 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       inputOffers: [],
       outputOffer: params.storageOffer.id,
     },
-    resultPublicKey: '',
     encryptedArgs: '',
-    encryptedRequirements: '',
+    publicKey: '',
+    encryptedInfo: '',
   }));
   const subOrdersSlots: OrderSlots[] = params.inputOffers.map((subOrderParams) => ({
     slotId: subOrderParams.slotId,

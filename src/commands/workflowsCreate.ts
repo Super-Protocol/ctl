@@ -27,6 +27,7 @@ import {
   FethchedOffer,
   getFetchedOffers,
   getResultEncryption,
+  getEncryptionKeysForOrder,
 } from '../services/workflowHelpers';
 import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 import { MINUTES_IN_HOUR } from '../constants';
@@ -344,6 +345,11 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     to: Orders.address,
   });
   const inputOffersParams = [...solutions.offers, ...data.offers];
+  const orderResultKeys = await getEncryptionKeysForOrder({
+    offerId: teeOfferParams.id,
+    encryptionPrivateKey: params.resultEncryption,
+    pccsServiceApiUrl: params.pccsServiceApiUrl,
+  });
 
   Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
   const properties: (IOrderEventProperties | IEventProperties)[] = [];
@@ -357,7 +363,8 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
           data: dataTIIs,
           solution: solutionTIIs,
         }),
-        resultPublicKey: resultEncryption,
+        resultPublicKey: orderResultKeys.publicKey,
+        encryptedInfo: orderResultKeys.encryptedInfo,
         holdDeposit: holdDeposit.toString(),
         consumerAddress: consumerAddress!,
       })

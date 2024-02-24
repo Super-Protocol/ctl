@@ -650,6 +650,7 @@ async function main(): Promise<void> {
       const backend = configLoader.loadSection('backend');
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
+      const tii = configLoader.loadSection('tii');
       const params: OrderCreateParams = {
         analytics: createAnalyticsService(configLoader),
         accessToken: backend.accessToken,
@@ -664,6 +665,7 @@ async function main(): Promise<void> {
           contractAddress: blockchain.smartContractAddress,
         },
         offerId: options.offer,
+        pccsServiceApiUrl: tii.pccsServiceApiUrl,
         resultEncryption: workflowConfig.resultEncryption,
         slotId: options.slot,
         userDepositAmount: options.deposit,

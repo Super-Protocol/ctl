@@ -19,9 +19,9 @@ import Printer from '../printer';
 import {
   checkFetchedOffers,
   FethchedOffer,
+  getEncryptionKeysForOrder,
   getFetchedOffers,
   getHoldDeposit,
-  getResultEncryption,
 } from '../services/workflowHelpers';
 import { PriceType, SlotUsage, TOfferType } from '../gql';
 import { BigNumber } from 'ethers';
@@ -45,6 +45,7 @@ export type OrderCreateParams = {
   backendUrl: string;
   blockchainConfig: BlockchainConfig;
   offerId: BlockchainId;
+  pccsServiceApiUrl: string;
   resultEncryption: Encryption;
   slotId?: BlockchainId;
   userDepositAmount?: string;
@@ -105,8 +106,14 @@ const buildOrderInfo = async (params: {
   offerType: OfferType;
   slot: ValueOfferSlot;
   offerArgsPublicKey: string;
+  pccsServiceApiUrl: string;
 }): Promise<OrderInfo> => {
-  const resultEncryption = getResultEncryption(params.resultEncryption);
+  const orderResultKeys = await getEncryptionKeysForOrder({
+    offerId: params.offerId,
+    encryptionPrivateKey: params.resultEncryption,
+    pccsServiceApiUrl: params.pccsServiceApiUrl,
+  });
+
   const getEncryptedArgs = async (
     key: string,
     minRentMinutes?: number,
@@ -139,10 +146,10 @@ const buildOrderInfo = async (params: {
   return {
     args: params.args,
     encryptedArgs,
-    encryptedRequirements: '',
     externalId: generateExternalId(),
     offerId: params.offerId,
-    resultPublicKey: JSON.stringify(resultEncryption),
+    publicKey: orderResultKeys.publicKey,
+    encryptedInfo: orderResultKeys.encryptedInfo,
     status: OrderStatus.New,
   };
 };
@@ -222,6 +229,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       slotId,
     });
     const slot = offer.slots.find((slot) => slot.id === slotId) as ValueOfferSlot;
+
     const orderInfo = await buildOrderInfo({
       args: params.args,
       offerId: params.offerId,
@@ -230,6 +238,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       slot,
       offerType: offer.offerInfo.offerType as OfferType,
       offerArgsPublicKey: offer.offerInfo.argsPublicKey,
+      pccsServiceApiUrl: params.pccsServiceApiUrl,
     });
     const slots = buildOrderSlots({
       ...params,
