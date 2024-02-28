@@ -780,16 +780,18 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(offersListTeeDefaultFields, offersListTeeDefaultFields.join(',')),
     )
+    .option('--ids <id...>', 'Offer <ids> (accepts multiple values)', collectOptions, [])
     .option('--limit <number>', 'Number of records to display', '10')
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       validateFields(options.fields, offersListTeeFields);
 
       await offersListTee({
         fields: options.fields,
+        ids: options.ids,
         backendUrl: backend.url,
         accessToken: backend.accessToken,
         limit: +options.limit,
@@ -818,6 +820,7 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(offersListValueDefaultFields, offersListValueDefaultFields.join(',')),
     )
+    .option('--ids <id...>', 'Offer <ids> (accepts multiple values)', collectOptions, [])
     .option('--limit <number>', 'Number of records to display', '10')
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
@@ -828,6 +831,7 @@ async function main(): Promise<void> {
 
       await offersListValue({
         fields: options.fields,
+        ids: options.ids,
         backendUrl: backend.url,
         accessToken: backend.accessToken,
         limit: +options.limit,
