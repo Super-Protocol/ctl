@@ -851,6 +851,7 @@ async function main(): Promise<void> {
     'modified_date',
     'slots',
     'enabled',
+    'options',
   ];
   offersGetCommand
     .command('tee')
@@ -861,6 +862,7 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(teeOffersGetFields, teeOffersGetFields.join(',')),
     )
+    .option('--save-to <filepath>', 'Save result to a file')
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = await configLoader.loadSection('backend');
@@ -873,6 +875,7 @@ async function main(): Promise<void> {
         type: 'tee',
         accessToken: backend.accessToken,
         id,
+        saveTo: options.saveTo,
       });
     });
 
@@ -897,6 +900,7 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(offersGetFields, offersGetFields.join(',')),
     )
+    .option('--save-to <filepath>', 'Save result to a file')
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = await configLoader.loadSection('backend');
@@ -909,6 +913,7 @@ async function main(): Promise<void> {
         type: 'value',
         accessToken: backend.accessToken,
         id,
+        saveTo: options.saveTo,
       });
     });
 
