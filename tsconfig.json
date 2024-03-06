@@ -1,7 +1,8 @@
 {
-  "extends": "@super-protocol/eslint-config-typescript/tsconfig.json",
-    "compilerOptions": {
-      "allowJs": true,
-      "outDir": "build",
-    }
+  "extends": "@super-protocol/eslint-config-typescript/tsconfig/node-cjs",
+  "compilerOptions": {
+    "allowJs": true,
+    "outDir": "build",
+    "skipLibCheck": true
+  }
 }
