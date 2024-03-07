@@ -2,7 +2,6 @@ import { TeeOfferFilter, TeeOffersQuery, getSdk } from '../gql';
 import { GraphQLClient } from 'graphql-request';
 import { ErrorWithCustomMessage, formatDate } from '../utils';
 import getGqlHeaders from './gqlHeaders';
-import { TeeOfferSlot } from '@super-protocol/sdk-js';
 
 export type FetchTeeOffersParams = {
   backendUrl: string;
@@ -20,7 +19,8 @@ export type TeeOfferDto = {
   providerAddress?: string;
   totalCores?: number;
   freeCores?: number | null;
-  slots?: TeeOfferSlot[];
+  slots?: string[];
+  options?: string[];
   ordersInQueue?: number;
   cancelable?: boolean;
   modifiedDate?: string;
@@ -41,7 +41,8 @@ export const formatFetchedTeeOffer = (item: TeeOfferItem): TeeOfferDto => {
     providerAddress: item?.authority,
     totalCores: item?.teeOfferInfo?.hardwareInfo?.slotInfo?.cpuCores,
     freeCores: item?.stats?.freeCores,
-    slots: item?.slots,
+    ...(item?.slots && { slots: item.slots.map((value) => value.id) }),
+    ...(item?.options && { options: item.options.map((value) => value.id) }),
     ordersInQueue: (item?.stats?.new || 0) + (item?.stats?.processing || 0),
     cancelable: false,
     modifiedDate: formatDate(item?.origins?.modifiedDate),

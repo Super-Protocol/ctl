@@ -31,7 +31,7 @@ import {
 import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 import { MINUTES_IN_HOUR } from '../constants';
 import approveTeeTokens from '../services/approveTeeTokens';
-import { AnalyticsEvent } from '@super-protocol/sdk-js/build/analytics/types';
+import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, IEventProperties, IOrderEventProperties } from '../services/analytics';
 
 export type WorkflowCreateParams = {

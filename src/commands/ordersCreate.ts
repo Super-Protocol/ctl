@@ -30,7 +30,7 @@ import { generateExternalId, getObjectKey } from '../utils';
 import approveTeeTokens from '../services/approveTeeTokens';
 import fetchMatchingValueSlots from '../services/fetchMatchingValueSlots';
 import createOrderService from '../services/createOrder';
-import { AnalyticsEvent } from '@super-protocol/sdk-js/build/analytics/types';
+import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, IOrderEventProperties } from '../services/analytics';
 
 interface IOrderCreateCommandOptions {

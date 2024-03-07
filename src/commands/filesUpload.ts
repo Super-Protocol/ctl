@@ -9,11 +9,11 @@ import readJsonFileService from '../services/readJsonFile';
 import generateEncryptionService from '../services/generateEncryption';
 import ordersCreateCommand from './ordersCreate';
 import { Analytics, Crypto, OfferType } from '@super-protocol/sdk-js';
-import { Config as BlockchainConfig } from '@super-protocol/sdk-js/build/connectors/BaseConnector';
+import { Config as BlockchainConfig } from '@super-protocol/sdk-js';
 import doWithRetries from '../services/doWithRetries';
 import getOrderResult, { OrderResultError } from '../services/getOrderResult';
 import cancelOrder from '../services/cancelOrder';
-import { AnalyticsEvent } from '@super-protocol/sdk-js/build/analytics/types';
+import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, AnalyticsUtils } from '../services/analytics';
 
 const MAX_ATTEMPT_COUNT = 12;

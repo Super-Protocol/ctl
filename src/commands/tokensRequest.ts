@@ -10,9 +10,10 @@ export type TokensRequestParams = {
   accessToken: string;
   requestMatic?: boolean;
   requestTee?: boolean;
+  customAccountPrivateKey?: string;
 };
 
-export default async (params: TokensRequestParams) => {
+export default async (params: TokensRequestParams): Promise<void> => {
   if (!params.requestTee && !params.requestMatic) {
     Printer.print(
       'No token type was specified, please add --tee or --matic flag to request specific tokens',
@@ -20,13 +21,15 @@ export default async (params: TokensRequestParams) => {
     program.help();
   }
 
-  const address = new Wallet(params.actionAccountPrivateKey).address;
+  const address = new Wallet(params.customAccountPrivateKey ?? params.actionAccountPrivateKey)
+    .address;
 
   if (params.requestTee) {
     Printer.print(`Requesting Super Protocol TEE tokens for ${address}`);
     await requestTeeService({
       backendUrl: params.backendUrl,
       accessToken: params.accessToken,
+      ...(params.customAccountPrivateKey && { destinationAddress: address }),
     });
     Printer.print(`TEE tokens will be transferred to ${address} shortly`);
   }
@@ -36,6 +39,7 @@ export default async (params: TokensRequestParams) => {
     await requestMaticService({
       backendUrl: params.backendUrl,
       accessToken: params.accessToken,
+      ...(params.customAccountPrivateKey && { destinationAddress: address }),
     });
     Printer.print(`MATIC tokens will be transferred to ${address} shortly`);
   }

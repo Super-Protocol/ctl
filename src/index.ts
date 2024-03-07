@@ -54,8 +54,7 @@ import providersUpdate from './commands/providersUpdate';
 import { TerminatedOrderStatus } from './services/completeOrder';
 import ordersCreate, { OrderCreateParams } from './commands/ordersCreate';
 import { AnalyticEvent, createAnalyticsService } from './services/analytics';
-
-const packageJson = require('../package.json');
+import packageJson from '../package.json';
 
 const ORDER_STATUS_KEYS = Object.keys(OrderStatus) as Array<keyof typeof OrderStatus>;
 const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce((acc, key) => {
@@ -173,7 +172,12 @@ async function main(): Promise<void> {
     .command('create')
     .description('Create a provider')
     .option('--path <filepath>', 'path to the provider info json file', './providerInfo.json')
-    .action(async (options: { path: string; config: string }) => {
+    .addOption(
+      new Option('--yes', 'Silent question mode. All answers will be yes')
+        .default(false)
+        .hideHelp(),
+    )
+    .action(async (options: { path: string; config: string; yes: boolean }) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
@@ -186,6 +190,7 @@ async function main(): Promise<void> {
         providerInfoFilePath: options.path,
         authorityAccountKey: blockchain.authorityAccountPrivateKey,
         actionAccountKey: blockchain.accountPrivateKey,
+        silent: options.yes,
       });
     });
   providersCommand
@@ -480,6 +485,7 @@ async function main(): Promise<void> {
         return Object.keys(ORDER_STATUS_MAP).includes(val) ? [val] : [];
       }),
     )
+    .option('--save-to <filepath>', 'Save result to a file')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = await configLoader.loadSection('backend');
@@ -501,6 +507,7 @@ async function main(): Promise<void> {
         offerType: ordersListOfferTypes[options.type as keyof typeof ordersListOfferTypes],
         ...(options.offers && { offerIds: options.offers }),
         ...(options.status && { status: ORDER_STATUS_MAP[options.status] }),
+        ...(options.saveTo && { saveTo: options.saveTo }),
       });
     });
 
@@ -671,6 +678,12 @@ async function main(): Promise<void> {
     .option('--matic', 'Request Polygon Mumbai MATIC tokens', false)
     .option('--tee', 'Request Super Protocol TEE tokens', false)
     .option('--debug', 'Display debug information', false)
+    .addOption(
+      new Option(
+        '--custom-key <key>',
+        'Custom account for replenish balance instead of using the main authority account',
+      ).hideHelp(),
+    )
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
@@ -681,6 +694,7 @@ async function main(): Promise<void> {
         actionAccountPrivateKey: blockchain.accountPrivateKey,
         requestMatic: options.matic,
         requestTee: options.tee,
+        customAccountPrivateKey: options.customKey,
       };
       const analytics = createAnalyticsService(configLoader);
       try {
@@ -722,9 +736,15 @@ async function main(): Promise<void> {
   tokensCommand
     .command('balance')
     .description('Display the token balance of the account')
+    .addOption(
+      new Option(
+        '--custom-key <key>',
+        'Custom account for checking balance instead of using the action account',
+      ).hideHelp(),
+    )
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -733,6 +753,7 @@ async function main(): Promise<void> {
       await tokensBalance({
         blockchainConfig,
         actionAccountPrivateKey: blockchain.accountPrivateKey,
+        customAccountPrivateKey: options.customKey,
       });
     });
 
@@ -758,16 +779,18 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(offersListTeeDefaultFields, offersListTeeDefaultFields.join(',')),
     )
+    .option('--ids <id...>', 'Offer <ids> (accepts multiple values)', collectOptions, [])
     .option('--limit <number>', 'Number of records to display', '10')
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       validateFields(options.fields, offersListTeeFields);
 
       await offersListTee({
         fields: options.fields,
+        ids: options.ids,
         backendUrl: backend.url,
         accessToken: backend.accessToken,
         limit: +options.limit,
@@ -796,6 +819,7 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(offersListValueDefaultFields, offersListValueDefaultFields.join(',')),
     )
+    .option('--ids <id...>', 'Offer <ids> (accepts multiple values)', collectOptions, [])
     .option('--limit <number>', 'Number of records to display', '10')
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
@@ -806,6 +830,7 @@ async function main(): Promise<void> {
 
       await offersListValue({
         fields: options.fields,
+        ids: options.ids,
         backendUrl: backend.url,
         accessToken: backend.accessToken,
         limit: +options.limit,
@@ -825,6 +850,7 @@ async function main(): Promise<void> {
     'modified_date',
     'slots',
     'enabled',
+    'options',
   ];
   offersGetCommand
     .command('tee')
@@ -835,6 +861,7 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(teeOffersGetFields, teeOffersGetFields.join(',')),
     )
+    .option('--save-to <filepath>', 'Save result to a file')
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = await configLoader.loadSection('backend');
@@ -847,6 +874,7 @@ async function main(): Promise<void> {
         type: 'tee',
         accessToken: backend.accessToken,
         id,
+        saveTo: options.saveTo,
       });
     });
 
@@ -871,6 +899,7 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(offersGetFields, offersGetFields.join(',')),
     )
+    .option('--save-to <filepath>', 'Save result to a file')
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = await configLoader.loadSection('backend');
@@ -883,6 +912,7 @@ async function main(): Promise<void> {
         type: 'value',
         accessToken: backend.accessToken,
         id,
+        saveTo: options.saveTo,
       });
     });
 

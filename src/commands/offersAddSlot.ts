@@ -21,7 +21,7 @@ export type OffersAddSlotParams = {
   actionAccountKey: string;
 };
 
-export default async (params: OffersAddSlotParams) => {
+export default async (params: OffersAddSlotParams): Promise<void> => {
   const creator = (await initBlockchainConnector({
     blockchainConfig: params.blockchainConfig,
     actionAccountKey: params.actionAccountKey,
@@ -43,7 +43,7 @@ export default async (params: OffersAddSlotParams) => {
       const teeOffer = new TeeOffer(params.offerId);
       await teeOffer.addSlot(teeOfferSlot.info, teeOfferSlot.usage, slotExternalId);
 
-      slotLoaderFn = () =>
+      slotLoaderFn = (): Promise<string> =>
         TeeOffers.getSlotByExternalId({
           creator,
           offerId: params.offerId,
@@ -63,7 +63,7 @@ export default async (params: OffersAddSlotParams) => {
       });
 
       Printer.print(
-        `Value slot info file was read successfully, cretaing in blockchain with externalId ${slotExternalId}`,
+        `Value slot info file was read successfully, creating in blockchain with externalId ${slotExternalId}`,
       );
 
       const offer = new Offer(params.offerId);
@@ -74,7 +74,7 @@ export default async (params: OffersAddSlotParams) => {
         slotExternalId,
       );
 
-      slotLoaderFn = () =>
+      slotLoaderFn = (): Promise<string> =>
         Offers.getSlotByExternalId({
           creator,
           offerId: params.offerId,

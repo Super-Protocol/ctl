@@ -9,10 +9,12 @@ import { weiToEther } from '../utils';
 export type TokensBalanceParams = {
   blockchainConfig: BlockchainConfig;
   actionAccountPrivateKey: string;
+  customAccountPrivateKey?: string;
 };
 
-export default async (params: TokensBalanceParams) => {
-  const address = new Wallet(params.actionAccountPrivateKey).address;
+export default async (params: TokensBalanceParams): Promise<void> => {
+  const address = new Wallet(params.customAccountPrivateKey ?? params.actionAccountPrivateKey)
+    .address;
 
   Printer.print('Connecting to the blockchain');
   await initBlockchainConnectorService({ blockchainConfig: params.blockchainConfig });

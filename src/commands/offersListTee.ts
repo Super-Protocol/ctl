@@ -2,18 +2,22 @@ import fetchTeeOffersService, { formatFetchedTeeOffer } from '../services/fetchT
 import Printer from '../printer';
 import { prepareObjectToPrint } from '../utils';
 
-export type OffersListTeeParams = {
+export type OffersListParams = {
   backendUrl: string;
   accessToken: string;
   fields: string[];
+  ids: string[];
   limit: number;
   cursor?: string;
 };
 
-export default async (params: OffersListTeeParams): Promise<void> => {
+export default async (params: OffersListParams): Promise<void> => {
   const offers = await fetchTeeOffersService({
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
+    filter: {
+      ...(params.ids.length && { ids: params.ids }),
+    },
     limit: params.limit,
     cursor: params.cursor,
   }).then((offers) => ({

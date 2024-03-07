@@ -22,6 +22,7 @@ interface ProvidersCreateParams {
   providerInfoFilePath: string;
   authorityAccountKey: string;
   actionAccountKey: string;
+  silent: boolean;
 }
 
 async function waitProviderRegistrationFinish(authorityAddress: string): Promise<void> {
@@ -36,6 +37,7 @@ async function waitProviderRegistrationFinish(authorityAddress: string): Promise
 
 interface CheckBalanceToCreateProviderParams {
   authorityAddress: string;
+  silent: boolean;
 }
 
 async function checkBalanceToCreateProvider(
@@ -71,7 +73,7 @@ async function checkBalanceToCreateProvider(
     return answers.confirmation;
   };
 
-  if (await isDepositConfirmed()) {
+  if (params.silent || (await isDepositConfirmed())) {
     const teeBalance = await getTeeBalance({ address: authorityAddress });
 
     if (teeBalance.toBigInt() < BigInt(requiredDeposit)) {
@@ -89,7 +91,7 @@ async function checkBalanceToCreateProvider(
     });
     await Deposits.replenish(requiredDeposit.toString(), { from: authorityAddress });
 
-    return Printer.print(`Reffiled security deposit on ${toTEE(requiredDeposit)}`);
+    return Printer.print(`Refilled security deposit on ${toTEE(requiredDeposit)}`);
   }
 
   throw new Error('Denied to make the deposit, exiting...');
@@ -112,7 +114,7 @@ export default async function providersCreate(params: ProvidersCreateParams): Pr
   if (await ProviderRegistry.isProviderRegistered(authorityAddress)) {
     return Printer.error(`Provider with wallet address ${authorityAddress} is already registered`);
   }
-  await checkBalanceToCreateProvider({ authorityAddress });
+  await checkBalanceToCreateProvider({ authorityAddress, silent: params.silent });
 
   await ProviderRegistry.registerProvider(providerInfo, { from: authorityAddress });
   await waitProviderRegistrationFinish(authorityAddress);

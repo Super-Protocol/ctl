@@ -1,7 +1,7 @@
-mutation Transfer {
-    transfer
+mutation Transfer($destinationAddress: String) {
+    transfer(destinationAddress: $destinationAddress)
 }
 
-mutation TeeTransfer {
-    teeTransfer
+mutation TeeTransfer($destinationAddress: String) {
+    teeTransfer(destinationAddress: $destinationAddress)
 }

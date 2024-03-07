@@ -136,27 +136,31 @@ query validateConfiguraion($input: WorkflowConfigurationValidation!) {
     errors {
       cpuCores {
         required
-				provided
+        provided
       }
-      diskUsage{
+      diskUsage {
         required
-				provided
+        provided
       }
-      ram{
+      ram {
         required
-				provided
+        provided
       }
-      bandwidth{
+      bandwidth {
         required
-				provided
+        provided
       }
-      traffic{
+      traffic {
         required
-				provided
+        provided
       }
-      externalPort{
+      externalPort {
         required
-				provided
+        provided
+      }
+      gpuCores {
+        required
+        provided
       }
     }
   }

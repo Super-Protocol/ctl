@@ -2,6 +2,8 @@ import Printer from '../printer';
 import fetchOffers, { OfferDto, formatFetchedOffer } from '../services/fetchOffers';
 import fetchTeeOffers, { TeeOfferDto, formatFetchedTeeOffer } from '../services/fetchTeeOffers';
 import { prepareObjectToPrint } from '../utils';
+import path from 'path';
+import { promises as fs } from 'fs';
 
 export type OffersGetParams = {
   backendUrl: string;
@@ -9,6 +11,7 @@ export type OffersGetParams = {
   type: 'tee' | 'value';
   fields: string[];
   id: string;
+  saveTo?: string;
 };
 
 export default async (params: OffersGetParams): Promise<void> => {
@@ -41,4 +44,10 @@ export default async (params: OffersGetParams): Promise<void> => {
   }
 
   Printer.printObject(prepareObjectToPrint(offer, params.fields));
+
+  if (params.saveTo) {
+    const pathToSaveResult = path.join(process.cwd(), params.saveTo);
+    await fs.writeFile(pathToSaveResult, JSON.stringify(offer));
+    Printer.print(`\nSaved result to ${pathToSaveResult}`);
+  }
 };
