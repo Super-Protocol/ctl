@@ -13,7 +13,7 @@ export type GenerateTiiParams = {
   pccsServiceApiUrl: string;
 };
 
-export default async (params: GenerateTiiParams) => {
+export default async (params: GenerateTiiParams): Promise<void> => {
   const resourceFile = await readResourceFile({
     path: preparePath(params.resourcePath),
   });
