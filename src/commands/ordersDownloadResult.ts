@@ -24,7 +24,7 @@ import initBlockchainConnector from '../services/initBlockchainConnector';
 import getPublicFromPrivate from '../services/getPublicFromPrivate';
 import { preparePath, tryParse } from '../utils';
 import checkOrderService from '../services/checkOrder';
-import { AnalyticsEvent } from '@super-protocol/sdk-js/build/analytics/types';
+import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, AnalyticsUtils } from '../services/analytics';
 
 export type FilesDownloadParams = {

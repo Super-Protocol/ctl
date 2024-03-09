@@ -54,8 +54,7 @@ import providersUpdate from './commands/providersUpdate';
 import { TerminatedOrderStatus } from './services/completeOrder';
 import ordersCreate, { OrderCreateParams } from './commands/ordersCreate';
 import { AnalyticEvent, createAnalyticsService } from './services/analytics';
-
-const packageJson = require('../package.json');
+import packageJson from '../package.json';
 
 const ORDER_STATUS_KEYS = Object.keys(OrderStatus) as Array<keyof typeof OrderStatus>;
 const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce((acc, key) => {
@@ -782,16 +781,18 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(offersListTeeDefaultFields, offersListTeeDefaultFields.join(',')),
     )
+    .option('--ids <id...>', 'Offer <ids> (accepts multiple values)', collectOptions, [])
     .option('--limit <number>', 'Number of records to display', '10')
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       validateFields(options.fields, offersListTeeFields);
 
       await offersListTee({
         fields: options.fields,
+        ids: options.ids,
         backendUrl: backend.url,
         accessToken: backend.accessToken,
         limit: +options.limit,
@@ -820,6 +821,7 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(offersListValueDefaultFields, offersListValueDefaultFields.join(',')),
     )
+    .option('--ids <id...>', 'Offer <ids> (accepts multiple values)', collectOptions, [])
     .option('--limit <number>', 'Number of records to display', '10')
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
@@ -830,6 +832,7 @@ async function main(): Promise<void> {
 
       await offersListValue({
         fields: options.fields,
+        ids: options.ids,
         backendUrl: backend.url,
         accessToken: backend.accessToken,
         limit: +options.limit,
@@ -849,6 +852,7 @@ async function main(): Promise<void> {
     'modified_date',
     'slots',
     'enabled',
+    'options',
   ];
   offersGetCommand
     .command('tee')
@@ -859,6 +863,7 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(teeOffersGetFields, teeOffersGetFields.join(',')),
     )
+    .option('--save-to <filepath>', 'Save result to a file')
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = await configLoader.loadSection('backend');
@@ -871,6 +876,7 @@ async function main(): Promise<void> {
         type: 'tee',
         accessToken: backend.accessToken,
         id,
+        saveTo: options.saveTo,
       });
     });
 
@@ -895,6 +901,7 @@ async function main(): Promise<void> {
         .argParser(commaSeparatedList)
         .default(offersGetFields, offersGetFields.join(',')),
     )
+    .option('--save-to <filepath>', 'Save result to a file')
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = await configLoader.loadSection('backend');
@@ -907,6 +914,7 @@ async function main(): Promise<void> {
         type: 'value',
         accessToken: backend.accessToken,
         id,
+        saveTo: options.saveTo,
       });
     });
 

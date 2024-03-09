@@ -1,5 +1,5 @@
 import { Analytics, NodeEventProvider } from '@super-protocol/sdk-js';
-import { AnalyticsEvent, Config } from '@super-protocol/sdk-js/build/analytics/types';
+import { AnalyticsEvent, AnalyticsConfig } from '@super-protocol/sdk-js';
 import ConfigLoader from '../../config';
 import { Wallet } from 'ethers';
 import { IAnalyticsOption, Platform } from './types';
@@ -18,7 +18,7 @@ export const createAnalyticsService = (
     instance = null;
   } else if (!instance) {
     const blockchainConfig = configLoader.loadSection('blockchain');
-    const config: Config<AnalyticsEvent> = {
+    const config: AnalyticsConfig<AnalyticsEvent> = {
       apiUrl: analyticsConfig.spaUrl,
       apiKey: analyticsConfig.spaAuthKey,
       eventProvider: new NodeEventProvider({

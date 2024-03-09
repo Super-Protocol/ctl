@@ -38,3 +38,5 @@ dist
 libs
 /schema.graphql
 /graphql.config.yml
+tmp
+configs
