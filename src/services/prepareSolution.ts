@@ -39,7 +39,7 @@ export const extractManifest = async (opts: {
 
   const baseSolutionManifestPath = join(opts.workingPath, destManifestName);
   if (!existsSync(baseSolutionManifestPath)) {
-    throw new Error(`Con't find manifest at ${baseSolutionManifestPath}`);
+    throw new Error(`Can't find manifest at ${baseSolutionManifestPath}`);
   }
   const content = await readFile(baseSolutionManifestPath, 'utf8');
 
