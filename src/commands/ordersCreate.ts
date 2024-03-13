@@ -12,6 +12,7 @@ import {
   ParamName,
   Superpro,
   ValueOfferSlot,
+  helpers,
 } from '@super-protocol/sdk-js';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
 import { Encryption } from '@super-protocol/dto-js';
@@ -19,7 +20,6 @@ import Printer from '../printer';
 import {
   checkFetchedOffers,
   FethchedOffer,
-  getEncryptionKeysForOrder,
   getFetchedOffers,
   getHoldDeposit,
 } from '../services/workflowHelpers';
@@ -32,6 +32,7 @@ import fetchMatchingValueSlots from '../services/fetchMatchingValueSlots';
 import createOrderService from '../services/createOrder';
 import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, IOrderEventProperties } from '../services/analytics';
+import { EncryptionKey } from '../../../sp-dto-js/build';
 
 interface IOrderCreateCommandOptions {
   onlyOfferType: OfferType.Storage | OfferType.Data | OfferType.Solution;
@@ -46,7 +47,7 @@ export type OrderCreateParams = {
   blockchainConfig: BlockchainConfig;
   offerId: BlockchainId;
   pccsServiceApiUrl: string;
-  resultEncryption: Encryption;
+  resultEncryption: EncryptionKey;
   slotId?: BlockchainId;
   userDepositAmount?: string;
   minRentMinutes?: number;
@@ -108,7 +109,7 @@ const buildOrderInfo = async (params: {
   offerArgsPublicKey: string;
   pccsServiceApiUrl: string;
 }): Promise<OrderInfo> => {
-  const orderResultKeys = await getEncryptionKeysForOrder({
+  const orderResultKeys = await helpers.getEncryptionKeysForOrder({
     offerId: params.offerId,
     encryptionPrivateKey: params.resultEncryption,
     pccsServiceApiUrl: params.pccsServiceApiUrl,
@@ -148,8 +149,10 @@ const buildOrderInfo = async (params: {
     encryptedArgs,
     externalId: generateExternalId(),
     offerId: params.offerId,
-    publicKey: orderResultKeys.publicKey,
-    encryptedInfo: orderResultKeys.encryptedInfo,
+    resultInfo: {
+      publicKey: orderResultKeys.publicKey,
+      encryptedInfo: orderResultKeys.encryptedInfo,
+    },
     status: OrderStatus.New,
   };
 };

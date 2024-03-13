@@ -57,10 +57,13 @@ import { AnalyticEvent, createAnalyticsService } from './services/analytics';
 import packageJson from '../package.json';
 
 const ORDER_STATUS_KEYS = Object.keys(OrderStatus) as Array<keyof typeof OrderStatus>;
-const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce((acc, key) => {
-  acc[key.toLowerCase()] = OrderStatus[key];
-  return acc;
-}, {} as { [Key: string]: OrderStatus });
+const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce(
+  (acc, key) => {
+    acc[key.toLowerCase()] = OrderStatus[key];
+    return acc;
+  },
+  {} as { [Key: string]: OrderStatus },
+);
 
 async function main(): Promise<void> {
   await ConfigLoader.init();
@@ -608,7 +611,7 @@ async function main(): Promise<void> {
         blockchainConfig,
         orderId,
         localPath: options.saveTo,
-        resultDecryptionKey: workflowConfig.resultEncryption.key!,
+        resultDecryption: workflowConfig.resultEncryption,
         accessToken: backendConfig.accessToken,
         backendUrl: backendConfig.url,
       };
@@ -1304,6 +1307,7 @@ async function main(): Promise<void> {
       const backendConfig = configLoader.loadSection('backend');
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
+      const tiiConfig = configLoader.loadSection('tii');
 
       await upload({
         analytics: createAnalyticsService(configLoader),
@@ -1328,6 +1332,7 @@ async function main(): Promise<void> {
           contractAddress: blockchain.smartContractAddress,
         },
         resultEncryption: workflowConfig.resultEncryption,
+        pccsServiceApiUrl: tiiConfig.pccsServiceApiUrl,
       });
     });
 

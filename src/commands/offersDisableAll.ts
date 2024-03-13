@@ -30,9 +30,8 @@ export default async (params: OffersDisableAllParams) => {
     for (const { actionKey, authorityAccount } of providers) {
       Printer.print(`Disabling offers of authority account: ${authorityAccount}`);
 
-      const actionAccount = await BlockchainConnector.getInstance().initializeActionAccount(
-        actionKey,
-      );
+      const actionAccount =
+        await BlockchainConnector.getInstance().initializeActionAccount(actionKey);
 
       const provider = new Provider(authorityAccount);
       const valueOffers = await provider.getValueOffers();

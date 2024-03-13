@@ -57,8 +57,10 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       outputOffer: params.storageOffer.id,
     },
     encryptedArgs: JSON.stringify(encryptedArgs),
-    publicKey: params.resultPublicKey,
-    encryptedInfo: params.encryptedInfo,
+    resultInfo: {
+      publicKey: params.resultPublicKey,
+      encryptedInfo: params.encryptedInfo,
+    },
   };
   const parentOrderSlot: OrderSlots = {
     slotId: params.teeOffer.slotId,
@@ -76,8 +78,10 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       outputOffer: params.storageOffer.id,
     },
     encryptedArgs: '',
-    publicKey: '',
-    encryptedInfo: '',
+    resultInfo: {
+      publicKey: '',
+      encryptedInfo: '',
+    },
   }));
   const subOrdersSlots: OrderSlots[] = params.inputOffers.map((subOrderParams) => ({
     slotId: subOrderParams.slotId,

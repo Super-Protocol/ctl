@@ -1,13 +1,12 @@
-import crypto from 'crypto';
 import { ValueOfferParams } from './createWorkflow';
-import { OfferType, Crypto, TIIGenerator } from '@super-protocol/sdk-js';
+import { OfferType } from '@super-protocol/sdk-js';
 import { etherToWei, getObjectKey, weiToEther } from '../utils';
 import fetchOffers, { OfferItem } from './fetchOffers';
 import { BigNumber } from 'ethers';
 import Printer from '../printer';
 import { MINUTES_IN_HOUR } from '../constants';
 import getTeeBalance from './getTeeBalance';
-import { CryptoAlgorithm, Encoding, Encryption, HashAlgorithm } from '@super-protocol/dto-js';
+import { CryptoAlgorithm, Encoding, Encryption } from '@super-protocol/dto-js';
 import getPublicFromPrivate from './getPublicFromPrivate';
 
 export type FethchedOffer = {
@@ -137,53 +136,3 @@ export const getHoldDeposit = async (params: {
 
   return holdDeposit;
 };
-
-export const getResultEncryption = (encryption: Encryption): Encryption => {
-  if (encryption.algo !== CryptoAlgorithm.ECIES) {
-    throw Error('Only ECIES result encryption is supported');
-  }
-  if (encryption.encoding !== Encoding.base64) {
-    throw new Error('Only base64 result encryption is supported');
-  }
-
-  if (!encryption.key) {
-    throw new Error('Invalid key. The key should be defined');
-  }
-
-  return {
-    algo: encryption.algo,
-    encoding: encryption.encoding,
-    key: getPublicFromPrivate(encryption.key),
-  };
-};
-
-export async function getEncryptionKeysForOrder(params: {
-  offerId: string;
-  encryptionPrivateKey: Encryption;
-  pccsServiceApiUrl: string;
-}): Promise<{ publicKey: string; encryptedInfo: string }> {
-  const resultEncryption = getResultEncryption(params.encryptionPrivateKey);
-  const salt = await Crypto.createHash(
-    Buffer.from(params.encryptionPrivateKey.key!, params.encryptionPrivateKey.encoding),
-    { encoding: Encoding.base64, algo: HashAlgorithm.SHA256 },
-  );
-
-  const derivedPrivateKey = await Crypto.createHash(
-    Buffer.from(resultEncryption.key! + salt.hash, resultEncryption.encoding),
-    { encoding: Encoding.base64, algo: HashAlgorithm.SHA256 },
-  );
-
-  const ecdh = crypto.createECDH('secp256k1');
-  ecdh.setPrivateKey(Buffer.from(derivedPrivateKey.hash, derivedPrivateKey.encoding));
-  const publicKey = ecdh.getPublicKey(derivedPrivateKey.encoding);
-
-  const encryptedInfo = await TIIGenerator.encryptByTlb(
-    params.offerId,
-    JSON.stringify(resultEncryption),
-    params.pccsServiceApiUrl,
-  );
-  return {
-    publicKey,
-    encryptedInfo: JSON.stringify(encryptedInfo),
-  };
-}
