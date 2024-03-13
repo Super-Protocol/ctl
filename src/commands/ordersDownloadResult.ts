@@ -36,7 +36,7 @@ export type FilesDownloadParams = {
   blockchainConfig: BlockchainConfig;
   localPath?: string;
   orderId: string;
-  resultDecryption: Encryption;
+  resultDecryption: EncryptionKey;
 };
 
 export const localTxtPath = './result.txt';
@@ -44,8 +44,8 @@ export const localTarPath = './result.tar.gz';
 
 export default async (params: FilesDownloadParams): Promise<void> => {
   // Validate decryption key
-  getPublicFromPrivate(params.resultDecryption.key!);
-  const primaryPrivateKey = params.resultDecryption as EncryptionKey;
+  getPublicFromPrivate(params.resultDecryption.key);
+  const primaryPrivateKey = params.resultDecryption;
 
   Printer.print('Connecting to the blockchain');
   await initBlockchainConnector({
@@ -99,7 +99,9 @@ export default async (params: FilesDownloadParams): Promise<void> => {
   }
 
   const publicKeyEncryption = Crypto.getPublicKey(primaryPrivateKey);
-  const derivedPrivateKey = await helpers.getDerivedPrivateKey(publicKeyEncryption);
+  const derivedPrivateKey = (await helpers.getDerivedPrivateKey(
+    publicKeyEncryption,
+  )) as EncryptionKey;
 
   let decrypted: { resource?: Resource; encryption?: Encryption } = {};
   if (encryptedResultObject.resource && encryptedResultObject.encryption) {
