@@ -192,6 +192,7 @@ export type Event = {
   change?: Maybe<Scalars['String']>;
   consumer?: Maybe<Scalars['String']>;
   contract: Scalars['String'];
+  createdAt: Scalars['DateTime'];
   deposit?: Maybe<Scalars['String']>;
   externalId?: Maybe<Scalars['String']>;
   from?: Maybe<Scalars['String']>;
@@ -217,6 +218,10 @@ export type EventConnection = {
 };
 
 export type EventDataFilter = {
+  /** retrieve events saved in the database on or after the specified date (createdAtFrom) */
+  createdAtFrom?: InputMaybe<Scalars['DateTime']>;
+  /** retrieve events saved in the database on or before the specified date (createdAtTo) */
+  createdAtTo?: InputMaybe<Scalars['DateTime']>;
   /** filter by event name */
   name?: InputMaybe<Scalars['String']>;
   /** filter by order ID */
@@ -387,10 +392,26 @@ export type MatchingTeeOfferOptionInput = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Transfers custom amount of coins to specific address */
+  customTransfer: Scalars['Boolean'];
+  /** Transfers custom amount of TEE tokens to specific address */
+  teeCustomTransfer: Scalars['Boolean'];
   /** Transfers specific amount of TEE tokens to specific address */
   teeTransfer: Scalars['Boolean'];
   /** Transfers specific amount of coins to specific address */
   transfer: Scalars['Boolean'];
+};
+
+
+export type MutationCustomTransferArgs = {
+  amount?: InputMaybe<Scalars['String']>;
+  destinationAddress?: InputMaybe<Scalars['String']>;
+};
+
+
+export type MutationTeeCustomTransferArgs = {
+  amount?: InputMaybe<Scalars['String']>;
+  destinationAddress?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -449,6 +470,8 @@ export type OfferEdge = {
 };
 
 export type OfferFilter = {
+  /** exclude offers with selected ids */
+  excludeIds?: InputMaybe<Array<Scalars['String']>>;
   /** exclude filter by offerInfo -> restrictions -> type */
   excludeOfferRestrictionType?: InputMaybe<Array<TOfferType>>;
   /** filter by offerInfo → group */
@@ -481,13 +504,9 @@ export type OfferInfo = {
   /**
    * The supported offers group.
    *
-   *   TeeOffer = '0',
+   *      0 - Input,
    *
-   *   Storage = '1',
-   *
-   *   Solution = '2',
-   *
-   *   Data = '3'
+   *      1 - Output
    *
    */
   group: Scalars['String'];
@@ -499,9 +518,13 @@ export type OfferInfo = {
   /**
    * The supported offers type.
    *
-   *      0 - Input,
+   *      TeeOffer = '0',
    *
-   *      1 - Output
+   *      Storage = '1',
+   *
+   *      Solution = '2',
+   *
+   *      Data = '3'
    *
    */
   offerType: Scalars['String'];
@@ -519,13 +542,9 @@ export type OfferInfoInput = {
   /**
    * The supported offers group.
    *
-   *   TeeOffer = '0',
+   *      0 - Input,
    *
-   *   Storage = '1',
-   *
-   *   Solution = '2',
-   *
-   *   Data = '3'
+   *      1 - Output
    *
    */
   group: Scalars['String'];
@@ -537,9 +556,13 @@ export type OfferInfoInput = {
   /**
    * The supported offers type.
    *
-   *      0 - Input,
+   *      TeeOffer = '0',
    *
-   *      1 - Output
+   *      Storage = '1',
+   *
+   *      Solution = '2',
+   *
+   *      Data = '3'
    *
    */
   offerType: Scalars['String'];
@@ -712,6 +735,7 @@ export type OrderEventsUpdated = {
   change?: Maybe<Scalars['String']>;
   consumer?: Maybe<Scalars['String']>;
   contract: Scalars['String'];
+  createdAt: Scalars['DateTime'];
   deposit?: Maybe<Scalars['String']>;
   externalId?: Maybe<Scalars['String']>;
   from?: Maybe<Scalars['String']>;
@@ -1750,12 +1774,26 @@ export type TransferMutationVariables = Exact<{
 
 export type TransferMutation = { __typename?: 'Mutation', transfer: boolean };
 
+export type CustomTransferMutationVariables = Exact<{
+  destinationAddress?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type CustomTransferMutation = { __typename?: 'Mutation', customTransfer: boolean };
+
 export type TeeTransferMutationVariables = Exact<{
   destinationAddress?: InputMaybe<Scalars['String']>;
 }>;
 
 
 export type TeeTransferMutation = { __typename?: 'Mutation', teeTransfer: boolean };
+
+export type TeeCustomTransferMutationVariables = Exact<{
+  destinationAddress?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type TeeCustomTransferMutation = { __typename?: 'Mutation', teeCustomTransfer: boolean };
 
 export type OffersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1905,9 +1943,19 @@ export const TransferDocument = gql`
   transfer(destinationAddress: $destinationAddress)
 }
     `;
+export const CustomTransferDocument = gql`
+    mutation CustomTransfer($destinationAddress: String) {
+  customTransfer(destinationAddress: $destinationAddress)
+}
+    `;
 export const TeeTransferDocument = gql`
     mutation TeeTransfer($destinationAddress: String) {
   teeTransfer(destinationAddress: $destinationAddress)
+}
+    `;
+export const TeeCustomTransferDocument = gql`
+    mutation TeeCustomTransfer($destinationAddress: String) {
+  teeCustomTransfer(destinationAddress: $destinationAddress)
 }
     `;
 export const OffersDocument = gql`
@@ -2520,8 +2568,14 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     Transfer(variables?: TransferMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<TransferMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<TransferMutation>(TransferDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Transfer', 'mutation');
     },
+    CustomTransfer(variables?: CustomTransferMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<CustomTransferMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CustomTransferMutation>(CustomTransferDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CustomTransfer', 'mutation');
+    },
     TeeTransfer(variables?: TeeTransferMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<TeeTransferMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<TeeTransferMutation>(TeeTransferDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'TeeTransfer', 'mutation');
+    },
+    TeeCustomTransfer(variables?: TeeCustomTransferMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<TeeCustomTransferMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<TeeCustomTransferMutation>(TeeCustomTransferDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'TeeCustomTransfer', 'mutation');
     },
     Offers(variables: OffersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<OffersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<OffersQuery>(OffersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Offers', 'query');

@@ -2,6 +2,14 @@ mutation Transfer($destinationAddress: String) {
     transfer(destinationAddress: $destinationAddress)
 }
 
+mutation CustomTransfer($destinationAddress: String) {
+    customTransfer(destinationAddress: $destinationAddress)
+}
+
 mutation TeeTransfer($destinationAddress: String) {
     teeTransfer(destinationAddress: $destinationAddress)
+}
+
+mutation TeeCustomTransfer($destinationAddress: String) {
+    teeCustomTransfer(destinationAddress: $destinationAddress)
 }
