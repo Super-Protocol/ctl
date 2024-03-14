@@ -15,7 +15,7 @@ import {
   helpers,
 } from '@super-protocol/sdk-js';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
-import { Encryption } from '@super-protocol/dto-js';
+import { Encryption, EncryptionKey } from '@super-protocol/dto-js';
 import Printer from '../printer';
 import {
   checkFetchedOffers,
@@ -32,7 +32,6 @@ import fetchMatchingValueSlots from '../services/fetchMatchingValueSlots';
 import createOrderService from '../services/createOrder';
 import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, IOrderEventProperties } from '../services/analytics';
-import { EncryptionKey } from '../../../sp-dto-js/build';
 
 interface IOrderCreateCommandOptions {
   onlyOfferType: OfferType.Storage | OfferType.Data | OfferType.Solution;

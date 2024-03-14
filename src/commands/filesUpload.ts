@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import encryptFileService from '../services/encryptFile';
 import uploadService from '../services/uploadFile';
-import { Encryption, ResourceType, StorageType } from '@super-protocol/dto-js';
+import { Encryption, EncryptionKey, ResourceType, StorageType } from '@super-protocol/dto-js';
 import Printer from '../printer';
 import { isCommandSupported } from '../services/uplinkSetupHelper';
 import { generateExternalId, preparePath, tryParse } from '../utils';
@@ -38,7 +38,7 @@ export type FilesUploadParams = {
   accessToken: string;
   actionAccountKey: string;
   blockchainConfig: BlockchainConfig;
-  resultEncryption: Encryption;
+  resultEncryption: EncryptionKey;
   pccsServiceApiUrl: string;
 };
 

@@ -6,8 +6,6 @@ import { BigNumber } from 'ethers';
 import Printer from '../printer';
 import { MINUTES_IN_HOUR } from '../constants';
 import getTeeBalance from './getTeeBalance';
-import { CryptoAlgorithm, Encoding, Encryption } from '@super-protocol/dto-js';
-import getPublicFromPrivate from './getPublicFromPrivate';
 
 export type FethchedOffer = {
   id: NonNullable<OfferItem>['id'];
