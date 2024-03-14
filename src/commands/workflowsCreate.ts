@@ -7,6 +7,7 @@ import {
   OfferType,
   Orders,
   helpers,
+  AnalyticsEvent,
 } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
@@ -30,9 +31,8 @@ import {
 import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 import { MINUTES_IN_HOUR } from '../constants';
 import approveTeeTokens from '../services/approveTeeTokens';
-import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, IEventProperties, IOrderEventProperties } from '../services/analytics';
-import { EncryptionKey } from '../../../sp-dto-js/build';
+import { EncryptionKey } from '@super-protocol/dto-js';
 
 export type WorkflowCreateParams = {
   analytics?: Analytics<AnalyticsEvent> | null;

@@ -11,6 +11,7 @@ import {
   ResourceType,
   StorageProviderResource,
   UrlResource,
+  EncryptionKey,
 } from '@super-protocol/dto-js';
 import {
   Crypto,
@@ -27,7 +28,6 @@ import { preparePath, tryParse } from '../utils';
 import checkOrderService from '../services/checkOrder';
 import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, AnalyticsUtils } from '../services/analytics';
-import { EncryptionKey } from '../../../sp-dto-js/build';
 
 export type FilesDownloadParams = {
   accessToken: string;

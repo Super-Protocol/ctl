@@ -1,4 +1,4 @@
-import BlockchainConnector from '@super-protocol/sdk-js';
+import { BlockchainConnector } from '@super-protocol/sdk-js';
 import { BigNumber } from 'ethers';
 
 export type GetMumbaiBalanceParams = {

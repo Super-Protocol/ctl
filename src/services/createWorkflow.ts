@@ -1,4 +1,5 @@
-import BlockchainConnector, {
+import {
+  BlockchainConnector,
   BlockchainId,
   Crypto,
   OrderInfo,

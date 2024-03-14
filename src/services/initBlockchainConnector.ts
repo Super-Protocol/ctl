@@ -1,4 +1,4 @@
-import BlockchainConnector, { Config as BlockchainConfig } from '@super-protocol/sdk-js';
+import { BlockchainConnector, Config as BlockchainConfig } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import { sleep } from '../utils';
 import { MAX_ATTEMPT_WAITING_OLD_TXS, ATTEMPT_PERIOD_MS } from '../constants';

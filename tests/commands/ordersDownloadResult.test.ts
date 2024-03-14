@@ -3,9 +3,8 @@ import { GetOrderResultParams } from '../../src/services/getOrderResult';
 import ordersDownloadResult, { localTxtPath } from '../../src/commands/ordersDownloadResult';
 import fs, { promises as fsPromises } from 'fs';
 import path from 'path';
-import { CryptoAlgorithm, Encoding, Encryption } from '@super-protocol/dto-js';
+import { CryptoAlgorithm, Encoding, Encryption, EncryptionKey } from '@super-protocol/dto-js';
 import { preparePath } from '../../src/utils';
-import { EncryptionKey } from '../../../sp-dto-js/build';
 
 jest.mock('fs');
 jest.mock('../../src/services/initBlockchainConnector');

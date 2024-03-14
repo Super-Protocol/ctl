@@ -1,4 +1,5 @@
-import BlockchainConnector, {
+import {
+  BlockchainConnector,
   Config as BlockchainConfig,
   Provider,
   ProviderInfo,
