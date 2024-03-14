@@ -229,8 +229,6 @@ async function tryDecryptWithKeys(
       continue;
     }
   }
-
-  return undefined;
 }
 
 async function writeResult(localPath: string, content: string, message: string): Promise<void> {
