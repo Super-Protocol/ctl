@@ -3,7 +3,7 @@ import { GetOrderResultParams } from '../../src/services/getOrderResult';
 import ordersDownloadResult, { localTxtPath } from '../../src/commands/ordersDownloadResult';
 import fs, { promises as fsPromises } from 'fs';
 import path from 'path';
-import { CryptoAlgorithm, Encoding, Encryption } from '@super-protocol/dto-js';
+import { CryptoAlgorithm, Encoding, Encryption, EncryptionKey } from '@super-protocol/dto-js';
 import { preparePath } from '../../src/utils';
 
 jest.mock('fs');
@@ -30,7 +30,11 @@ jest.mock('../../src/services/decryptFile', () => {
   };
 });
 
-const privateKey = 'U1O5yVbsN4F2liuI2Ml3Z1DzPl9pjNuQlU/XlhEU2NM=';
+const privateKey = {
+  key: 'U1O5yVbsN4F2liuI2Ml3Z1DzPl9pjNuQlU/XlhEU2NM=',
+  algo: 'ECIES',
+  encoding: 'base64',
+} as EncryptionKey;
 
 const encryptedResultObj = {
   resource: {
@@ -98,7 +102,7 @@ describe('ordersDownloadResult', () => {
       blockchainConfig,
       orderId: '1',
       localPath,
-      resultDecryptionKey: privateKey,
+      resultDecryption: privateKey,
     });
 
     expect(await fsPromises.readFile(path.join(process.cwd(), localPath))).toBe(
@@ -113,7 +117,7 @@ describe('ordersDownloadResult', () => {
       blockchainConfig,
       orderId: '2',
       localPath,
-      resultDecryptionKey: privateKey,
+      resultDecryption: privateKey,
     });
 
     expect(await fsPromises.readFile(path.join(process.cwd(), localTxtPath))).toBe(
@@ -128,7 +132,7 @@ describe('ordersDownloadResult', () => {
       blockchainConfig,
       orderId: '3',
       localPath,
-      resultDecryptionKey: privateKey,
+      resultDecryption: privateKey,
     });
 
     expect(await fsPromises.readFile(path.join(process.cwd(), localTxtPath))).toBe(

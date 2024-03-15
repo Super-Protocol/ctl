@@ -1,4 +1,4 @@
-import { CryptoAlgorithm, Encoding, Encryption, StorageType } from '@super-protocol/dto-js';
+import { CryptoAlgorithm, Encoding, EncryptionKey, StorageType } from '@super-protocol/dto-js';
 import fs from 'fs';
 import { z } from 'zod';
 import Printer from './printer';
@@ -83,7 +83,7 @@ export type Config = {
     readAccessToken: string;
   };
   workflow: {
-    resultEncryption: Encryption;
+    resultEncryption: EncryptionKey;
   };
   analytics: IAnalyticsConfig;
   tii: {

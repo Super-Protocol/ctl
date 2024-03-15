@@ -11,9 +11,7 @@ export default async (
   await storageProvider.uploadFile(
     fs.createReadStream(localPath),
     remotePath,
-    (
-      await fs.promises.stat(localPath)
-    ).size,
+    (await fs.promises.stat(localPath)).size,
     progressListener,
   );
 };

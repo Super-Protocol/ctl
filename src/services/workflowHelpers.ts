@@ -6,8 +6,6 @@ import { BigNumber } from 'ethers';
 import Printer from '../printer';
 import { MINUTES_IN_HOUR } from '../constants';
 import getTeeBalance from './getTeeBalance';
-import { CryptoAlgorithm, Encoding, Encryption } from '@super-protocol/dto-js';
-import getPublicFromPrivate from './getPublicFromPrivate';
 
 export type FethchedOffer = {
   id: NonNullable<OfferItem>['id'];
@@ -135,23 +133,4 @@ export const getHoldDeposit = async (params: {
   );
 
   return holdDeposit;
-};
-
-export const getResultEncryption = (encryption: Encryption): Encryption => {
-  if (encryption.algo !== CryptoAlgorithm.ECIES) {
-    throw Error('Only ECIES result encryption is supported');
-  }
-  if (encryption.encoding !== Encoding.base64) {
-    throw new Error('Only base64 result encryption is supported');
-  }
-
-  if (!encryption.key) {
-    throw new Error('Invalid key. The key should be defined');
-  }
-
-  return {
-    algo: encryption.algo,
-    encoding: encryption.encoding,
-    key: getPublicFromPrivate(encryption.key),
-  };
 };

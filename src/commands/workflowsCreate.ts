@@ -6,11 +6,12 @@ import {
   Offer,
   OfferType,
   Orders,
+  helpers,
+  AnalyticsEvent,
 } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
 import validateOfferWorkflowService from '../services/validateOfferWorkflow';
-import { Encryption } from '@super-protocol/dto-js';
 import createWorkflowService, { ValueOfferParams } from '../services/createWorkflow';
 import parseInputResourcesService from '../services/parseInputResources';
 import calcWorkflowDepositService from '../services/calcWorkflowDeposit';
@@ -26,13 +27,12 @@ import {
   getHoldDeposit,
   FethchedOffer,
   getFetchedOffers,
-  getResultEncryption,
 } from '../services/workflowHelpers';
 import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 import { MINUTES_IN_HOUR } from '../constants';
 import approveTeeTokens from '../services/approveTeeTokens';
-import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, IEventProperties, IOrderEventProperties } from '../services/analytics';
+import { EncryptionKey } from '@super-protocol/dto-js';
 
 export type WorkflowCreateParams = {
   analytics?: Analytics<AnalyticsEvent> | null;
@@ -49,7 +49,7 @@ export type WorkflowCreateParams = {
   storage: string;
   solution: string[];
   data: string[];
-  resultEncryption: Encryption;
+  resultEncryption: EncryptionKey;
   userDepositAmount: string;
   minRentMinutes: number;
   workflowNumber: number;
@@ -59,8 +59,6 @@ export type WorkflowCreateParams = {
 };
 
 const workflowCreate = async (params: WorkflowCreateParams): Promise<string | void> => {
-  const resultEncryption = getResultEncryption(params.resultEncryption);
-
   Printer.print('Connecting to the blockchain');
   const consumerAddress = await initBlockchainConnectorService({
     blockchainConfig: params.blockchainConfig,
@@ -345,6 +343,12 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   });
   const inputOffersParams = [...solutions.offers, ...data.offers];
 
+  const orderResultKeys = await helpers.getEncryptionKeysForOrder({
+    offerId: teeOfferParams.id,
+    encryptionPrivateKey: params.resultEncryption,
+    pccsServiceApiUrl: params.pccsServiceApiUrl,
+  });
+
   Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
   const properties: (IOrderEventProperties | IEventProperties)[] = [];
   for (let pos = 0; pos < params.workflowNumber; pos++) {
@@ -357,7 +361,8 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
           data: dataTIIs,
           solution: solutionTIIs,
         }),
-        resultPublicKey: resultEncryption,
+        resultPublicKey: orderResultKeys.publicKey,
+        encryptedInfo: orderResultKeys.encryptedInfo,
         holdDeposit: holdDeposit.toString(),
         consumerAddress: consumerAddress!,
       })

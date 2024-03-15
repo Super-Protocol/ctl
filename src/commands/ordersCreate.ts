@@ -12,16 +12,16 @@ import {
   ParamName,
   Superpro,
   ValueOfferSlot,
+  helpers,
 } from '@super-protocol/sdk-js';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
-import { Encryption } from '@super-protocol/dto-js';
+import { Encryption, EncryptionKey } from '@super-protocol/dto-js';
 import Printer from '../printer';
 import {
   checkFetchedOffers,
   FethchedOffer,
   getFetchedOffers,
   getHoldDeposit,
-  getResultEncryption,
 } from '../services/workflowHelpers';
 import { PriceType, SlotUsage, TOfferType } from '../gql';
 import { BigNumber } from 'ethers';
@@ -45,7 +45,8 @@ export type OrderCreateParams = {
   backendUrl: string;
   blockchainConfig: BlockchainConfig;
   offerId: BlockchainId;
-  resultEncryption: Encryption;
+  pccsServiceApiUrl: string;
+  resultEncryption: EncryptionKey;
   slotId?: BlockchainId;
   userDepositAmount?: string;
   minRentMinutes?: number;
@@ -105,8 +106,14 @@ const buildOrderInfo = async (params: {
   offerType: OfferType;
   slot: ValueOfferSlot;
   offerArgsPublicKey: string;
+  pccsServiceApiUrl: string;
 }): Promise<OrderInfo> => {
-  const resultEncryption = getResultEncryption(params.resultEncryption);
+  const orderResultKeys = await helpers.getEncryptionKeysForOrder({
+    offerId: params.offerId,
+    encryptionPrivateKey: params.resultEncryption,
+    pccsServiceApiUrl: params.pccsServiceApiUrl,
+  });
+
   const getEncryptedArgs = async (
     key: string,
     minRentMinutes?: number,
@@ -139,10 +146,12 @@ const buildOrderInfo = async (params: {
   return {
     args: params.args,
     encryptedArgs,
-    encryptedRequirements: '',
     externalId: generateExternalId(),
     offerId: params.offerId,
-    resultPublicKey: JSON.stringify(resultEncryption),
+    resultInfo: {
+      publicKey: orderResultKeys.publicKey,
+      encryptedInfo: orderResultKeys.encryptedInfo,
+    },
     status: OrderStatus.New,
   };
 };
@@ -222,6 +231,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       slotId,
     });
     const slot = offer.slots.find((slot) => slot.id === slotId) as ValueOfferSlot;
+
     const orderInfo = await buildOrderInfo({
       args: params.args,
       offerId: params.offerId,
@@ -230,6 +240,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       slot,
       offerType: offer.offerInfo.offerType as OfferType,
       offerArgsPublicKey: offer.offerInfo.argsPublicKey,
+      pccsServiceApiUrl: params.pccsServiceApiUrl,
     });
     const slots = buildOrderSlots({
       ...params,

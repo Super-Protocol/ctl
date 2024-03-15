@@ -1,4 +1,4 @@
-import BlockchainConnector, { BlockchainId, TeeOfferInfo, TeeOffers } from '@super-protocol/sdk-js';
+import { BlockchainConnector, BlockchainId, TeeOfferInfo, TeeOffers } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import doWithRetries from './doWithRetries';
 import checkBalanceToCreateOffer from './checkBalanceToCreateOffer';
