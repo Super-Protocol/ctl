@@ -5,12 +5,13 @@ import {
   TIIGenerator,
   Web3TransactionRevertedByEvmError,
 } from '@super-protocol/sdk-js';
-import { ErrorTxRevertedByEvm, ErrorWithCustomMessage } from '../utils';
+import { ErrorTxRevertedByEvm, ErrorWithCustomMessage, tryParse } from '../utils';
 import readResourceFile from './readResourceFile';
 import readJsonFile from './readJsonFile';
 import { getSdk, Order as SdkOrder, OrderInfo, ParentOrder, TOfferType } from '../gql';
 import { GraphQLClient } from 'graphql-request';
 import getGqlHeaders from './gqlHeaders';
+import { EncryptionKey } from '@super-protocol/dto-js';
 
 export const AVAILABLE_STATUSES = [OrderStatus.New, OrderStatus.Processing, OrderStatus.Canceling];
 export type TerminatedOrderStatus = OrderStatus.Done | OrderStatus.Canceled | OrderStatus.Error;
@@ -25,7 +26,7 @@ export type CompleteOrderParams = {
 };
 
 type IParenOrder = Pick<ParentOrder, 'id' | 'offerType'>;
-type IOrderInfo = Pick<OrderInfo, 'args' | 'resultPublicKey' | 'status'>;
+type IOrderInfo = Pick<OrderInfo, 'args' | 'resultInfo' | 'status'>;
 type IOrder = Pick<SdkOrder, 'id' | 'offerType'> & {
   parentOrder?: IParenOrder | null;
   orderInfo: IOrderInfo;
@@ -90,16 +91,19 @@ export default async (params: CompleteOrderParams): Promise<void> => {
     return storageOfferResolver(order, path, newStatus);
   };
   const storageOfferResolver: GetEncryptedResultFn = async (order, path) => {
-    if (!order.orderInfo.resultPublicKey) {
+    if (!order.orderInfo.resultInfo.publicKey) {
       throw Error(
         `Order(id=${order.id}) with offer type ${order.offerType} should have result public key. Such orders couldn't be transferred to the terminal state manually`,
       );
     }
     const resource = await readJsonFile({ path });
-    const encryption = await Crypto.encrypt(
-      JSON.stringify(resource),
-      JSON.parse(order.orderInfo.resultPublicKey),
-    );
+    const publicKey: EncryptionKey = tryParse(order.orderInfo.resultInfo.publicKey) ?? {
+      encoding: 'base64',
+      algo: 'ECIES',
+      key: order.orderInfo.resultInfo.publicKey,
+    };
+
+    const encryption = await Crypto.encrypt(JSON.stringify(resource), publicKey);
 
     return JSON.stringify(encryption);
   };

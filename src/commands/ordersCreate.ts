@@ -12,7 +12,6 @@ import {
   ParamName,
   Superpro,
   ValueOfferSlot,
-  helpers,
 } from '@super-protocol/sdk-js';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
 import { Encryption, EncryptionKey } from '@super-protocol/dto-js';
@@ -108,11 +107,10 @@ const buildOrderInfo = async (params: {
   offerArgsPublicKey: string;
   pccsServiceApiUrl: string;
 }): Promise<OrderInfo> => {
-  const orderResultKeys = await helpers.getEncryptionKeysForOrder({
-    offerId: params.offerId,
-    encryptionPrivateKey: params.resultEncryption,
-    pccsServiceApiUrl: params.pccsServiceApiUrl,
-  });
+  const orderResultKeys = {
+    publicKey: JSON.stringify(Crypto.getPublicKey(params.resultEncryption)),
+    encryptedInfo: '',
+  };
 
   const getEncryptedArgs = async (
     key: string,
@@ -215,6 +213,8 @@ const calcDepositBySlot = async (slot: ValueOfferSlot, minRentMinutes = 0): Prom
 
 export default async (params: OrderCreateParams): Promise<string | undefined> => {
   try {
+    const consumerAddress = await initBlockchain(params);
+
     let slotId = params.slotId;
     if (!slotId) {
       const result = await fetchMatchingValueSlots({
@@ -246,7 +246,6 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       ...params,
       slotId,
     });
-    const consumerAddress = await initBlockchain(params);
     const holdDeposit = await getHoldDeposit({
       consumerAddress,
       userDepositAmount: params.userDepositAmount,

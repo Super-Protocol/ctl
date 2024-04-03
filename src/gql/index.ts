@@ -765,10 +765,9 @@ export type OrderInfo = {
   __typename?: 'OrderInfo';
   args: OrderArgs;
   encryptedArgs: Scalars['String'];
-  encryptedRequirements: Scalars['String'];
   externalId: Scalars['String'];
   offerId: Scalars['String'];
-  resultPublicKey: Scalars['String'];
+  resultInfo: OrderResultInfo;
   /**
    * description of values:
    * 
@@ -798,10 +797,9 @@ export type OrderInfo = {
 export type OrderInfoInput = {
   args: OrderArgsInput;
   encryptedArgs: Scalars['String'];
-  encryptedRequirements: Scalars['String'];
   externalId: Scalars['String'];
   offerId: Scalars['String'];
-  resultPublicKey: Scalars['String'];
+  resultInfo: OrderResultInfoInput;
   /**
    * description of values:
    * 
@@ -899,6 +897,17 @@ export type OrderResult = {
   __typename?: 'OrderResult';
   encryptedResult?: Maybe<Scalars['String']>;
   orderPrice?: Maybe<Scalars['String']>;
+};
+
+export type OrderResultInfo = {
+  __typename?: 'OrderResultInfo';
+  encryptedInfo: Scalars['String'];
+  publicKey: Scalars['String'];
+};
+
+export type OrderResultInfoInput = {
+  encryptedInfo: Scalars['String'];
+  publicKey: Scalars['String'];
 };
 
 export type OrderResultInput = {
@@ -1869,7 +1878,7 @@ export type OrderQueryVariables = Exact<{
 }>;
 
 
-export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offerId: string, resultPublicKey: string, args: { __typename?: 'OrderArgs', inputOffers: Array<string>, outputOffer: string } }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null }, parentOrder?: { __typename?: 'ParentOrder', id: string, offerType: TOfferType } | null } };
+export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offerId: string, args: { __typename?: 'OrderArgs', inputOffers: Array<string>, outputOffer: string }, resultInfo: { __typename?: 'OrderResultInfo', encryptedInfo: string, publicKey: string } }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null }, parentOrder?: { __typename?: 'ParentOrder', id: string, offerType: TOfferType } | null } };
 
 export type SubOrdersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -2271,7 +2280,10 @@ export const OrderDocument = gql`
         inputOffers
         outputOffer
       }
-      resultPublicKey
+      resultInfo {
+        encryptedInfo
+        publicKey
+      }
     }
     teeOfferInfo {
       name
