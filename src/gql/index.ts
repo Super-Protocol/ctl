@@ -433,6 +433,7 @@ export type Offer = {
   enabled: Scalars['Boolean'];
   /** blockchain id */
   id: Scalars['String'];
+  inactive?: Maybe<Scalars['Boolean']>;
   offerInfo: OfferInfo;
   origins?: Maybe<Origins>;
   providerInfo: ProviderInformation;
@@ -480,6 +481,8 @@ export type OfferFilter = {
   id?: InputMaybe<Scalars['String']>;
   /** filter by offer ids */
   ids?: InputMaybe<Array<Scalars['String']>>;
+  /** filter by inactive, "false" by default */
+  inactive?: InputMaybe<Scalars['Boolean']>;
   /** include filter by offerInfo -> restrictions -> type */
   includeOfferRestrictionType?: InputMaybe<Array<TOfferType>>;
   /** filter by offerInfo → name */
@@ -574,6 +577,7 @@ export type OfferInfoInput = {
 export type OfferInputType = {
   disabledAfter: Scalars['Float'];
   enabled: Scalars['Boolean'];
+  inactive?: InputMaybe<Scalars['Boolean']>;
   offerInfo: OfferInfoInput;
   providerInfo: ProviderInformationInput;
   slots: Array<OfferSlotInput>;
@@ -1522,11 +1526,13 @@ export type TeeOffer = {
   enabled: Scalars['Boolean'];
   /** blockchain id */
   id: Scalars['String'];
+  inactive?: Maybe<Scalars['Boolean']>;
   options: Array<TeeOfferOption>;
   origins?: Maybe<Origins>;
   providerInfo: ProviderInformation;
   slots: Array<TeeOfferSlot>;
   stats?: Maybe<Stats>;
+  tcb?: Maybe<TeeOfferTcb>;
   teeOfferInfo: TeeOfferInfo;
 };
 
@@ -1559,6 +1565,8 @@ export type TeeOfferFilter = {
   id?: InputMaybe<Scalars['String']>;
   /** filter by TEE offer ids */
   ids?: InputMaybe<Array<Scalars['String']>>;
+  /** filter by inactive, "false" by default */
+  inactive?: InputMaybe<Scalars['Boolean']>;
   /** filter by teeOfferInfo → name */
   name?: InputMaybe<Scalars['String']>;
   /** filter by slot/option usage → pricePerHour */
@@ -1598,10 +1606,12 @@ export type TeeOfferInputType = {
   authority: Scalars['String'];
   disabledAfter: Scalars['Float'];
   enabled: Scalars['Boolean'];
+  inactive?: InputMaybe<Scalars['Boolean']>;
   options: Array<TeeOfferOptionInput>;
   providerInfo: ProviderInformationInput;
   slots: Array<TeeOfferSlotInput>;
   stats?: InputMaybe<StatsInput>;
+  tcb?: InputMaybe<TeeOfferTcbInputType>;
   teeOfferInfo: TeeOfferInfoInput;
 };
 
@@ -1637,6 +1647,15 @@ export type TeeOfferSlotInput = {
   id: Scalars['String'];
   info: SlotInfoInput;
   usage: SlotUsageInput;
+};
+
+export type TeeOfferTcb = {
+  __typename?: 'TeeOfferTcb';
+  id: Scalars['String'];
+};
+
+export type TeeOfferTcbInputType = {
+  id: Scalars['String'];
 };
 
 export type TeeOfferWithSlotsAndOptions = {

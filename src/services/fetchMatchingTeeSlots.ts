@@ -21,7 +21,10 @@ export default async (params: FetchMatchingTeeSlotsParams): Promise<MatchingTeeS
   try {
     const { result } = await sdk.GetMatchingTeeSlots(
       {
-        filter: params.filter,
+        filter: {
+          inactive: false,
+          ...params.filter,
+        },
         pagination: {
           first: params.limit,
           after: params.cursor,
