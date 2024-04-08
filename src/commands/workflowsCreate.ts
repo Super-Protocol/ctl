@@ -32,7 +32,8 @@ import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 import { MINUTES_IN_HOUR } from '../constants';
 import approveTeeTokens from '../services/approveTeeTokens';
 import { AnalyticEvent, IEventProperties, IOrderEventProperties } from '../services/analytics';
-import { EncryptionKey } from '@super-protocol/dto-js';
+import { EncryptionKey, Linkage } from '@super-protocol/dto-js';
+import { SolutionResourceFileValidator } from '../services/readResourceFile';
 
 export type WorkflowCreateParams = {
   analytics?: Analytics<AnalyticsEvent> | null;
@@ -100,6 +101,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
     minRentMinutes: params.minRentMinutes,
+    resourceValidator: SolutionResourceFileValidator,
   });
   const solutionIds = solutions.offers.map((offer) => offer.id);
 
@@ -263,7 +265,9 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   );
 
   [...solutions.resourceFiles, ...data.resourceFiles].forEach((resource) => {
-    if (resource.hash) hashes.push(resource.hash);
+    if (resource.hash) {
+      hashes.push(resource.hash);
+    }
 
     if (!linkage && resource.linkage) {
       linkage = JSON.stringify(resource.linkage);
@@ -414,9 +418,14 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
   const results = await Promise.all(workflowPromises);
   if (properties.length) {
+    const linkageObj = linkage ? (JSON.parse(linkage) as Linkage) : {};
     const events = properties.map((event) => ({
       eventName: AnalyticEvent.ORDER_CREATED,
-      eventProperties: event,
+      eventProperties: {
+        ...event,
+        ...(Object.keys(linkageObj).length &&
+          (event as IEventProperties).result !== 'error' && { ...linkageObj }),
+      },
     }));
     await params.analytics?.trackEventsCatched({ events });
   }

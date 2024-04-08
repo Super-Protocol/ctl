@@ -152,6 +152,7 @@ export default async (params: PrepareSolutionParams): Promise<void> => {
       linkage: {
         encoding: Encoding.base64,
         mrenclave: Buffer.from(result.mrenclave, 'hex').toString(Encoding.base64),
+        mrsigner: Buffer.from(result.mrsigner, 'hex').toString(Encoding.base64),
       },
       hash: {
         encoding: Encoding.base64,

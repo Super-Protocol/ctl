@@ -14,6 +14,7 @@ import readJsonFile from './readJsonFile';
 
 export type ReadResourceFileParams = {
   path: string;
+  validator?: typeof SolutionResourceFileValidator | typeof ResourceFileValidator;
 };
 
 export type ResourceFile = {
@@ -43,15 +44,9 @@ export const EncryptionValidator = z.object({
   key: z.string(),
 });
 
-const ResourceFileValidator = z.object({
+export const ResourceFileValidator = z.object({
   resource: ResourceValidator,
   encryption: EncryptionValidator.optional(),
-  linkage: z
-    .object({
-      encoding: z.nativeEnum(Encoding),
-      mrenclave: z.string(),
-    })
-    .optional(),
   hash: z
     .object({
       algo: z.nativeEnum(HashAlgorithm),
@@ -62,8 +57,19 @@ const ResourceFileValidator = z.object({
   args: z.any().optional(),
 });
 
+export const SolutionResourceFileValidator = ResourceFileValidator.extend({
+  linkage: z.object({
+    encoding: z.nativeEnum(Encoding),
+    mrenclave: z.string(),
+    mrsigner: z.string(),
+  }),
+});
+
 const readResourceFile = async (params: ReadResourceFileParams): Promise<ResourceFile> => {
-  const resourceFile = await readJsonFile({ path: params.path, validator: ResourceFileValidator });
+  const resourceFile = await readJsonFile({
+    path: params.path,
+    validator: params.validator ?? ResourceFileValidator,
+  });
 
   return resourceFile;
 };
