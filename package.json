@@ -47,6 +47,8 @@
         "fstream": "^1.0.12",
         "get-folder-size": "^2.0.0",
         "graphql": "^16.4.0",
+        "graphql-request": "~5.1.0",
+        "graphql-tag": "^2.12.6",
         "inquirer": "^8.2.6",
         "luxon": "^2.4.0",
         "semver": "^7.5.4",
