@@ -482,20 +482,24 @@ async function main(): Promise<void> {
     .addOption(
       new Option(
         '--status <string>',
-        `Order's status. Supported statuses: ${Object.keys(ORDER_STATUS_MAP).join()}`,
+        `Orders' statuses separated by comma. Supported statuses: ${Object.keys(ORDER_STATUS_MAP).join()}`,
       ).argParser((value) => {
-        const val = value.toLowerCase().trim();
-        return Object.keys(ORDER_STATUS_MAP).includes(val) ? [val] : [];
+        return commaSeparatedList(value)
+          .map((status) => {
+            const val = status.toLowerCase().trim();
+            return Object.keys(ORDER_STATUS_MAP).includes(val) ? val : undefined;
+          })
+          .filter(Boolean);
       }),
     )
     .option('--save-to <filepath>', 'Save result to a file')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       let actionAccountKey;
       if (options.myAccount) {
-        actionAccountKey = (await configLoader.loadSection('blockchain')).accountPrivateKey;
+        actionAccountKey = configLoader.loadSection('blockchain').accountPrivateKey;
       }
 
       validateFields(options.fields, ordersListFields);
@@ -509,7 +513,9 @@ async function main(): Promise<void> {
         actionAccountKey,
         offerType: ordersListOfferTypes[options.type as keyof typeof ordersListOfferTypes],
         ...(options.offers && { offerIds: options.offers }),
-        ...(options.status && { status: ORDER_STATUS_MAP[options.status] }),
+        ...(options.statuses.length && {
+          statuses: options.statuses.map((status: string) => ORDER_STATUS_MAP[status]),
+        }),
         ...(options.saveTo && { saveTo: options.saveTo }),
       });
     });
