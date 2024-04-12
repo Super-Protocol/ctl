@@ -7,7 +7,13 @@ import { ErrorWithCustomMessage, createZodErrorMessage } from '../utils';
 
 export type ReadValueOfferInfoFileParams = {
   path: string;
+  isPartialContent?: boolean;
 };
+
+const OfferInfoRestrictionsValidator = z.object({
+  offers: z.array(z.string()),
+  types: z.array(z.nativeEnum(OfferType)),
+});
 
 const OfferInfoFileValidator = z.object({
   name: z.string(),
@@ -15,10 +21,7 @@ const OfferInfoFileValidator = z.object({
   offerType: z.nativeEnum(OfferType),
   cancelable: z.boolean(),
   description: z.string(),
-  restrictions: z.object({
-    offers: z.array(z.string()),
-    types: z.array(z.nativeEnum(OfferType)),
-  }),
+  restrictions: OfferInfoRestrictionsValidator,
   metadata: z.string(),
   input: z.string(),
   output: z.string(),
@@ -30,34 +33,48 @@ const OfferInfoFileValidator = z.object({
   hash: z.string(),
 });
 
-export default async (params: ReadValueOfferInfoFileParams): Promise<OfferInfo> => {
-  const resourceFile = await readJsonFile({ path: params.path, validator: OfferInfoFileValidator });
+const OptionalOfferInfoFileValidator = OfferInfoFileValidator.extend({
+  restrictions: OfferInfoRestrictionsValidator.partial(),
+}).partial();
 
-  let validationError: ZodError| undefined;
+export async function readValueOfferInfo(
+  params: ReadValueOfferInfoFileParams & { isPartialContent: false },
+): Promise<OfferInfo>;
+export async function readValueOfferInfo(
+  params: ReadValueOfferInfoFileParams & { isPartialContent: true },
+): Promise<Partial<OfferInfo>>;
+export async function readValueOfferInfo({
+                    path,
+                    isPartialContent = false,
+                  }: ReadValueOfferInfoFileParams): Promise<OfferInfo | Partial<OfferInfo>> {
+  const offerInfo = await readJsonFile({
+    path,
+    validator: isPartialContent ? OptionalOfferInfoFileValidator : OfferInfoFileValidator,
+  });
 
-  const argsPublicKeyValidation = EncryptionValidator.safeParse(
-    JSON.parse(resourceFile.argsPublicKey),
-  );
-  if (!argsPublicKeyValidation.success) {
-    validationError = argsPublicKeyValidation.error;
-  }
-
-  const resultResourceValidation = ResourceValidator.nullable().safeParse(JSON.parse(resourceFile.resultResource || null));
-  if (!resultResourceValidation.success) {
-    validationError = resultResourceValidation.error;
-  }
-
-  if (validationError) {
-    const errorMessage = createZodErrorMessage(validationError.issues);
-    throw ErrorWithCustomMessage(
-      `Schema validation failed for file ${params.path}:\n${errorMessage}`,
-      validationError as Error,
+  if (offerInfo.argsPublicKey) {
+    const argsPublicKeyValidation = EncryptionValidator.safeParse(
+      JSON.parse(offerInfo.argsPublicKey),
     );
-  }
 
-  const offerInfo: OfferInfo = {
-    ...resourceFile,
-  };
+    let validationError: ZodError | undefined;
+    if (!argsPublicKeyValidation.success) {
+      validationError = argsPublicKeyValidation.error;
+    }
+
+    const resultResourceValidation = ResourceValidator.nullable().safeParse(JSON.parse(offerInfo.resultResource || null));
+    if (!resultResourceValidation.success) {
+      validationError = resultResourceValidation.error;
+    }
+
+    if (validationError) {
+      const errorMessage = createZodErrorMessage(validationError.issues);
+      throw ErrorWithCustomMessage(
+        `Schema validation failed for file ${path}:\n${errorMessage}`,
+        validationError as Error,
+      );
+    }
+  }
 
   return offerInfo;
-};
+}
