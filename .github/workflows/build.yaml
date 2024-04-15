@@ -82,4 +82,8 @@ jobs:
               uses: softprops/action-gh-release@v1
               with:
                   files: |
+                      spctl-macos-x64
+                      spctl-linux-x64
+                      spctl-macos-arm64
+                      spctl-win-x64
                       super-protocol-*.tgz
