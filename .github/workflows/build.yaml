@@ -58,7 +58,7 @@ jobs:
         - name: Install dependencies
           run: npm ci
         - name: Compile *.ts files
-          run: build:prepare
+          run: npm run build:prepare
         - name: Create a tarball from a package
           run: npm pack
         - name: "Save package for release job"
