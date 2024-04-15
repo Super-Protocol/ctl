@@ -1,6 +1,6 @@
 {
     "name": "@super-protocol/ctl",
-    "version": "0.8.9-beta.6",
+    "version": "0.8.9-beta.7",
     "description": "A tool for publishing values in a secure and reliable way.",
     "main": "./build/index.js",
     "type": "commonjs",
@@ -50,6 +50,7 @@
         "graphql-request": "~5.1.0",
         "graphql-tag": "^2.12.6",
         "inquirer": "^8.2.6",
+        "lodash": "^4.17.21",
         "luxon": "^2.4.0",
         "semver": "^7.5.4",
         "tar": "^6.1.11",
@@ -69,6 +70,7 @@
         "@types/get-folder-size": "^2.0.0",
         "@types/inquirer": "^9.0.7",
         "@types/jest": "^29.5.12",
+        "@types/lodash": "^4.17.0",
         "@types/luxon": "^2.3.2",
         "@types/tar": "^6.1.1",
         "@types/uuid": "^9.0.7",

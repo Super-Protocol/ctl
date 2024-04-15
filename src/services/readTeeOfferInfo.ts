@@ -7,12 +7,18 @@ import { ErrorWithCustomMessage, createZodErrorMessage } from '../utils';
 
 export type ReadTeeOfferInfoFileParams = {
   path: string;
+  isPartialContent: boolean;
 };
 
 const HardwareInfoValidator = z.object({
   slotInfo: SlotInfoValidator,
   optionInfo: OptionInfoValidator,
 });
+
+const OptionalHardwareInfoValidator = HardwareInfoValidator.extend({
+  slotInfo: SlotInfoValidator.partial(),
+  optionInfo: OptionInfoValidator.partial(),
+}).partial();
 
 const TeeOfferInfoFileValidator = z.object({
   name: z.string(),
@@ -24,23 +30,39 @@ const TeeOfferInfoFileValidator = z.object({
   hardwareInfo: HardwareInfoValidator,
 });
 
-export default async (params: ReadTeeOfferInfoFileParams): Promise<TeeOfferInfo> => {
+const OptionalTeeOfferInfoFileValidator = TeeOfferInfoFileValidator.extend({
+  hardwareInfo: OptionalHardwareInfoValidator,
+}).partial();
+
+export async function readTeeOfferInfo(
+  params: ReadTeeOfferInfoFileParams & { isPartialContent: false },
+): Promise<TeeOfferInfo>;
+export async function readTeeOfferInfo(
+  params: ReadTeeOfferInfoFileParams & { isPartialContent: true },
+): Promise<Partial<TeeOfferInfo>>;
+export async function readTeeOfferInfo(
+  params: ReadTeeOfferInfoFileParams,
+): Promise<TeeOfferInfo | Partial<TeeOfferInfo>> {
   const teeOfferInfo = await readJsonFile({
     path: params.path,
-    validator: TeeOfferInfoFileValidator,
+    validator: params.isPartialContent
+      ? OptionalTeeOfferInfoFileValidator
+      : TeeOfferInfoFileValidator,
   });
 
-  const argsPublicKeyValidation = EncryptionValidator.safeParse(
-    JSON.parse(teeOfferInfo.argsPublicKey),
-  );
-
-  if (!argsPublicKeyValidation.success) {
-    const errorMessage = createZodErrorMessage(argsPublicKeyValidation.error.issues);
-    throw ErrorWithCustomMessage(
-      `Schema validation failed for file ${params.path}:\n${errorMessage}`,
-      argsPublicKeyValidation.error as Error,
+  if (teeOfferInfo.argsPublicKey) {
+    const argsPublicKeyValidation = EncryptionValidator.safeParse(
+      JSON.parse(teeOfferInfo.argsPublicKey),
     );
+
+    if (!argsPublicKeyValidation.success) {
+      const errorMessage = createZodErrorMessage(argsPublicKeyValidation.error.issues);
+      throw ErrorWithCustomMessage(
+        `Schema validation failed for file ${params.path}:\n${errorMessage}`,
+        argsPublicKeyValidation.error as Error,
+      );
+    }
   }
 
   return teeOfferInfo;
-};
+}
