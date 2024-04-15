@@ -1,6 +1,6 @@
 {
     "name": "@super-protocol/ctl",
-    "version": "0.8.9-beta.7",
+    "version": "0.8.9-beta.8",
     "description": "A tool for publishing values in a secure and reliable way.",
     "main": "./build/index.js",
     "type": "commonjs",
@@ -47,6 +47,8 @@
         "fstream": "^1.0.12",
         "get-folder-size": "^2.0.0",
         "graphql": "^16.4.0",
+        "graphql-request": "~5.1.0",
+        "graphql-tag": "^2.12.6",
         "inquirer": "^8.2.6",
         "lodash": "^4.17.21",
         "luxon": "^2.4.0",
@@ -83,5 +85,8 @@
             "node_modules/@super-protocol/uplink-nodejs/build/Release/*",
             "node_modules/axios/**/*"
         ]
-    }
+    },
+    "files": [
+        "build"
+    ]
 }
