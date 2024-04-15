@@ -292,12 +292,11 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
   } catch (err: unknown) {
     const errorMessage = (err as Error).message;
     Printer.error(`Order was not completed: ${errorMessage}`);
-    await params.analytics?.trackEventCatched({
-      eventName: AnalyticEvent.ORDER_CREATED,
-      eventProperties: {
-        result: 'error',
-        error: errorMessage,
+    await params.analytics?.trackErrorEventCatched(
+      {
+        eventName: AnalyticEvent.ORDER_CREATED,
       },
-    });
+      err,
+    );
   }
 };

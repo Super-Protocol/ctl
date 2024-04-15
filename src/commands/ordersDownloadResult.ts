@@ -71,13 +71,12 @@ export default async (params: FilesDownloadParams): Promise<void> => {
       }),
     });
   } catch (err: unknown) {
-    await params.analytics?.trackEventCatched({
-      eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD,
-      eventProperties: {
-        result: 'error',
-        error: (err as Error).message,
+    await params.analytics?.trackErrorEventCatched(
+      {
+        eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD,
       },
-    });
+      err,
+    );
   }
   const encrypted = orderResult?.encryptedResult;
   if (!encrypted?.length) {

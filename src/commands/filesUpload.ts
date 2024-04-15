@@ -163,13 +163,10 @@ const getCredentials = async (params: {
     };
   } catch (err: unknown) {
     if (err instanceof OrderResultError) {
-      await params.analytics?.trackEventCatched({
-        eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD,
-        eventProperties: {
-          result: 'error',
-          error: (err as Error).message,
-        },
-      });
+      await params.analytics?.trackErrorEventCatched(
+        { eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD },
+        err,
+      );
     }
     Printer.error(`Failed to get storage credentials. Error: ${(err as Error).message}`);
     Printer.print(`Trying to cancel created order ${orderId}.`);
@@ -291,15 +288,16 @@ export default async (params: FilesUploadParams): Promise<void> => {
     await fs.writeFile(outputpath, JSON.stringify(result, null, 2));
     Printer.print(`Resource file was created in ${outputpath}`);
 
-    await params.analytics?.trackEventCatched({
+    await params.analytics?.trackSuccessEventCatched({
       eventName: AnalyticEvent.FILE_UPLOAD,
-      eventProperties: { result: 'success' },
     });
   } catch (err: unknown) {
-    await params.analytics?.trackEventCatched({
-      eventName: AnalyticEvent.FILE_UPLOAD,
-      eventProperties: { result: 'error', error: (err as Error).message },
-    });
+    await params.analytics?.trackErrorEventCatched(
+      {
+        eventName: AnalyticEvent.FILE_UPLOAD,
+      },
+      err,
+    );
     Printer.print(`File was not uploaded. Error: ${(err as Error).message}`);
   } finally {
     if (params.withEncryption) {

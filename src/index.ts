@@ -710,35 +710,32 @@ async function main(): Promise<void> {
       const analytics = createAnalyticsService(configLoader);
       try {
         await tokensRequest(requestParams);
-        const eventProperties = { result: 'success' };
         if (options.tee) {
-          await analytics?.trackEventCatched({
+          await analytics?.trackSuccessEventCatched({
             eventName: AnalyticEvent.TEE_TOKENS_REPLENISHED,
-            eventProperties,
           });
         }
         if (options.matic) {
-          await analytics?.trackEventCatched({
+          await analytics?.trackSuccessEventCatched({
             eventName: AnalyticEvent.MATIC_TOKENS_REPLENISHED,
-            eventProperties,
           });
         }
       } catch (err) {
-        const eventProperties = {
-          result: 'error',
-          error: (err as Error).message,
-        };
         if (options.tee) {
-          await analytics?.trackEventCatched({
-            eventName: AnalyticEvent.TEE_TOKENS_REPLENISHED,
-            eventProperties,
-          });
+          await analytics?.trackErrorEventCatched(
+            {
+              eventName: AnalyticEvent.TEE_TOKENS_REPLENISHED,
+            },
+            err,
+          );
         }
         if (options.matic) {
-          await analytics?.trackEventCatched({
-            eventName: AnalyticEvent.MATIC_TOKENS_REPLENISHED,
-            eventProperties,
-          });
+          await analytics?.trackErrorEventCatched(
+            {
+              eventName: AnalyticEvent.MATIC_TOKENS_REPLENISHED,
+            },
+            err,
+          );
         }
         throw err;
       }

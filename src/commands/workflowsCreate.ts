@@ -410,6 +410,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
           properties.push({
             result: 'error',
             error: error.message,
+            errorStack: error.stack,
           });
           resolve(null);
         });
