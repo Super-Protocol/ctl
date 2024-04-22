@@ -123,6 +123,7 @@ export default async (params: PrepareSolutionParams): Promise<void> => {
           Printer.progress('Packing', total, current);
         },
         {
+          follow: true,
           withoutUpFolder: true,
           transform: new Transform({
             transform: (chunk, _encoding, done): void => {
