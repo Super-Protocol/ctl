@@ -5,9 +5,9 @@ export type GetMumbaiBalanceParams = {
   address: string;
 };
 
-const getMumbaiBalance = async (params: GetMumbaiBalanceParams) => {
+const getMaticBalance = async (params: GetMumbaiBalanceParams) => {
   const weiString = await BlockchainConnector.getInstance().getBalance(params.address);
   return BigNumber.from(weiString);
 };
 
-export default getMumbaiBalance;
+export default getMaticBalance;
