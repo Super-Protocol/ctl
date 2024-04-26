@@ -35,7 +35,7 @@ export default async (params: TokensRequestParams): Promise<void> => {
   }
 
   if (params.requestMatic) {
-    Printer.print(`Requesting Polygon Mumbai MATIC tokens for ${address}`);
+    Printer.print(`Requesting Polygon MATIC tokens for ${address}`);
     await requestMaticService({
       backendUrl: params.backendUrl,
       accessToken: params.accessToken,
