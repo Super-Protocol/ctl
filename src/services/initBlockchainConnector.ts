@@ -41,8 +41,13 @@ const checkPendingLoop = async (pk: string): Promise<void> => {
 
 let initialized = false;
 let consumerAddress = '';
+let previousParams: InitBlockchainConnectorParams | null = null;
 
 export default async (params: InitBlockchainConnectorParams): Promise<string> => {
+  if (previousParams && JSON.stringify(previousParams) !== JSON.stringify(params)) {
+    initialized = false;
+  }
+
   if (!initialized) {
     await BlockchainConnector.getInstance().initialize(params.blockchainConfig);
 
@@ -54,6 +59,8 @@ export default async (params: InitBlockchainConnectorParams): Promise<string> =>
     }
     initialized = true;
   }
+
+  previousParams = params;
 
   return consumerAddress;
 };

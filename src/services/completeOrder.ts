@@ -23,6 +23,7 @@ export type CompleteOrderParams = {
   pccsApiUrl: string;
   resourcePath?: string;
   status: TerminatedOrderStatus;
+  actionAccountAddress: string;
 };
 
 type IParenOrder = Pick<ParentOrder, 'id' | 'offerType'>;
@@ -125,9 +126,9 @@ export default async (params: CompleteOrderParams): Promise<void> => {
   try {
     const order = new Order(id);
     if (dbOrder?.orderInfo.status === OrderStatus.New) {
-      await order.updateStatus(OrderStatus.Processing);
+      await order.updateStatus(OrderStatus.Processing, { from: params.actionAccountAddress });
     }
-    await order.complete(status, encryptedResult);
+    await order.complete(status, encryptedResult, { from: params.actionAccountAddress });
   } catch (err: unknown) {
     if (err instanceof Web3TransactionRevertedByEvmError) {
       throw ErrorTxRevertedByEvm(err.originalError);
