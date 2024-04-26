@@ -686,7 +686,7 @@ async function main(): Promise<void> {
   tokensCommand
     .command('request')
     .description('Request tokens for the account')
-    .option('--matic', 'Request Polygon Mumbai MATIC tokens', false)
+    .option('--matic', 'Request Polygon MATIC tokens', false)
     .option('--tee', 'Request Super Protocol TEE tokens', false)
     .option('--debug', 'Display debug information', false)
     .addOption(

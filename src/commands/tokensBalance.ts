@@ -1,5 +1,5 @@
 import { Wallet } from 'ethers';
-import getMumbaiBalanceService from '../services/getMumbaiBalance';
+import getMaticBalanceService from '../services/getMaticBalance';
 import getTeeBalanceService from '../services/getTeeBalance';
 import Printer from '../printer';
 import { Config as BlockchainConfig } from '@super-protocol/sdk-js';
@@ -23,7 +23,7 @@ export default async (params: TokensBalanceParams): Promise<void> => {
   const balanceTee = await getTeeBalanceService({ address });
   Printer.print(`Balance of ${address}: ${weiToEther(balanceTee)} TEE`);
 
-  Printer.print('Fetching Polygon Mumbai MATIC tokens balance');
-  const balanceMatic = await getMumbaiBalanceService({ address });
+  Printer.print('Fetching Polygon MATIC tokens balance');
+  const balanceMatic = await getMaticBalanceService({ address });
   Printer.print(`Balance of ${address}: ${weiToEther(balanceMatic)} MATIC`);
 };
