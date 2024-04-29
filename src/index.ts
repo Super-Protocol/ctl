@@ -389,6 +389,9 @@ async function main(): Promise<void> {
         .default(MAX_ORDERS_RUNNING)
         .hideHelp(),
     )
+    .addOption(
+      new Option('--skip-hardware-check', 'Skip hardware validation').default(false).hideHelp(),
+    )
     .action(async (options: any) => {
       if (!options.solution.length) {
         Printer.error(
@@ -425,6 +428,7 @@ async function main(): Promise<void> {
         workflowNumber: Number(options.workflowNumber),
         ordersLimit: Number(options.ordersLimit),
         pccsServiceApiUrl,
+        skipHardwareCheck: options.skipHardwareCheck,
       };
 
       await workflowsCreate(requestParams);
