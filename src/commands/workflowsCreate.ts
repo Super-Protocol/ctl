@@ -6,8 +6,9 @@ import {
   Offer,
   OfferType,
   Orders,
-  helpers,
+  constants,
   AnalyticsEvent,
+  RIGenerator,
 } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
@@ -260,46 +261,48 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     ) || MINUTES_IN_HOUR;
 
   // eslint-disable-next-line prefer-const
-  let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(
+  let { solutionHashes, dataHashes, linkage } = await TIIGenerator.getOffersHashesAndLinkage(
     solutionIds.concat(dataIds),
   );
 
-  [...solutions.resourceFiles, ...data.resourceFiles].forEach((resource) => {
-    if (resource.hash) {
-      hashes.push(resource.hash);
-    }
+  solutions.resourceFiles.forEach((resource) => {
+    solutionHashes.push(resource.hash ?? constants.ZERO_HASH);
 
     if (!linkage && resource.linkage) {
       linkage = JSON.stringify(resource.linkage);
     }
   });
 
+  data.resourceFiles.forEach((resource) => {
+    dataHashes.push(resource.hash ?? constants.ZERO_HASH);
+  });
+
   Printer.print('Generating input arguments for TEE');
   const [solutionTIIs, dataTIIs] = await Promise.all([
     Promise.all(
       solutions.resourceFiles.map((solution) =>
-        TIIGenerator.generateByOffer(
-          tee.id,
-          hashes,
-          linkage,
-          solution.resource,
-          solution.args,
-          solution.encryption!,
-          params.pccsServiceApiUrl,
-        ),
+        TIIGenerator.generateByOffer({
+          offerId: tee.id,
+          solutionHashes,
+          linkageString: linkage,
+          resource: solution.resource,
+          args: solution.args,
+          encryption: solution.encryption!,
+          sgxApiUrl: params.pccsServiceApiUrl,
+        }),
       ),
     ),
     await Promise.all(
       data.resourceFiles.map((data) =>
-        TIIGenerator.generateByOffer(
-          tee.id,
-          hashes,
-          linkage,
-          data.resource,
-          data.args,
-          data.encryption!,
-          params.pccsServiceApiUrl,
-        ),
+        TIIGenerator.generateByOffer({
+          offerId: tee.id,
+          solutionHashes,
+          linkageString: linkage,
+          resource: data.resource,
+          args: data.args,
+          encryption: data.encryption!,
+          sgxApiUrl: params.pccsServiceApiUrl,
+        }),
       ),
     ),
   ]);
@@ -347,10 +350,13 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   });
   const inputOffersParams = [...solutions.offers, ...data.offers];
 
-  const orderResultKeys = await helpers.getEncryptionKeysForOrder({
+  const orderResultKeys = await RIGenerator.generate({
     offerId: teeOfferParams.id,
     encryptionPrivateKey: params.resultEncryption,
     pccsServiceApiUrl: params.pccsServiceApiUrl,
+    solutionHashes,
+    dataHashes,
+    linkage: linkage || '',
   });
 
   Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);

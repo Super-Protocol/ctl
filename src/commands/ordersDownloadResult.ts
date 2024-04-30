@@ -19,7 +19,7 @@ import {
   OrderStatus,
   OrderResult,
   Analytics,
-  helpers,
+  RIGenerator,
 } from '@super-protocol/sdk-js';
 import downloadFileByUrl from '../services/downloadFileByUrl';
 import initBlockchainConnector from '../services/initBlockchainConnector';
@@ -98,9 +98,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
   }
 
   const publicKeyEncryption = Crypto.getPublicKey(primaryPrivateKey);
-  const derivedPrivateKey = (await helpers.getDerivedPrivateKey(
-    publicKeyEncryption,
-  )) as EncryptionKey;
+  const derivedPrivateKey = await RIGenerator.getDerivedPrivateKey(publicKeyEncryption);
 
   let decrypted: { resource?: Resource; encryption?: Encryption } = {};
   if (encryptedResultObject.resource && encryptedResultObject.encryption) {
