@@ -56,7 +56,7 @@ export type WorkflowCreateParams = {
   minRentMinutes: number;
   workflowNumber: number;
   ordersLimit: number;
-
+  skipHardwareCheck: boolean;
   pccsServiceApiUrl: string;
 };
 
@@ -204,39 +204,41 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     }),
   );
 
-  const configurationErrors = await fetchConfigurationErrors({
-    backendUrl: params.backendUrl,
-    accessToken: params.accessToken,
-    offers: {
-      tee: {
-        offerId: tee.id,
-        options: params.teeOptionsIds.map((optionId, index) => ({
-          id: optionId,
-          count: params.teeOptionsCount[index],
+  if (!params.skipHardwareCheck) {
+    const configurationErrors = await fetchConfigurationErrors({
+      backendUrl: params.backendUrl,
+      accessToken: params.accessToken,
+      offers: {
+        tee: {
+          offerId: tee.id,
+          options: params.teeOptionsIds.map((optionId, index) => ({
+            id: optionId,
+            count: params.teeOptionsCount[index],
+          })),
+          slot: { id: tee.slotId, count: params.teeSlotCount! },
+        },
+        solution: solutions.offers.map((solution) => ({
+          offerId: solution.id,
+          slot: { id: solution.slotId },
         })),
-        slot: { id: tee.slotId, count: params.teeSlotCount! },
+        data: data.offers.map((dataOffer) => ({
+          offerId: dataOffer.id,
+          slot: { id: dataOffer.slotId },
+        })),
+        storage: { offerId: storage.id, slot: { id: storage.slotId } },
       },
-      solution: solutions.offers.map((solution) => ({
-        offerId: solution.id,
-        slot: { id: solution.slotId },
-      })),
-      data: data.offers.map((dataOffer) => ({
-        offerId: dataOffer.id,
-        slot: { id: dataOffer.slotId },
-      })),
-      storage: { offerId: storage.id, slot: { id: storage.slotId } },
-    },
-  });
-
-  if (!configurationErrors.success && configurationErrors.errors) {
-    let errorMessage = 'Not enough compute resources to create workflow.';
-    Object.entries(configurationErrors.errors).forEach(([key, value]) => {
-      if (value !== 'ValidationErrors' && value !== null && value !== undefined) {
-        errorMessage += `\nInsufficient ${key}. Required ${value.required}. Provided ${value.provided}`;
-      }
     });
 
-    throw new Error(errorMessage);
+    if (!configurationErrors.success && configurationErrors.errors) {
+      let errorMessage = 'Not enough compute resources to create workflow.';
+      Object.entries(configurationErrors.errors).forEach(([key, value]) => {
+        if (value !== 'ValidationErrors' && value !== null && value !== undefined) {
+          errorMessage += `\nInsufficient ${key}. Required ${value.required}. Provided ${value.provided}`;
+        }
+      });
+
+      throw new Error(errorMessage);
+    }
   }
 
   const fetchedTeeOffer = await fetchTeeOffers({

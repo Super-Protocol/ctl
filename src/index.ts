@@ -389,6 +389,9 @@ async function main(): Promise<void> {
         .default(MAX_ORDERS_RUNNING)
         .hideHelp(),
     )
+    .addOption(
+      new Option('--skip-hardware-check', 'Skip hardware validation').default(false).hideHelp(),
+    )
     .action(async (options: any) => {
       if (!options.solution.length) {
         Printer.error(
@@ -425,6 +428,7 @@ async function main(): Promise<void> {
         workflowNumber: Number(options.workflowNumber),
         ordersLimit: Number(options.ordersLimit),
         pccsServiceApiUrl,
+        skipHardwareCheck: options.skipHardwareCheck,
       };
 
       await workflowsCreate(requestParams);
@@ -686,7 +690,7 @@ async function main(): Promise<void> {
   tokensCommand
     .command('request')
     .description('Request tokens for the account')
-    .option('--matic', 'Request Polygon Mumbai MATIC tokens', false)
+    .option('--matic', 'Request Polygon MATIC tokens', false)
     .option('--tee', 'Request Super Protocol TEE tokens', false)
     .option('--debug', 'Display debug information', false)
     .addOption(

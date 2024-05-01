@@ -42,7 +42,7 @@ export default async (params: TokensRequestParams): Promise<void> => {
   }
 
   if (params.requestMatic) {
-    Printer.print(`Requesting Polygon Mumbai MATIC tokens for ${address}`);
+    Printer.print(`Requesting Polygon MATIC tokens for ${address}`);
     if (params.customAccountPrivateKey) {
       await requestCustomMaticService(requestParams);
     } else {
