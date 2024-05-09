@@ -44,6 +44,20 @@ type GetEncryptedResultFn = (
 ) => Promise<string>;
 const ZERO_ID = '0';
 
+export class StorageResourceValidationError extends Error {
+  constructor(message: string) {
+    const detailed = message ? ` Error: ${message}` : '';
+    super(`Result resource validation failed. ${detailed}`);
+    this.name = this.constructor.name;
+    Object.setPrototypeOf(this, new.target.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    } else {
+      this.stack = new Error(message).stack;
+    }
+  }
+}
+
 export default async (params: CompleteOrderParams): Promise<void> => {
   const { id, status, resourcePath: path, pccsApiUrl } = params;
   const getOrderById = async (orderId: string): Promise<IOrder> => {
@@ -76,23 +90,28 @@ export default async (params: CompleteOrderParams): Promise<void> => {
       order.parentOrder?.id !== ZERO_ID &&
       order.parentOrder.offerType === TOfferType.TeeOffer
     ) {
-      const resource = await readResourceFile({ path, validator: EncryptedResourceFileValidator });
+      if (newStatus === OrderStatus.Done) {
+        const resource = await readResourceFile({
+          path,
+          validator: EncryptedResourceFileValidator,
+        });
 
-      if (resource.resource.type === ResourceType.StorageProvider) {
-        await validateStorageResource(
-          resource.resource as typeof StorageProviderResourceValidator._type,
+        if (resource.resource.type === ResourceType.StorageProvider) {
+          await validateStorageResource(
+            resource.resource as typeof StorageProviderResourceValidator._type,
+          );
+        }
+        return await TIIGenerator.generate(
+          order.id,
+          resource.resource,
+          order.orderInfo.args,
+          resource.encryption!,
+          pccsApiUrl,
         );
+      } else {
+        const resultResource = await readJsonFile({ path });
+        return JSON.stringify(resultResource);
       }
-
-      return newStatus === OrderStatus.Done
-        ? await TIIGenerator.generate(
-            order.id,
-            resource.resource,
-            order.orderInfo.args,
-            resource.encryption!,
-            pccsApiUrl,
-          )
-        : JSON.stringify(resource);
     }
 
     return storageOfferResolver(order, path, newStatus);
@@ -104,7 +123,7 @@ export default async (params: CompleteOrderParams): Promise<void> => {
       );
     }
     const resultResource = await readJsonFile({ path });
-    if (resultResource) {
+    if (resultResource.resource) {
       const isResource = StorageProviderResourceValidator.safeParse(resultResource.resource);
       if (isResource.success) {
         await validateStorageResource(resultResource.resource);
@@ -139,9 +158,11 @@ export default async (params: CompleteOrderParams): Promise<void> => {
       return false;
     } catch (error) {
       if (error instanceof StorjException) {
-        throw new Error('Result resource validation failed:' + error.details);
+        throw new StorageResourceValidationError(error.details);
       }
-
+      if (error instanceof Error) {
+        throw new StorageResourceValidationError(error.message);
+      }
       throw error;
     }
   };
