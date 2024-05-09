@@ -14,7 +14,10 @@ import readJsonFile from './readJsonFile';
 
 export type ReadResourceFileParams = {
   path: string;
-  validator?: typeof SolutionResourceFileValidator | typeof ResourceFileValidator;
+  validator?:
+    | typeof SolutionResourceFileValidator
+    | typeof ResourceFileValidator
+    | typeof EncryptedResourceFileValidator;
 };
 
 export type ResourceFile = {
@@ -24,25 +27,28 @@ export type ResourceFile = {
   hash?: Hash;
   args?: any;
 };
-export const ResourceValidator = z
-  .object({
-    type: z.enum([ResourceType.Url]),
-    url: z.string().min(1),
-  })
-  .or(
-    z.object({
-      type: z.enum([ResourceType.StorageProvider]),
-      storageType: z.nativeEnum(StorageType),
-      filepath: z.string(),
-      credentials: z.any(),
-    }),
-  );
 
-export const EncryptionValidator = z.object({
-  algo: z.nativeEnum(CryptoAlgorithm),
-  encoding: z.nativeEnum(Encoding),
-  key: z.string(),
+export const UrlResourceValidator = z.object({
+  type: z.enum([ResourceType.Url]),
+  url: z.string().min(1),
 });
+export const StorageProviderResourceValidator = z.object({
+  type: z.enum([ResourceType.StorageProvider]),
+  storageType: z.nativeEnum(StorageType),
+  filepath: z.string(),
+  credentials: z.any(),
+});
+
+export const ResourceValidator = UrlResourceValidator.or(StorageProviderResourceValidator);
+
+export const EncryptionValidator = z.object(
+  {
+    algo: z.nativeEnum(CryptoAlgorithm),
+    encoding: z.nativeEnum(Encoding),
+    key: z.string(),
+  },
+  { required_error: 'required. Resource must be encrypted' },
+);
 
 export const ResourceFileValidator = z.object({
   resource: ResourceValidator,
@@ -55,6 +61,10 @@ export const ResourceFileValidator = z.object({
     })
     .optional(),
   args: z.any().optional(),
+});
+
+export const EncryptedResourceFileValidator = ResourceFileValidator.extend({
+  encryption: EncryptionValidator,
 });
 
 export const SolutionResourceFileValidator = ResourceFileValidator.extend({

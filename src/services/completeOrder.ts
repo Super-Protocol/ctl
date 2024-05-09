@@ -4,14 +4,19 @@ import {
   OrderStatus,
   TIIGenerator,
   Web3TransactionRevertedByEvmError,
+  getStorageProvider,
 } from '@super-protocol/sdk-js';
+import { StorjException } from '@super-protocol/uplink-nodejs/dist/error';
 import { ErrorTxRevertedByEvm, ErrorWithCustomMessage, tryParse } from '../utils';
-import readResourceFile from './readResourceFile';
+import readResourceFile, {
+  EncryptedResourceFileValidator,
+  StorageProviderResourceValidator,
+} from './readResourceFile';
 import readJsonFile from './readJsonFile';
 import { getSdk, Order as SdkOrder, OrderInfo, ParentOrder, TOfferType } from '../gql';
 import { GraphQLClient } from 'graphql-request';
 import getGqlHeaders from './gqlHeaders';
-import { EncryptionKey } from '@super-protocol/dto-js';
+import { EncryptionKey, ResourceType } from '@super-protocol/dto-js';
 
 export const AVAILABLE_STATUSES = [OrderStatus.New, OrderStatus.Processing, OrderStatus.Canceling];
 export type TerminatedOrderStatus = OrderStatus.Done | OrderStatus.Canceled | OrderStatus.Error;
@@ -71,10 +76,11 @@ export default async (params: CompleteOrderParams): Promise<void> => {
       order.parentOrder?.id !== ZERO_ID &&
       order.parentOrder.offerType === TOfferType.TeeOffer
     ) {
-      const resource = await readResourceFile({ path });
-      if (!resource.encryption) {
-        throw Error(
-          `Order(id=${order.id}) has offer type: ${order.offerType} and resource doesn't have encryption info. Such orders couldn't be transferred to the terminal state manually`,
+      const resource = await readResourceFile({ path, validator: EncryptedResourceFileValidator });
+
+      if (resource.resource.type === ResourceType.StorageProvider) {
+        await validateStorageResource(
+          resource.resource as typeof StorageProviderResourceValidator._type,
         );
       }
 
@@ -83,7 +89,7 @@ export default async (params: CompleteOrderParams): Promise<void> => {
             order.id,
             resource.resource,
             order.orderInfo.args,
-            resource.encryption,
+            resource.encryption!,
             pccsApiUrl,
           )
         : JSON.stringify(resource);
@@ -97,17 +103,49 @@ export default async (params: CompleteOrderParams): Promise<void> => {
         `Order(id=${order.id}) with offer type ${order.offerType} should have result public key. Such orders couldn't be transferred to the terminal state manually`,
       );
     }
-    const resource = await readJsonFile({ path });
+    const resultResource = await readJsonFile({ path });
+    if (resultResource) {
+      const isResource = StorageProviderResourceValidator.safeParse(resultResource.resource);
+      if (isResource.success) {
+        await validateStorageResource(resultResource.resource);
+      }
+    }
+
     const publicKey: EncryptionKey = tryParse(order.orderInfo.resultInfo.publicKey) ?? {
       encoding: 'base64',
       algo: 'ECIES',
       key: order.orderInfo.resultInfo.publicKey,
     };
 
-    const encryption = await Crypto.encrypt(JSON.stringify(resource), publicKey);
+    const encryption = await Crypto.encrypt(JSON.stringify(resultResource), publicKey);
 
     return JSON.stringify(encryption);
   };
+
+  const validateStorageResource = async (
+    resource: typeof StorageProviderResourceValidator._type,
+  ): Promise<boolean> => {
+    try {
+      const storageProvider = getStorageProvider({
+        storageType: resource.storageType,
+        credentials: resource.credentials!,
+      });
+
+      const objectSize = await storageProvider.getObjectSize(resource.filepath);
+      if (objectSize > 0) {
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      if (error instanceof StorjException) {
+        throw new Error('Result resource validation failed:' + error.details);
+      }
+
+      throw error;
+    }
+  };
+
   const resultPublicResolvers = {
     [TOfferType.TeeOffer]: teeOfferResolver,
     [TOfferType.Data]: dataOfferResolver,
