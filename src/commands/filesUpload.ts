@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import encryptFileService from '../services/encryptFile';
 import uploadService from '../services/uploadFile';
-import { Encryption, ResourceType, StorageType } from '@super-protocol/dto-js';
+import { Encryption, EncryptionKey, ResourceType, StorageType } from '@super-protocol/dto-js';
 import Printer from '../printer';
 import { isCommandSupported } from '../services/uplinkSetupHelper';
 import { generateExternalId, preparePath, tryParse } from '../utils';
@@ -38,7 +38,8 @@ export type FilesUploadParams = {
   accessToken: string;
   actionAccountKey: string;
   blockchainConfig: BlockchainConfig;
-  resultEncryption: Encryption;
+  resultEncryption: EncryptionKey;
+  pccsServiceApiUrl: string;
 };
 
 const createOrder = async (params: {
@@ -50,6 +51,7 @@ const createOrder = async (params: {
   actionAccountKey: FilesUploadParams['actionAccountKey'];
   blockchainConfig: FilesUploadParams['blockchainConfig'];
   resultEncryption: FilesUploadParams['resultEncryption'];
+  pccsServiceApiUrl: FilesUploadParams['pccsServiceApiUrl'];
 }): Promise<string> => {
   const {
     analytics,
@@ -60,6 +62,7 @@ const createOrder = async (params: {
     actionAccountKey,
     blockchainConfig,
     resultEncryption,
+    pccsServiceApiUrl,
   } = params;
   Printer.print('Storage order creating...');
   if (!Array.isArray(storage) || storage.length !== 2) {
@@ -71,6 +74,7 @@ const createOrder = async (params: {
     ...(analytics && { analytics }),
     accessToken,
     actionAccountKey,
+    pccsServiceApiUrl,
     args: {
       inputOffers: [],
       outputOffer: '0',
@@ -159,13 +163,10 @@ const getCredentials = async (params: {
     };
   } catch (err: unknown) {
     if (err instanceof OrderResultError) {
-      await params.analytics?.trackEventCatched({
-        eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD,
-        eventProperties: {
-          result: 'error',
-          error: (err as Error).message,
-        },
-      });
+      await params.analytics?.trackErrorEventCatched(
+        { eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD },
+        err,
+      );
     }
     Printer.error(`Failed to get storage credentials. Error: ${(err as Error).message}`);
     Printer.print(`Trying to cancel created order ${orderId}.`);
@@ -242,6 +243,7 @@ export default async (params: FilesUploadParams): Promise<void> => {
         actionAccountKey: params.actionAccountKey,
         blockchainConfig: params.blockchainConfig,
         resultEncryption: params.resultEncryption,
+        pccsServiceApiUrl: params.pccsServiceApiUrl,
       });
 
       Printer.print('Getting storage credentials from created order...');
@@ -286,15 +288,16 @@ export default async (params: FilesUploadParams): Promise<void> => {
     await fs.writeFile(outputpath, JSON.stringify(result, null, 2));
     Printer.print(`Resource file was created in ${outputpath}`);
 
-    await params.analytics?.trackEventCatched({
+    await params.analytics?.trackSuccessEventCatched({
       eventName: AnalyticEvent.FILE_UPLOAD,
-      eventProperties: { result: 'success' },
     });
   } catch (err: unknown) {
-    await params.analytics?.trackEventCatched({
-      eventName: AnalyticEvent.FILE_UPLOAD,
-      eventProperties: { result: 'error', error: (err as Error).message },
-    });
+    await params.analytics?.trackErrorEventCatched(
+      {
+        eventName: AnalyticEvent.FILE_UPLOAD,
+      },
+      err,
+    );
     Printer.print(`File was not uploaded. Error: ${(err as Error).message}`);
   } finally {
     if (params.withEncryption) {

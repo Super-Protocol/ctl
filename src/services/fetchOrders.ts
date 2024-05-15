@@ -14,7 +14,7 @@ export type FetchOrdersParams = {
   customerAddress?: string;
   offerType?: OfferType;
   offerIds?: string[];
-  status?: OrderStatus;
+  statuses?: OrderStatus[];
 };
 
 export type OrderItem = NonNullable<OrdersQuery['result']['page']['edges']>[number]['node'];
@@ -36,7 +36,7 @@ export default async (params: FetchOrdersParams) => {
           id: params.id,
           consumer: params.customerAddress,
           offerType: getObjectKey(params.offerType, OfferType) as TOfferType,
-          ...(params.status && { status: params.status }),
+          ...(params.statuses && { includeStatuses: params.statuses }),
           ...(params.offerIds && params.offerIds.length && { offerIds: params.offerIds }),
         },
       },

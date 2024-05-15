@@ -6,11 +6,13 @@ import {
   Offer,
   OfferType,
   Orders,
+  constants,
+  AnalyticsEvent,
+  RIGenerator,
 } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
 import validateOfferWorkflowService from '../services/validateOfferWorkflow';
-import { Encryption } from '@super-protocol/dto-js';
 import createWorkflowService, { ValueOfferParams } from '../services/createWorkflow';
 import parseInputResourcesService from '../services/parseInputResources';
 import calcWorkflowDepositService from '../services/calcWorkflowDeposit';
@@ -26,13 +28,13 @@ import {
   getHoldDeposit,
   FethchedOffer,
   getFetchedOffers,
-  getResultEncryption,
 } from '../services/workflowHelpers';
 import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 import { MINUTES_IN_HOUR } from '../constants';
 import approveTeeTokens from '../services/approveTeeTokens';
-import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, IEventProperties, IOrderEventProperties } from '../services/analytics';
+import { EncryptionKey, Linkage } from '@super-protocol/dto-js';
+import { SolutionResourceFileValidator } from '../services/readResourceFile';
 
 export type WorkflowCreateParams = {
   analytics?: Analytics<AnalyticsEvent> | null;
@@ -49,18 +51,16 @@ export type WorkflowCreateParams = {
   storage: string;
   solution: string[];
   data: string[];
-  resultEncryption: Encryption;
+  resultEncryption: EncryptionKey;
   userDepositAmount: string;
   minRentMinutes: number;
   workflowNumber: number;
   ordersLimit: number;
-
+  skipHardwareCheck: boolean;
   pccsServiceApiUrl: string;
 };
 
 const workflowCreate = async (params: WorkflowCreateParams): Promise<string | void> => {
-  const resultEncryption = getResultEncryption(params.resultEncryption);
-
   Printer.print('Connecting to the blockchain');
   const consumerAddress = await initBlockchainConnectorService({
     blockchainConfig: params.blockchainConfig,
@@ -102,6 +102,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
     minRentMinutes: params.minRentMinutes,
+    resourceValidator: SolutionResourceFileValidator,
   });
   const solutionIds = solutions.offers.map((offer) => offer.id);
 
@@ -203,39 +204,41 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     }),
   );
 
-  const configurationErrors = await fetchConfigurationErrors({
-    backendUrl: params.backendUrl,
-    accessToken: params.accessToken,
-    offers: {
-      tee: {
-        offerId: tee.id,
-        options: params.teeOptionsIds.map((optionId, index) => ({
-          id: optionId,
-          count: params.teeOptionsCount[index],
+  if (!params.skipHardwareCheck) {
+    const configurationErrors = await fetchConfigurationErrors({
+      backendUrl: params.backendUrl,
+      accessToken: params.accessToken,
+      offers: {
+        tee: {
+          offerId: tee.id,
+          options: params.teeOptionsIds.map((optionId, index) => ({
+            id: optionId,
+            count: params.teeOptionsCount[index],
+          })),
+          slot: { id: tee.slotId, count: params.teeSlotCount! },
+        },
+        solution: solutions.offers.map((solution) => ({
+          offerId: solution.id,
+          slot: { id: solution.slotId },
         })),
-        slot: { id: tee.slotId, count: params.teeSlotCount! },
+        data: data.offers.map((dataOffer) => ({
+          offerId: dataOffer.id,
+          slot: { id: dataOffer.slotId },
+        })),
+        storage: { offerId: storage.id, slot: { id: storage.slotId } },
       },
-      solution: solutions.offers.map((solution) => ({
-        offerId: solution.id,
-        slot: { id: solution.slotId },
-      })),
-      data: data.offers.map((dataOffer) => ({
-        offerId: dataOffer.id,
-        slot: { id: dataOffer.slotId },
-      })),
-      storage: { offerId: storage.id, slot: { id: storage.slotId } },
-    },
-  });
-
-  if (!configurationErrors.success && configurationErrors.errors) {
-    let errorMessage = 'Not enough compute resources to create workflow.';
-    Object.entries(configurationErrors.errors).forEach(([key, value]) => {
-      if (value !== 'ValidationErrors' && value !== null && value !== undefined) {
-        errorMessage += `\nInsufficient ${key}. Required ${value.required}. Provided ${value.provided}`;
-      }
     });
 
-    throw new Error(errorMessage);
+    if (!configurationErrors.success && configurationErrors.errors) {
+      let errorMessage = 'Not enough compute resources to create workflow.';
+      Object.entries(configurationErrors.errors).forEach(([key, value]) => {
+        if (value !== 'ValidationErrors' && value !== null && value !== undefined) {
+          errorMessage += `\nInsufficient ${key}. Required ${value.required}. Provided ${value.provided}`;
+        }
+      });
+
+      throw new Error(errorMessage);
+    }
   }
 
   const fetchedTeeOffer = await fetchTeeOffers({
@@ -260,44 +263,48 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     ) || MINUTES_IN_HOUR;
 
   // eslint-disable-next-line prefer-const
-  let { hashes, linkage } = await TIIGenerator.getSolutionHashesAndLinkage(
+  let { solutionHashes, dataHashes, linkage } = await TIIGenerator.getOffersHashesAndLinkage(
     solutionIds.concat(dataIds),
   );
 
-  [...solutions.resourceFiles, ...data.resourceFiles].forEach((resource) => {
-    if (resource.hash) hashes.push(resource.hash);
+  solutions.resourceFiles.forEach((resource) => {
+    solutionHashes.push(resource.hash ?? constants.ZERO_HASH);
 
     if (!linkage && resource.linkage) {
       linkage = JSON.stringify(resource.linkage);
     }
   });
 
+  data.resourceFiles.forEach((resource) => {
+    dataHashes.push(resource.hash ?? constants.ZERO_HASH);
+  });
+
   Printer.print('Generating input arguments for TEE');
   const [solutionTIIs, dataTIIs] = await Promise.all([
     Promise.all(
       solutions.resourceFiles.map((solution) =>
-        TIIGenerator.generateByOffer(
-          tee.id,
-          hashes,
-          linkage,
-          solution.resource,
-          solution.args,
-          solution.encryption!,
-          params.pccsServiceApiUrl,
-        ),
+        TIIGenerator.generateByOffer({
+          offerId: tee.id,
+          solutionHashes,
+          linkageString: linkage,
+          resource: solution.resource,
+          args: solution.args,
+          encryption: solution.encryption!,
+          sgxApiUrl: params.pccsServiceApiUrl,
+        }),
       ),
     ),
     await Promise.all(
       data.resourceFiles.map((data) =>
-        TIIGenerator.generateByOffer(
-          tee.id,
-          hashes,
-          linkage,
-          data.resource,
-          data.args,
-          data.encryption!,
-          params.pccsServiceApiUrl,
-        ),
+        TIIGenerator.generateByOffer({
+          offerId: tee.id,
+          solutionHashes,
+          linkageString: linkage,
+          resource: data.resource,
+          args: data.args,
+          encryption: data.encryption!,
+          sgxApiUrl: params.pccsServiceApiUrl,
+        }),
       ),
     ),
   ]);
@@ -345,6 +352,15 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   });
   const inputOffersParams = [...solutions.offers, ...data.offers];
 
+  const orderResultKeys = await RIGenerator.generate({
+    offerId: teeOfferParams.id,
+    encryptionPrivateKey: params.resultEncryption,
+    pccsServiceApiUrl: params.pccsServiceApiUrl,
+    solutionHashes,
+    dataHashes,
+    linkage: linkage || '',
+  });
+
   Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
   const properties: (IOrderEventProperties | IEventProperties)[] = [];
   for (let pos = 0; pos < params.workflowNumber; pos++) {
@@ -357,7 +373,8 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
           data: dataTIIs,
           solution: solutionTIIs,
         }),
-        resultPublicKey: resultEncryption,
+        resultPublicKey: orderResultKeys.publicKey,
+        encryptedInfo: orderResultKeys.encryptedInfo,
         holdDeposit: holdDeposit.toString(),
         consumerAddress: consumerAddress!,
       })
@@ -401,6 +418,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
           properties.push({
             result: 'error',
             error: error.message,
+            errorStack: error.stack,
           });
           resolve(null);
         });
@@ -409,9 +427,14 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
   const results = await Promise.all(workflowPromises);
   if (properties.length) {
+    const linkageObj = linkage ? (JSON.parse(linkage) as Linkage) : {};
     const events = properties.map((event) => ({
       eventName: AnalyticEvent.ORDER_CREATED,
-      eventProperties: event,
+      eventProperties: {
+        ...event,
+        ...(Object.keys(linkageObj).length &&
+          (event as IEventProperties).result !== 'error' && { ...linkageObj }),
+      },
     }));
     await params.analytics?.trackEventsCatched({ events });
   }

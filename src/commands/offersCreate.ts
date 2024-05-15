@@ -3,8 +3,8 @@ import Printer from '../printer';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import createValueOffer from '../services/createValueOffer';
 import createTeeOffer from '../services/createTeeOffer';
-import readValueOfferInfo from '../services/readValueOfferInfo';
-import readTeeOfferInfo from '../services/readTeeOfferInfo';
+import { readValueOfferInfo } from '../services/readValueOfferInfo';
+import { readTeeOfferInfo } from '../services/readTeeOfferInfo';
 
 export type OffersCreateParams = {
   blockchainConfig: BlockchainConfig;
@@ -24,7 +24,10 @@ export default async (params: OffersCreateParams): Promise<void> => {
   let id: BlockchainId;
   switch (params.type) {
     case 'tee': {
-      const teeOfferInfo = await readTeeOfferInfo({ path: params.offerInfoPath });
+      const teeOfferInfo = await readTeeOfferInfo({
+        path: params.offerInfoPath,
+        isPartialContent: false,
+      });
 
       Printer.print('Offer info file was read successfully');
 
@@ -38,7 +41,10 @@ export default async (params: OffersCreateParams): Promise<void> => {
       break;
     }
     case 'value': {
-      const offerInfo = await readValueOfferInfo({ path: params.offerInfoPath });
+      const offerInfo = await readValueOfferInfo({
+        path: params.offerInfoPath,
+        isPartialContent: false,
+      });
 
       Printer.print('Offer info file was read successfully');
 

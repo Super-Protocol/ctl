@@ -116,23 +116,15 @@ export default async (params: PrepareSolutionParams): Promise<void> => {
 
       const hashStream = createHash(solutionHashAlgo);
 
-      await packFolderService(
-        solutionPath,
-        solutionOutputPath,
-        (total: number, current: number) => {
-          Printer.progress('Packing', total, current);
-        },
-        {
-          withoutUpFolder: true,
-          transform: new Transform({
-            transform: (chunk, _encoding, done): void => {
-              hashStream.write(chunk);
+      await packFolderService(solutionPath, solutionOutputPath, {
+        transform: new Transform({
+          transform: (chunk, _encoding, done): void => {
+            hashStream.write(chunk);
 
-              done(null, chunk);
-            },
-          }),
-        },
-      );
+            done(null, chunk);
+          },
+        }),
+      });
 
       Printer.stopProgress();
 
@@ -152,6 +144,7 @@ export default async (params: PrepareSolutionParams): Promise<void> => {
       linkage: {
         encoding: Encoding.base64,
         mrenclave: Buffer.from(result.mrenclave, 'hex').toString(Encoding.base64),
+        mrsigner: Buffer.from(result.mrsigner, 'hex').toString(Encoding.base64),
       },
       hash: {
         encoding: Encoding.base64,

@@ -11,6 +11,7 @@ import {
   ResourceType,
   StorageProviderResource,
   UrlResource,
+  EncryptionKey,
 } from '@super-protocol/dto-js';
 import {
   Crypto,
@@ -18,6 +19,7 @@ import {
   OrderStatus,
   OrderResult,
   Analytics,
+  RIGenerator,
 } from '@super-protocol/sdk-js';
 import downloadFileByUrl from '../services/downloadFileByUrl';
 import initBlockchainConnector from '../services/initBlockchainConnector';
@@ -34,7 +36,7 @@ export type FilesDownloadParams = {
   blockchainConfig: BlockchainConfig;
   localPath?: string;
   orderId: string;
-  resultDecryptionKey: string;
+  resultDecryption: EncryptionKey;
 };
 
 export const localTxtPath = './result.txt';
@@ -42,7 +44,8 @@ export const localTarPath = './result.tar.gz';
 
 export default async (params: FilesDownloadParams): Promise<void> => {
   // Validate decryption key
-  getPublicFromPrivate(params.resultDecryptionKey);
+  getPublicFromPrivate(params.resultDecryption.key);
+  const primaryPrivateKey = params.resultDecryption;
 
   Printer.print('Connecting to the blockchain');
   await initBlockchainConnector({
@@ -68,13 +71,12 @@ export default async (params: FilesDownloadParams): Promise<void> => {
       }),
     });
   } catch (err: unknown) {
-    await params.analytics?.trackEventCatched({
-      eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD,
-      eventProperties: {
-        result: 'error',
-        error: (err as Error).message,
+    await params.analytics?.trackErrorEventCatched(
+      {
+        eventName: AnalyticEvent.ORDER_RESULT_DOWNLOAD,
       },
-    });
+      err,
+    );
   }
   const encrypted = orderResult?.encryptedResult;
   if (!encrypted?.length) {
@@ -95,16 +97,20 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     return;
   }
 
+  const publicKeyEncryption = Crypto.getPublicKey(primaryPrivateKey);
+  const derivedPrivateKey = await RIGenerator.getDerivedPrivateKey(publicKeyEncryption);
+
   let decrypted: { resource?: Resource; encryption?: Encryption } = {};
   if (encryptedResultObject.resource && encryptedResultObject.encryption) {
-    const decryptedResourceStr = await tryDecrypt(
-      encryptedResultObject.resource,
-      params.resultDecryptionKey,
-    );
-    const decryptedEncryptionStr = await tryDecrypt(
-      encryptedResultObject.encryption,
-      params.resultDecryptionKey,
-    );
+    const decryptedResourceStr = await tryDecryptWithKeys(encryptedResultObject.resource, [
+      primaryPrivateKey.key,
+      derivedPrivateKey.key,
+    ]);
+    const decryptedEncryptionStr = await tryDecryptWithKeys(encryptedResultObject.encryption, [
+      primaryPrivateKey.key,
+      derivedPrivateKey.key,
+    ]);
+
     if (!decryptedResourceStr || !decryptedEncryptionStr) {
       await writeResult(
         localTxtPath,
@@ -124,10 +130,10 @@ export default async (params: FilesDownloadParams): Promise<void> => {
       return;
     }
   } else {
-    const stringResult = await tryDecrypt(
-      encryptedResultObject as unknown as Encryption,
-      params.resultDecryptionKey,
-    );
+    const stringResult = await tryDecryptWithKeys(encryptedResultObject as unknown as Encryption, [
+      primaryPrivateKey.key,
+      derivedPrivateKey.key,
+    ]);
     if (!stringResult) {
       await writeResult(
         localTxtPath,
@@ -208,15 +214,17 @@ export default async (params: FilesDownloadParams): Promise<void> => {
   Printer.print(`Order result was saved to ${localPath}`);
 };
 
-async function tryDecrypt(
+async function tryDecryptWithKeys(
   encryption: Encryption,
-  decryptionKey: string,
+  decryptionKeys: string[],
 ): Promise<string | undefined> {
-  try {
-    encryption.key = decryptionKey;
-    return await Crypto.decrypt(encryption);
-  } catch (e) {
-    return;
+  for (const decryptionKey of decryptionKeys) {
+    try {
+      encryption.key = decryptionKey;
+      return await Crypto.decrypt(encryption);
+    } catch (e) {
+      continue;
+    }
   }
 }
 

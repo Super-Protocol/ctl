@@ -15,7 +15,7 @@ export type OrdersListParams = {
   actionAccountKey?: string;
   offerType?: OfferType;
   offerIds?: string[];
-  status?: OrderStatus;
+  statuses?: OrderStatus[];
   saveTo?: string;
 };
 
@@ -30,7 +30,7 @@ export default async (params: OrdersListParams): Promise<void> => {
       : undefined,
     offerType: params.offerType,
     ...(params.offerIds?.length && { offerIds: params.offerIds }),
-    ...(params.status && { status: params.status }),
+    ...(params.statuses && { statuses: params.statuses }),
   });
 
   const saveResultIfNeeded = async (result: unknown): Promise<void> => {

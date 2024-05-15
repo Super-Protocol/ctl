@@ -18,12 +18,12 @@ export type OrderCompleteParams = OrderCancelParams & {
 };
 export default async (params: OrderCompleteParams): Promise<void> => {
   Printer.print('Connecting to the blockchain');
-  const consumerAddress = await initBlockchainConnectorService({
+  const actionAccountAddress = await initBlockchainConnectorService({
     blockchainConfig: params.blockchainConfig,
     actionAccountKey: params.actionAccountKey,
   });
 
-  if (!consumerAddress) {
+  if (!actionAccountAddress) {
     throw Error('No account found linked to this key.');
   }
 
@@ -60,6 +60,7 @@ export default async (params: OrderCompleteParams): Promise<void> => {
           pccsApiUrl: params.pccsApiUrl,
           backendUrl: params.backendUrl,
           accessToken: params.accessToken,
+          actionAccountAddress,
         });
         Printer.print(
           `Order ${id} has been completed successfully: status=${getObjectKey(

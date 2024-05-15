@@ -40,4 +40,5 @@ export interface IOrderEventProperties {
 export interface IEventProperties {
   result: string;
   error?: string;
+  errorStack?: string;
 }

@@ -123,7 +123,10 @@ query Order($id: String!) {
                 inputOffers
                 outputOffer
             }
-            resultPublicKey
+            resultInfo {
+                encryptedInfo
+                publicKey
+            }
         }
         teeOfferInfo {
             name

@@ -39,7 +39,7 @@ export const extractManifest = async (opts: {
 
   const baseSolutionManifestPath = join(opts.workingPath, destManifestName);
   if (!existsSync(baseSolutionManifestPath)) {
-    throw new Error(`An error occurred while extract the manifest`);
+    throw new Error(`Can't find manifest at ${baseSolutionManifestPath}`);
   }
   const content = await readFile(baseSolutionManifestPath, 'utf8');
 
@@ -98,10 +98,7 @@ python3 /parse_sigstruct.py
   await writeFile(entrypointSgxPath, '');
 
   //remove solution metadata path if exist
-  const solutionMetadataRootPath = join(
-    await realpath(opts.solutionPath),
-    solutionMetadataFolder
-  );
+  const solutionMetadataRootPath = join(await realpath(opts.solutionPath), solutionMetadataFolder);
 
   await rm(solutionMetadataRootPath, { recursive: true, force: true });
 

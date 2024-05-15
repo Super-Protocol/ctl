@@ -1,4 +1,4 @@
-import { GetMatchingTeeSlotsQuery, TeeOfferFilter } from '../gql';
+import { TeeOfferFilter } from '../gql';
 import { ErrorWithCustomMessage } from '../utils';
 import { ValueOfferParams } from './createWorkflow';
 import fetchMinConfiguration from './fetchMinConfiguration';
@@ -14,8 +14,6 @@ export type FetchMatchingTeeSlotsParams = {
   solutions: ValueOfferParams[];
   usageMinutes: number;
 };
-
-export type MatchingTeeSlots = NonNullable<GetMatchingTeeSlotsQuery['result']['page']>['edges'];
 
 export default async (params: FetchMatchingTeeSlotsParams): Promise<MatchingTeeSlot> => {
   const { storage, data, solutions } = params;

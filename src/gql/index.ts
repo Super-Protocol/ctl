@@ -192,6 +192,7 @@ export type Event = {
   change?: Maybe<Scalars['String']>;
   consumer?: Maybe<Scalars['String']>;
   contract: Scalars['String'];
+  createdAt: Scalars['DateTime'];
   deposit?: Maybe<Scalars['String']>;
   externalId?: Maybe<Scalars['String']>;
   from?: Maybe<Scalars['String']>;
@@ -217,6 +218,10 @@ export type EventConnection = {
 };
 
 export type EventDataFilter = {
+  /** retrieve events saved in the database on or after the specified date (createdAtFrom) */
+  createdAtFrom?: InputMaybe<Scalars['DateTime']>;
+  /** retrieve events saved in the database on or before the specified date (createdAtTo) */
+  createdAtTo?: InputMaybe<Scalars['DateTime']>;
   /** filter by event name */
   name?: InputMaybe<Scalars['String']>;
   /** filter by order ID */
@@ -387,10 +392,26 @@ export type MatchingTeeOfferOptionInput = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Transfers custom amount of coins to specific address */
+  customTransfer: Scalars['Boolean'];
+  /** Transfers custom amount of TEE tokens to specific address */
+  teeCustomTransfer: Scalars['Boolean'];
   /** Transfers specific amount of TEE tokens to specific address */
   teeTransfer: Scalars['Boolean'];
   /** Transfers specific amount of coins to specific address */
   transfer: Scalars['Boolean'];
+};
+
+
+export type MutationCustomTransferArgs = {
+  amount?: InputMaybe<Scalars['String']>;
+  destinationAddress?: InputMaybe<Scalars['String']>;
+};
+
+
+export type MutationTeeCustomTransferArgs = {
+  amount?: InputMaybe<Scalars['String']>;
+  destinationAddress?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -412,6 +433,7 @@ export type Offer = {
   enabled: Scalars['Boolean'];
   /** blockchain id */
   id: Scalars['String'];
+  inactive?: Maybe<Scalars['Boolean']>;
   offerInfo: OfferInfo;
   origins?: Maybe<Origins>;
   providerInfo: ProviderInformation;
@@ -449,6 +471,8 @@ export type OfferEdge = {
 };
 
 export type OfferFilter = {
+  /** exclude offers with selected ids */
+  excludeIds?: InputMaybe<Array<Scalars['String']>>;
   /** exclude filter by offerInfo -> restrictions -> type */
   excludeOfferRestrictionType?: InputMaybe<Array<TOfferType>>;
   /** filter by offerInfo → group */
@@ -457,6 +481,8 @@ export type OfferFilter = {
   id?: InputMaybe<Scalars['String']>;
   /** filter by offer ids */
   ids?: InputMaybe<Array<Scalars['String']>>;
+  /** filter by inactive, "false" by default */
+  inactive?: InputMaybe<Scalars['Boolean']>;
   /** include filter by offerInfo -> restrictions -> type */
   includeOfferRestrictionType?: InputMaybe<Array<TOfferType>>;
   /** filter by offerInfo → name */
@@ -481,13 +507,9 @@ export type OfferInfo = {
   /**
    * The supported offers group.
    *
-   *   TeeOffer = '0',
+   *      0 - Input,
    *
-   *   Storage = '1',
-   *
-   *   Solution = '2',
-   *
-   *   Data = '3'
+   *      1 - Output
    *
    */
   group: Scalars['String'];
@@ -499,9 +521,13 @@ export type OfferInfo = {
   /**
    * The supported offers type.
    *
-   *      0 - Input,
+   *      TeeOffer = '0',
    *
-   *      1 - Output
+   *      Storage = '1',
+   *
+   *      Solution = '2',
+   *
+   *      Data = '3'
    *
    */
   offerType: Scalars['String'];
@@ -519,13 +545,9 @@ export type OfferInfoInput = {
   /**
    * The supported offers group.
    *
-   *   TeeOffer = '0',
+   *      0 - Input,
    *
-   *   Storage = '1',
-   *
-   *   Solution = '2',
-   *
-   *   Data = '3'
+   *      1 - Output
    *
    */
   group: Scalars['String'];
@@ -537,9 +559,13 @@ export type OfferInfoInput = {
   /**
    * The supported offers type.
    *
-   *      0 - Input,
+   *      TeeOffer = '0',
    *
-   *      1 - Output
+   *      Storage = '1',
+   *
+   *      Solution = '2',
+   *
+   *      Data = '3'
    *
    */
   offerType: Scalars['String'];
@@ -551,6 +577,7 @@ export type OfferInfoInput = {
 export type OfferInputType = {
   disabledAfter: Scalars['Float'];
   enabled: Scalars['Boolean'];
+  inactive?: InputMaybe<Scalars['Boolean']>;
   offerInfo: OfferInfoInput;
   providerInfo: ProviderInformationInput;
   slots: Array<OfferSlotInput>;
@@ -712,6 +739,7 @@ export type OrderEventsUpdated = {
   change?: Maybe<Scalars['String']>;
   consumer?: Maybe<Scalars['String']>;
   contract: Scalars['String'];
+  createdAt: Scalars['DateTime'];
   deposit?: Maybe<Scalars['String']>;
   externalId?: Maybe<Scalars['String']>;
   from?: Maybe<Scalars['String']>;
@@ -741,10 +769,9 @@ export type OrderInfo = {
   __typename?: 'OrderInfo';
   args: OrderArgs;
   encryptedArgs: Scalars['String'];
-  encryptedRequirements: Scalars['String'];
   externalId: Scalars['String'];
   offerId: Scalars['String'];
-  resultPublicKey: Scalars['String'];
+  resultInfo: OrderResultInfo;
   /**
    * description of values:
    * 
@@ -774,10 +801,9 @@ export type OrderInfo = {
 export type OrderInfoInput = {
   args: OrderArgsInput;
   encryptedArgs: Scalars['String'];
-  encryptedRequirements: Scalars['String'];
   externalId: Scalars['String'];
   offerId: Scalars['String'];
-  resultPublicKey: Scalars['String'];
+  resultInfo: OrderResultInfoInput;
   /**
    * description of values:
    * 
@@ -875,6 +901,17 @@ export type OrderResult = {
   __typename?: 'OrderResult';
   encryptedResult?: Maybe<Scalars['String']>;
   orderPrice?: Maybe<Scalars['String']>;
+};
+
+export type OrderResultInfo = {
+  __typename?: 'OrderResultInfo';
+  encryptedInfo: Scalars['String'];
+  publicKey: Scalars['String'];
+};
+
+export type OrderResultInfoInput = {
+  encryptedInfo: Scalars['String'];
+  publicKey: Scalars['String'];
 };
 
 export type OrderResultInput = {
@@ -1489,11 +1526,13 @@ export type TeeOffer = {
   enabled: Scalars['Boolean'];
   /** blockchain id */
   id: Scalars['String'];
+  inactive?: Maybe<Scalars['Boolean']>;
   options: Array<TeeOfferOption>;
   origins?: Maybe<Origins>;
   providerInfo: ProviderInformation;
   slots: Array<TeeOfferSlot>;
   stats?: Maybe<Stats>;
+  tcb?: Maybe<TeeOfferTcb>;
   teeOfferInfo: TeeOfferInfo;
 };
 
@@ -1526,6 +1565,8 @@ export type TeeOfferFilter = {
   id?: InputMaybe<Scalars['String']>;
   /** filter by TEE offer ids */
   ids?: InputMaybe<Array<Scalars['String']>>;
+  /** filter by inactive, "false" by default */
+  inactive?: InputMaybe<Scalars['Boolean']>;
   /** filter by teeOfferInfo → name */
   name?: InputMaybe<Scalars['String']>;
   /** filter by slot/option usage → pricePerHour */
@@ -1565,10 +1606,12 @@ export type TeeOfferInputType = {
   authority: Scalars['String'];
   disabledAfter: Scalars['Float'];
   enabled: Scalars['Boolean'];
+  inactive?: InputMaybe<Scalars['Boolean']>;
   options: Array<TeeOfferOptionInput>;
   providerInfo: ProviderInformationInput;
   slots: Array<TeeOfferSlotInput>;
   stats?: InputMaybe<StatsInput>;
+  tcb?: InputMaybe<TeeOfferTcbInputType>;
   teeOfferInfo: TeeOfferInfoInput;
 };
 
@@ -1604,6 +1647,15 @@ export type TeeOfferSlotInput = {
   id: Scalars['String'];
   info: SlotInfoInput;
   usage: SlotUsageInput;
+};
+
+export type TeeOfferTcb = {
+  __typename?: 'TeeOfferTcb';
+  id: Scalars['String'];
+};
+
+export type TeeOfferTcbInputType = {
+  id: Scalars['String'];
 };
 
 export type TeeOfferWithSlotsAndOptions = {
@@ -1750,12 +1802,26 @@ export type TransferMutationVariables = Exact<{
 
 export type TransferMutation = { __typename?: 'Mutation', transfer: boolean };
 
+export type CustomTransferMutationVariables = Exact<{
+  destinationAddress?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type CustomTransferMutation = { __typename?: 'Mutation', customTransfer: boolean };
+
 export type TeeTransferMutationVariables = Exact<{
   destinationAddress?: InputMaybe<Scalars['String']>;
 }>;
 
 
 export type TeeTransferMutation = { __typename?: 'Mutation', teeTransfer: boolean };
+
+export type TeeCustomTransferMutationVariables = Exact<{
+  destinationAddress?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type TeeCustomTransferMutation = { __typename?: 'Mutation', teeCustomTransfer: boolean };
 
 export type OffersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1831,7 +1897,7 @@ export type OrderQueryVariables = Exact<{
 }>;
 
 
-export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offerId: string, resultPublicKey: string, args: { __typename?: 'OrderArgs', inputOffers: Array<string>, outputOffer: string } }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null }, parentOrder?: { __typename?: 'ParentOrder', id: string, offerType: TOfferType } | null } };
+export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offerId: string, args: { __typename?: 'OrderArgs', inputOffers: Array<string>, outputOffer: string }, resultInfo: { __typename?: 'OrderResultInfo', encryptedInfo: string, publicKey: string } }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null }, parentOrder?: { __typename?: 'ParentOrder', id: string, offerType: TOfferType } | null } };
 
 export type SubOrdersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1905,9 +1971,19 @@ export const TransferDocument = gql`
   transfer(destinationAddress: $destinationAddress)
 }
     `;
+export const CustomTransferDocument = gql`
+    mutation CustomTransfer($destinationAddress: String) {
+  customTransfer(destinationAddress: $destinationAddress)
+}
+    `;
 export const TeeTransferDocument = gql`
     mutation TeeTransfer($destinationAddress: String) {
   teeTransfer(destinationAddress: $destinationAddress)
+}
+    `;
+export const TeeCustomTransferDocument = gql`
+    mutation TeeCustomTransfer($destinationAddress: String) {
+  teeCustomTransfer(destinationAddress: $destinationAddress)
 }
     `;
 export const OffersDocument = gql`
@@ -2223,7 +2299,10 @@ export const OrderDocument = gql`
         inputOffers
         outputOffer
       }
-      resultPublicKey
+      resultInfo {
+        encryptedInfo
+        publicKey
+      }
     }
     teeOfferInfo {
       name
@@ -2520,8 +2599,14 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     Transfer(variables?: TransferMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<TransferMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<TransferMutation>(TransferDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Transfer', 'mutation');
     },
+    CustomTransfer(variables?: CustomTransferMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<CustomTransferMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CustomTransferMutation>(CustomTransferDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CustomTransfer', 'mutation');
+    },
     TeeTransfer(variables?: TeeTransferMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<TeeTransferMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<TeeTransferMutation>(TeeTransferDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'TeeTransfer', 'mutation');
+    },
+    TeeCustomTransfer(variables?: TeeCustomTransferMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<TeeCustomTransferMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<TeeCustomTransferMutation>(TeeCustomTransferDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'TeeCustomTransfer', 'mutation');
     },
     Offers(variables: OffersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<OffersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<OffersQuery>(OffersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Offers', 'query');

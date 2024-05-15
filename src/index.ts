@@ -57,10 +57,13 @@ import { AnalyticEvent, createAnalyticsService } from './services/analytics';
 import packageJson from '../package.json';
 
 const ORDER_STATUS_KEYS = Object.keys(OrderStatus) as Array<keyof typeof OrderStatus>;
-const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce((acc, key) => {
-  acc[key.toLowerCase()] = OrderStatus[key];
-  return acc;
-}, {} as { [Key: string]: OrderStatus });
+const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce(
+  (acc, key) => {
+    acc[key.toLowerCase()] = OrderStatus[key];
+    return acc;
+  },
+  {} as { [Key: string]: OrderStatus },
+);
 
 async function main(): Promise<void> {
   await ConfigLoader.init();
@@ -386,6 +389,9 @@ async function main(): Promise<void> {
         .default(MAX_ORDERS_RUNNING)
         .hideHelp(),
     )
+    .addOption(
+      new Option('--skip-hardware-check', 'Skip hardware validation').default(false).hideHelp(),
+    )
     .action(async (options: any) => {
       if (!options.solution.length) {
         Printer.error(
@@ -422,6 +428,7 @@ async function main(): Promise<void> {
         workflowNumber: Number(options.workflowNumber),
         ordersLimit: Number(options.ordersLimit),
         pccsServiceApiUrl,
+        skipHardwareCheck: options.skipHardwareCheck,
       };
 
       await workflowsCreate(requestParams);
@@ -479,20 +486,24 @@ async function main(): Promise<void> {
     .addOption(
       new Option(
         '--status <string>',
-        `Order's status. Supported statuses: ${Object.keys(ORDER_STATUS_MAP).join()}`,
+        `Orders' statuses separated by comma. Supported statuses: ${Object.keys(ORDER_STATUS_MAP).join()}`,
       ).argParser((value) => {
-        const val = value.toLowerCase().trim();
-        return Object.keys(ORDER_STATUS_MAP).includes(val) ? [val] : [];
+        return commaSeparatedList(value)
+          .map((status) => {
+            const val = status.toLowerCase().trim();
+            return Object.keys(ORDER_STATUS_MAP).includes(val) ? val : undefined;
+          })
+          .filter(Boolean);
       }),
     )
     .option('--save-to <filepath>', 'Save result to a file')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       let actionAccountKey;
       if (options.myAccount) {
-        actionAccountKey = (await configLoader.loadSection('blockchain')).accountPrivateKey;
+        actionAccountKey = configLoader.loadSection('blockchain').accountPrivateKey;
       }
 
       validateFields(options.fields, ordersListFields);
@@ -506,7 +517,9 @@ async function main(): Promise<void> {
         actionAccountKey,
         offerType: ordersListOfferTypes[options.type as keyof typeof ordersListOfferTypes],
         ...(options.offers && { offerIds: options.offers }),
-        ...(options.status && { status: ORDER_STATUS_MAP[options.status] }),
+        ...(options.status.length && {
+          statuses: options.status.map((status: string) => ORDER_STATUS_MAP[status]),
+        }),
         ...(options.saveTo && { saveTo: options.saveTo }),
       });
     });
@@ -608,7 +621,7 @@ async function main(): Promise<void> {
         blockchainConfig,
         orderId,
         localPath: options.saveTo,
-        resultDecryptionKey: workflowConfig.resultEncryption.key!,
+        resultDecryption: workflowConfig.resultEncryption,
         accessToken: backendConfig.accessToken,
         backendUrl: backendConfig.url,
       };
@@ -649,6 +662,7 @@ async function main(): Promise<void> {
       const backend = configLoader.loadSection('backend');
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
+      const tii = configLoader.loadSection('tii');
       const params: OrderCreateParams = {
         analytics: createAnalyticsService(configLoader),
         accessToken: backend.accessToken,
@@ -663,6 +677,7 @@ async function main(): Promise<void> {
           contractAddress: blockchain.smartContractAddress,
         },
         offerId: options.offer,
+        pccsServiceApiUrl: tii.pccsServiceApiUrl,
         resultEncryption: workflowConfig.resultEncryption,
         slotId: options.slot,
         userDepositAmount: options.deposit,
@@ -699,35 +714,32 @@ async function main(): Promise<void> {
       const analytics = createAnalyticsService(configLoader);
       try {
         await tokensRequest(requestParams);
-        const eventProperties = { result: 'success' };
         if (options.tee) {
-          await analytics?.trackEventCatched({
+          await analytics?.trackSuccessEventCatched({
             eventName: AnalyticEvent.TEE_TOKENS_REPLENISHED,
-            eventProperties,
           });
         }
         if (options.matic) {
-          await analytics?.trackEventCatched({
+          await analytics?.trackSuccessEventCatched({
             eventName: AnalyticEvent.MATIC_TOKENS_REPLENISHED,
-            eventProperties,
           });
         }
       } catch (err) {
-        const eventProperties = {
-          result: 'error',
-          error: (err as Error).message,
-        };
         if (options.tee) {
-          await analytics?.trackEventCatched({
-            eventName: AnalyticEvent.TEE_TOKENS_REPLENISHED,
-            eventProperties,
-          });
+          await analytics?.trackErrorEventCatched(
+            {
+              eventName: AnalyticEvent.TEE_TOKENS_REPLENISHED,
+            },
+            err,
+          );
         }
         if (options.matic) {
-          await analytics?.trackEventCatched({
-            eventName: AnalyticEvent.MATIC_TOKENS_REPLENISHED,
-            eventProperties,
-          });
+          await analytics?.trackErrorEventCatched(
+            {
+              eventName: AnalyticEvent.MATIC_TOKENS_REPLENISHED,
+            },
+            err,
+          );
         }
         throw err;
       }
@@ -1302,6 +1314,7 @@ async function main(): Promise<void> {
       const backendConfig = configLoader.loadSection('backend');
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
+      const tiiConfig = configLoader.loadSection('tii');
 
       await upload({
         analytics: createAnalyticsService(configLoader),
@@ -1326,6 +1339,7 @@ async function main(): Promise<void> {
           contractAddress: blockchain.smartContractAddress,
         },
         resultEncryption: workflowConfig.resultEncryption,
+        pccsServiceApiUrl: tiiConfig.pccsServiceApiUrl,
       });
     });
 

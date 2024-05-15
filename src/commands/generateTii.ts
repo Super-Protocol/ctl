@@ -13,7 +13,7 @@ export type GenerateTiiParams = {
   pccsServiceApiUrl: string;
 };
 
-export default async (params: GenerateTiiParams) => {
+export default async (params: GenerateTiiParams): Promise<void> => {
   const resourceFile = await readResourceFile({
     path: preparePath(params.resourcePath),
   });
@@ -29,15 +29,15 @@ export default async (params: GenerateTiiParams) => {
     blockchainConfig: params.blockchainConfig,
   });
 
-  const tii = await TIIGenerator.generateByOffer(
-    params.teeOfferId,
-    hash ? [hash] : [],
-    JSON.stringify(linkage),
-    resource,
-    args,
-    encryption,
-    params.pccsServiceApiUrl,
-  );
+  const tii = await TIIGenerator.generateByOffer({
+    offerId: params.teeOfferId,
+    solutionHashes: hash ? [hash] : [],
+    linkageString: JSON.stringify(linkage),
+    resource: resource,
+    args: args,
+    encryption: encryption,
+    sgxApiUrl: params.pccsServiceApiUrl,
+  });
 
   const outputPath = preparePath(params.outputPath);
 

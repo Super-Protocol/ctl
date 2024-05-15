@@ -1,4 +1,4 @@
-import readResourceFile, { ResourceFile } from './readResourceFile';
+import readResourceFile, { ReadResourceFileParams, ResourceFile } from './readResourceFile';
 import { AESEncryption, Cipher, CryptoAlgorithm, Encoding } from '@super-protocol/dto-js';
 import { preparePath } from '../utils';
 import readJsonFile from './readJsonFile';
@@ -11,6 +11,7 @@ export type ParseInputResourcesParams = {
   accessToken: string;
   isTee?: boolean;
   minRentMinutes?: number;
+  resourceValidator?: ReadResourceFileParams['validator'];
 };
 
 const idRegexp = /^(?:\d+,)?\d+$/;
@@ -53,6 +54,7 @@ export default async (
 
       const resourceFile = await readResourceFile({
         path: preparePath(param),
+        validator: params.resourceValidator,
       });
 
       // TODO: remove this code, after TII with no encryption will be allowed

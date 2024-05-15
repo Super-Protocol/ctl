@@ -14,14 +14,13 @@ import {
   ValueOfferSlot,
 } from '@super-protocol/sdk-js';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
-import { Encryption } from '@super-protocol/dto-js';
+import { Encryption, EncryptionKey } from '@super-protocol/dto-js';
 import Printer from '../printer';
 import {
   checkFetchedOffers,
   FethchedOffer,
   getFetchedOffers,
   getHoldDeposit,
-  getResultEncryption,
 } from '../services/workflowHelpers';
 import { PriceType, SlotUsage, TOfferType } from '../gql';
 import { BigNumber } from 'ethers';
@@ -45,7 +44,8 @@ export type OrderCreateParams = {
   backendUrl: string;
   blockchainConfig: BlockchainConfig;
   offerId: BlockchainId;
-  resultEncryption: Encryption;
+  pccsServiceApiUrl: string;
+  resultEncryption: EncryptionKey;
   slotId?: BlockchainId;
   userDepositAmount?: string;
   minRentMinutes?: number;
@@ -105,8 +105,13 @@ const buildOrderInfo = async (params: {
   offerType: OfferType;
   slot: ValueOfferSlot;
   offerArgsPublicKey: string;
+  pccsServiceApiUrl: string;
 }): Promise<OrderInfo> => {
-  const resultEncryption = getResultEncryption(params.resultEncryption);
+  const orderResultKeys = {
+    publicKey: JSON.stringify(Crypto.getPublicKey(params.resultEncryption)),
+    encryptedInfo: '',
+  };
+
   const getEncryptedArgs = async (
     key: string,
     minRentMinutes?: number,
@@ -139,10 +144,12 @@ const buildOrderInfo = async (params: {
   return {
     args: params.args,
     encryptedArgs,
-    encryptedRequirements: '',
     externalId: generateExternalId(),
     offerId: params.offerId,
-    resultPublicKey: JSON.stringify(resultEncryption),
+    resultInfo: {
+      publicKey: orderResultKeys.publicKey,
+      encryptedInfo: orderResultKeys.encryptedInfo,
+    },
     status: OrderStatus.New,
   };
 };
@@ -206,6 +213,8 @@ const calcDepositBySlot = async (slot: ValueOfferSlot, minRentMinutes = 0): Prom
 
 export default async (params: OrderCreateParams): Promise<string | undefined> => {
   try {
+    const consumerAddress = await initBlockchain(params);
+
     let slotId = params.slotId;
     if (!slotId) {
       const result = await fetchMatchingValueSlots({
@@ -222,6 +231,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       slotId,
     });
     const slot = offer.slots.find((slot) => slot.id === slotId) as ValueOfferSlot;
+
     const orderInfo = await buildOrderInfo({
       args: params.args,
       offerId: params.offerId,
@@ -230,12 +240,12 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       slot,
       offerType: offer.offerInfo.offerType as OfferType,
       offerArgsPublicKey: offer.offerInfo.argsPublicKey,
+      pccsServiceApiUrl: params.pccsServiceApiUrl,
     });
     const slots = buildOrderSlots({
       ...params,
       slotId,
     });
-    const consumerAddress = await initBlockchain(params);
     const holdDeposit = await getHoldDeposit({
       consumerAddress,
       userDepositAmount: params.userDepositAmount,
@@ -282,12 +292,11 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
   } catch (err: unknown) {
     const errorMessage = (err as Error).message;
     Printer.error(`Order was not completed: ${errorMessage}`);
-    await params.analytics?.trackEventCatched({
-      eventName: AnalyticEvent.ORDER_CREATED,
-      eventProperties: {
-        result: 'error',
-        error: errorMessage,
+    await params.analytics?.trackErrorEventCatched(
+      {
+        eventName: AnalyticEvent.ORDER_CREATED,
       },
-    });
+      err,
+    );
   }
 };
