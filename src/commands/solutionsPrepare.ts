@@ -116,24 +116,15 @@ export default async (params: PrepareSolutionParams): Promise<void> => {
 
       const hashStream = createHash(solutionHashAlgo);
 
-      await packFolderService(
-        solutionPath,
-        solutionOutputPath,
-        (total: number, current: number) => {
-          Printer.progress('Packing', total, current);
-        },
-        {
-          follow: true,
-          withoutUpFolder: true,
-          transform: new Transform({
-            transform: (chunk, _encoding, done): void => {
-              hashStream.write(chunk);
+      await packFolderService(solutionPath, solutionOutputPath, {
+        transform: new Transform({
+          transform: (chunk, _encoding, done): void => {
+            hashStream.write(chunk);
 
-              done(null, chunk);
-            },
-          }),
-        },
-      );
+            done(null, chunk);
+          },
+        }),
+      });
 
       Printer.stopProgress();
 
