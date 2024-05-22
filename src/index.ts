@@ -517,7 +517,7 @@ async function main(): Promise<void> {
         actionAccountKey,
         offerType: ordersListOfferTypes[options.type as keyof typeof ordersListOfferTypes],
         ...(options.offers && { offerIds: options.offers }),
-        ...(options.status.length && {
+        ...(options.status?.length && {
           statuses: options.status.map((status: string) => ORDER_STATUS_MAP[status]),
         }),
         ...(options.saveTo && { saveTo: options.saveTo }),
