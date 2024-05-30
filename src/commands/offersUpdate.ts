@@ -37,8 +37,16 @@ class Executor<
 
   async exec(): Promise<void> {
     const currentOfferInfo = await this.instance.getInfo();
-    const updatedOfferInfo = _.defaultsDeep(this.data, currentOfferInfo);
-    await this.instance.setInfo(updatedOfferInfo);
+    const updatedOfferInfo = _.mergeWith(
+      _.cloneDeep(currentOfferInfo),
+      this.data,
+      (_updValue, srcValue) => {
+        if (_.isArray(srcValue)) {
+          return srcValue;
+        }
+      },
+    );
+    await this.instance.setInfo(updatedOfferInfo as TeeOfferInfo & OfferInfo);
   }
 }
 
