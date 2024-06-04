@@ -1,7 +1,16 @@
-import { promises as fs } from 'fs';
+import { promises as fs, createReadStream } from 'fs';
 import encryptFileService from '../services/encryptFile';
 import uploadService from '../services/uploadFile';
-import { Encryption, EncryptionKey, ResourceType, StorageType } from '@super-protocol/dto-js';
+import {
+  Encoding,
+  Encryption,
+  EncryptionKey,
+  Hash,
+  HashAlgorithm,
+  Linkage,
+  ResourceType,
+  StorageType,
+} from '@super-protocol/dto-js';
 import Printer from '../printer';
 import { isCommandSupported } from '../services/uplinkSetupHelper';
 import { generateExternalId, preparePath, tryParse } from '../utils';
@@ -15,6 +24,7 @@ import getOrderResult, { OrderResultError } from '../services/getOrderResult';
 import cancelOrder from '../services/cancelOrder';
 import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, AnalyticsUtils } from '../services/analytics';
+import crypto from 'crypto';
 
 const MAX_ATTEMPT_COUNT = 12;
 const RETRY_TIMEOUT = 5000;
@@ -182,12 +192,13 @@ export default async (params: FilesUploadParams): Promise<void> => {
     return;
   }
 
-  let metadata = {};
+  let metadata: { linkage?: Linkage; hash?: Hash } = {};
+
   if (params.metadataPath) {
     metadata = await readJsonFileService({ path: preparePath(params.metadataPath) });
   }
 
-  let localPath = preparePath(params.localPath).replace(/\/$/, '');
+  const localPath = preparePath(params.localPath).replace(/\/$/, '');
 
   const info = await fs.stat(localPath);
   if (info.isDirectory()) {
@@ -196,17 +207,42 @@ export default async (params: FilesUploadParams): Promise<void> => {
 
   let remotePath = `${params.remotePath || generateExternalId()}`;
   let fileEncryption: Encryption | undefined;
+
+  const originFileStream = createReadStream(localPath);
+
+  const hash = crypto.createHash('sha256');
+
+  if (!metadata.hash?.hash) {
+    originFileStream.on('data', (chunk) => {
+      hash.update(chunk);
+    });
+
+    originFileStream.on('end', () => {
+      const resultHash: Hash = {
+        algo: HashAlgorithm.SHA256,
+        encoding: Encoding.hex,
+        hash: hash.digest(Encoding.hex),
+      };
+      metadata.hash = resultHash;
+    });
+
+    originFileStream.pause();
+  }
+
+  let encryptedFilePath: string | null = null;
   if (params.withEncryption) {
     remotePath += '.encrypted';
     const encryption = await generateEncryptionService();
     const encryptionResult = await encryptFileService(
+      originFileStream,
       localPath,
       encryption,
       (total: number, current: number) => {
         Printer.progress('Encrypting file', total, current);
       },
     );
-    localPath = encryptionResult.encryptedFilePath;
+
+    encryptedFilePath = encryptionResult.encryptedFilePath;
     fileEncryption = encryptionResult.encryption;
   }
 
@@ -258,14 +294,20 @@ export default async (params: FilesUploadParams): Promise<void> => {
       writeCredentials = credentials.write;
     }
 
+    const filePathToUpload = encryptedFilePath || params.localPath;
+    const size = (await fs.stat(filePathToUpload)).size;
+    const uploadFileStream = encryptedFilePath
+      ? createReadStream(encryptedFilePath)
+      : originFileStream;
     await uploadService(
-      localPath,
+      uploadFileStream,
       remotePath,
       {
         storageType: params.storageType,
         credentials: writeCredentials,
         maximumConcurrent: maximumConcurrent,
       },
+      size,
       (total: number, current: number) => {
         Printer.progress('Uploading file', total, current);
       },
