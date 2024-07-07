@@ -2,16 +2,12 @@ import { getStorageProvider, StorageAccess } from '@super-protocol/sdk-js';
 import * as fs from 'fs';
 
 export default async (
-  localPath: string,
+  readStream: fs.ReadStream,
   remotePath: string,
   storageAccess: StorageAccess,
+  size: number,
   progressListener?: (total: number, current: number) => void,
-) => {
+): Promise<void> => {
   const storageProvider = getStorageProvider(storageAccess);
-  await storageProvider.uploadFile(
-    fs.createReadStream(localPath),
-    remotePath,
-    (await fs.promises.stat(localPath)).size,
-    progressListener,
-  );
+  await storageProvider.uploadFile(readStream, remotePath, size, progressListener);
 };
