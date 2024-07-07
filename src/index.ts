@@ -361,9 +361,9 @@ async function main(): Promise<void> {
       [],
     )
     .requiredOption('--storage <id,slot> --storage <id>', 'Storage offer <id> (required)')
-    .requiredOption(
+    .option(
       '--solution <id,slot> --solution <id> --solution <filepath>',
-      'Solution offer <id,slot> or <id>(slot will be auto selected) or resource file path (required and accepts multiple values)',
+      'Solution offer <id,slot> or <id>(slot will be auto selected) or resource file path (accepts multiple values)',
       collectOptions,
       [],
     )
@@ -393,22 +393,15 @@ async function main(): Promise<void> {
       new Option('--skip-hardware-check', 'Skip hardware validation').default(false).hideHelp(),
     )
     .action(async (options: any) => {
-      if (!options.solution.length) {
-        Printer.error(
-          "error: required option '--solution <id> --solution <filepath>' not specified",
-        );
-        return;
-      }
-
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
-      const blockchain = await configLoader.loadSection('blockchain');
+      const backend = configLoader.loadSection('backend');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const { pccsServiceApiUrl } = await configLoader.loadSection('tii');
-      const workflowConfig = await configLoader.loadSection('workflow');
+      const { pccsServiceApiUrl } = configLoader.loadSection('tii');
+      const workflowConfig = configLoader.loadSection('workflow');
       const requestParams: WorkflowCreateParams = {
         analytics: createAnalyticsService(configLoader),
         backendUrl: backend.url,
@@ -517,7 +510,7 @@ async function main(): Promise<void> {
         actionAccountKey,
         offerType: ordersListOfferTypes[options.type as keyof typeof ordersListOfferTypes],
         ...(options.offers && { offerIds: options.offers }),
-        ...(options.status.length && {
+        ...(options.status?.length && {
           statuses: options.status.map((status: string) => ORDER_STATUS_MAP[status]),
         }),
         ...(options.saveTo && { saveTo: options.saveTo }),
