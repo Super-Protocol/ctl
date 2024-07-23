@@ -5,6 +5,7 @@ import { Argument, Command, Option } from 'commander';
 import fs from 'fs';
 import path from 'path';
 
+import packageJson from '../package.json';
 import ConfigLoader from './config';
 import download from './commands/filesDownload';
 import upload from './commands/filesUpload';
@@ -54,7 +55,7 @@ import providersUpdate from './commands/providersUpdate';
 import { TerminatedOrderStatus } from './services/completeOrder';
 import ordersCreate, { OrderCreateParams } from './commands/ordersCreate';
 import { AnalyticEvent, createAnalyticsService } from './services/analytics';
-import packageJson from '../package.json';
+import { secretsCommand } from './commands/secrets';
 
 const ORDER_STATUS_KEYS = Object.keys(OrderStatus) as Array<keyof typeof OrderStatus>;
 const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce(
@@ -93,6 +94,8 @@ async function main(): Promise<void> {
   const offersListCommand = offersCommand.command('list');
   const offersGetCommand = offersCommand.command('get');
   const quotesCommand = program.command('quotes');
+
+  program.addCommand(secretsCommand);
 
   setupCommand.description('Setup config.json').action(async (options: any) => {
     const { config } = ConfigLoader.getRawConfig(options.config);
