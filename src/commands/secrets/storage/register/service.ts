@@ -90,6 +90,7 @@ export const registerStorage = async (
     storageSlotId,
     replicationFactor,
     deposit,
+    copyPreviousData: false,
   });
 
   const orderId = await doWithRetries(checkRequest, retryCount, retryInterval);
