@@ -50,7 +50,7 @@ export const updateAction = async (
       const registerStorageCommand = buildRegisterStorageCommand(offerId, options);
       const msg = [
         `The old storage is not found.`,
-        `If you want to register a storage, please run the following command:\n\n  ./spctl ${registerStorageCommand}`,
+        `If you want to register a storage, please run the following command:\n\n ${registerStorageCommand}`,
       ].join('\n');
 
       Printer.print(msg);
@@ -65,7 +65,7 @@ export const updateAction = async (
       const statusCommand = buildStatusCommand(offerId, options);
       const msg = [
         `The resource has not yet met the replication target.`,
-        ` Please check back later using the command:\n\n ./spctl ${statusCommand}`,
+        ` Please check back later using the command:\n\n ${statusCommand}`,
       ].join('\n');
 
       Printer.print(msg);

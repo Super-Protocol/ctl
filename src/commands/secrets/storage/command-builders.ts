@@ -1,6 +1,7 @@
 import {
   REGISTER_COMMAND,
-  SECRET_COMMAND,
+  SECRETS_COMMAND,
+  SPCTL_COMMAND,
   STATUS_COMMAND,
   STORAGE_COMMAND,
   UPDATE_COMMAND,
@@ -13,7 +14,8 @@ export const buildRegisterStorageCommand = (
   options: RegisterActionOptions,
 ): string => {
   return [
-    SECRET_COMMAND,
+    SPCTL_COMMAND,
+    SECRETS_COMMAND,
     STORAGE_COMMAND,
     REGISTER_COMMAND,
     offerId,
@@ -33,7 +35,8 @@ export const buildUpdateStorageCommand = (
   options: UpdateActionOptions,
 ): string => {
   return [
-    SECRET_COMMAND,
+    SPCTL_COMMAND,
+    SECRETS_COMMAND,
     STORAGE_COMMAND,
     UPDATE_COMMAND,
     offerId,
@@ -53,7 +56,8 @@ export const buildStatusCommand = (
   options: { version?: number; config: string },
 ): string => {
   return [
-    SECRET_COMMAND,
+    SPCTL_COMMAND,
+    SECRETS_COMMAND,
     STORAGE_COMMAND,
     STATUS_COMMAND,
     offerId,
