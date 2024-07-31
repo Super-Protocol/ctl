@@ -1,16 +1,15 @@
 import { Command, Option } from 'commander';
-import { REGISTER_COMMAND } from '../../constants';
-import { registerAction } from './action';
+import { UPDATE_COMMAND } from '../../constants';
+import { updateAction } from './action';
 
-export const registerCommand = new Command(REGISTER_COMMAND)
-  .description('Register secrets storage')
+export const updateCommand = new Command(UPDATE_COMMAND)
+  .description('Update secrets storage')
   .argument('offer-id', 'Solution offer id')
   .option('--version <number>', 'Solution offer version')
   .requiredOption('--storage-offer <id>', 'Storage offer id')
   .requiredOption('--storage-slot <id>', 'Storage slot id')
   .requiredOption('--min-rent <hours>', 'Min rent time in hours')
   .requiredOption('--replication-factor <number>', 'Number of replicas')
-  .option('--force', 'Force storage registration if it has already been registered')
   .addOption(
     new Option('--retry-count <number>')
       .default(25)
@@ -23,4 +22,4 @@ export const registerCommand = new Command(REGISTER_COMMAND)
       .hideHelp(true)
       .argParser((v) => Number(v)),
   )
-  .action(registerAction);
+  .action(updateAction);

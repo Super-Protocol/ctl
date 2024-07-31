@@ -1,25 +1,16 @@
-import { OfferStorageRequest } from '@super-protocol/sdk-js';
-import ConfigLoader from '../../../../config';
 import Printer from '../../../../printer';
-import initBlockchainConnector from '../../../../services/initBlockchainConnector';
-import { buildStatusCommand, buildUpdateStorageCommand } from '../command-builders';
 import { checkParamsToRegisterStorage, registerStorage, RegisterStorageParams } from '../service';
-import { findAllocatedOrderId, findRequestOrderId } from '../../utils';
+import initBlockchainConnector from '../../../../services/initBlockchainConnector';
+import ConfigLoader from '../../../../config';
+import { RegisterActionOptions } from '../register/action';
+import { buildRegisterStorageCommand, buildStatusCommand } from '../command-builders';
+import { findAllocatedOrderId } from '../../utils';
 
-export type RegisterActionOptions = {
-  version?: number;
-  storageOffer: string;
-  storageSlot: string;
-  minRent: number;
-  replicationFactor: number;
-  retryCount: number;
-  retryInterval: number;
-  config: string;
-};
+export type UpdateActionOptions = RegisterActionOptions;
 
-export const registerAction = async (
+export const updateAction = async (
   offerId: string,
-  options: RegisterActionOptions,
+  options: UpdateActionOptions,
 ): Promise<void> => {
   try {
     const configLoader = new ConfigLoader(options.config);
@@ -44,7 +35,7 @@ export const registerAction = async (
     const params: RegisterStorageParams = {
       offerId,
       offerVersion: options.version,
-      copyPreviousData: false, // (!)
+      copyPreviousData: true, // (!)
       replicationFactor: options.replicationFactor,
       storageOfferId: options.storageOffer,
       storageSlotId: options.storageSlot,
@@ -54,12 +45,12 @@ export const registerAction = async (
       pccsServiceApiUrl,
     };
 
-    const storageOrderId = await findStorageOrderId(params);
-    if (storageOrderId) {
-      const updateStorageCommand = buildUpdateStorageCommand(offerId, options);
+    const allocatedOrderId = await findAllocatedOrderId(params);
+    if (!allocatedOrderId) {
+      const registerStorageCommand = buildRegisterStorageCommand(offerId, options);
       const msg = [
-        `Storage already exists (id=${storageOrderId}).`,
-        `If you want to update the storage, please run the following command:\n\n  ./spctl ${updateStorageCommand}`,
+        `The old storage is not found.`,
+        `If you want to register a storage, please run the following command:\n\n  ./spctl ${registerStorageCommand}`,
       ].join('\n');
 
       Printer.print(msg);
@@ -69,7 +60,7 @@ export const registerAction = async (
     const id = await registerStorage(params);
 
     if (id) {
-      Printer.print(`Storage is registered (orderId=${id})`);
+      Printer.print(`Storage is updated (orderId=${id})`);
     } else {
       const statusCommand = buildStatusCommand(offerId, options);
       const msg = [
@@ -82,15 +73,4 @@ export const registerAction = async (
   } catch (err) {
     Printer.error(`Failed to register storage. Error: ${(err as Error).message}`);
   }
-};
-
-export const findStorageOrderId = async (
-  params: Pick<OfferStorageRequest, 'offerId' | 'offerVersion'>,
-): Promise<string | undefined> => {
-  const allocatedOrderId = await findAllocatedOrderId(params);
-  if (allocatedOrderId) {
-    return allocatedOrderId;
-  }
-
-  return findRequestOrderId(params);
 };

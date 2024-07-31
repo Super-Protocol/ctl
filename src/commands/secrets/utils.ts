@@ -9,6 +9,9 @@ import {
   LoaderSecretsPublicKeys,
   LoaderSession,
   LoaderSessions,
+  OffersStorageAllocated,
+  OffersStorageRequests,
+  OfferStorageRequest,
 } from '@super-protocol/sdk-js';
 
 export const validateKeys = async (
@@ -47,4 +50,30 @@ export const getMostRecentlyActiveTeeOfferIds = (params: {
       return validateKeys({ session, secret }, pccsServiceApiUrl);
     },
   });
+};
+
+const parseOrderId = (orderId: string | undefined): string | undefined =>
+  orderId === '0' ? undefined : orderId;
+
+export const findAllocatedOrderId = async (
+  params: Pick<OfferStorageRequest, 'offerId' | 'offerVersion'>,
+): Promise<string | undefined> => {
+  const { offerId, offerVersion } = params;
+  const allocated = await OffersStorageAllocated.getByOfferVersion(offerId, offerVersion);
+  if (allocated) {
+    return parseOrderId(allocated.storageOrderId);
+  }
+  return;
+};
+
+export const findRequestOrderId = async (
+  params: Pick<OfferStorageRequest, 'offerId' | 'offerVersion'>,
+): Promise<string | undefined> => {
+  const { offerId, offerVersion } = params;
+  const request = await OffersStorageRequests.getByOfferVersion(offerId, offerVersion);
+  if (request) {
+    return parseOrderId(request.orderId);
+  }
+
+  return;
 };
