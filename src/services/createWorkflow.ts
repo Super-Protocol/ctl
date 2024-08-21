@@ -105,7 +105,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
     },
   );
 
-  const orderLoaderFn = () =>
+  const orderLoaderFn = (): Promise<string> =>
     Orders.getByExternalId(
       { externalId, consumer: params.consumerAddress },
       workflowCreationBLock.index,
@@ -116,7 +116,5 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       throw new Error("TEE order wasn't created. Try increasing the gas price.");
     });
 
-  const orderId = await doWithRetries(orderLoaderFn);
-
-  return orderId;
+  return doWithRetries(orderLoaderFn);
 };

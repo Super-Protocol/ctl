@@ -1,8 +1,8 @@
 import { getStorageProvider, StorageAccess } from '@super-protocol/sdk-js';
-import * as fs from 'fs';
+import { Readable } from 'stream';
 
 export default async (
-  readStream: fs.ReadStream,
+  readStream: Readable,
   remotePath: string,
   storageAccess: StorageAccess,
   size: number,
