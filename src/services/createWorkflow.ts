@@ -1,3 +1,5 @@
+import { ResourceType } from '@super-protocol/dto-js';
+import { Readable } from 'stream';
 import {
   BlockchainConnector,
   BlockchainId,
@@ -6,11 +8,13 @@ import {
   Orders,
   OrderSlots,
   OrderStatus,
+  StorageAccess,
   TeeOffer,
 } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import { generateExternalId } from '../utils';
 import doWithRetries from './doWithRetries';
+import uploadService from './uploadFile';
 
 export type TeeOfferParams = {
   id: string;
@@ -34,6 +38,50 @@ export type CreateWorkflowParams = {
   argsToEncrypt: string;
   holdDeposit: string;
   consumerAddress: string;
+  storageAccess?: StorageAccess;
+};
+
+const prepareArgsToEncrypt = async (
+  args: string,
+  externalId: string,
+  access: StorageAccess,
+): Promise<string> => {
+  let deserializeArgs: { data: string[]; solution: string[]; image: string[] };
+  try {
+    deserializeArgs = {
+      data: [],
+      solution: [],
+      image: [],
+      ...JSON.parse(args),
+    };
+  } catch (err) {
+    throw new Error(`Invalid args to encrypt: ${(err as Error).message}`);
+  }
+
+  const count =
+    deserializeArgs.data.length + deserializeArgs.solution.length + deserializeArgs.image.length;
+  if (count <= 2) {
+    return args;
+  }
+
+  const remotePath = `orders-data/${externalId}`;
+  const buffer = Buffer.from(args);
+  const stream = new Readable();
+  stream.push(buffer);
+  stream.push(null);
+
+  await uploadService(stream, remotePath, access, buffer.length);
+
+  const result = {
+    resource: {
+      type: ResourceType.StorageProvider,
+      storageType: access.storageType,
+      filepath: remotePath,
+      credentials: access.credentials,
+    },
+  };
+
+  return JSON.stringify(result);
 };
 
 export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
@@ -41,13 +89,13 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
   const teeOffer = new TeeOffer(params.teeOffer.id);
   const offerInfo = await teeOffer.getInfo();
 
-  Printer.print('Encrypting arguments');
-  const encryptedArgs = await Crypto.encrypt(
-    params.argsToEncrypt,
-    JSON.parse(offerInfo.argsPublicKey),
-  );
-
   const externalId = generateExternalId();
+  const argsToEncrypt = params.storageAccess
+    ? await prepareArgsToEncrypt(params.argsToEncrypt, externalId, params.storageAccess)
+    : params.argsToEncrypt;
+
+  Printer.print('Encrypting arguments');
+  const encryptedArgs = await Crypto.encrypt(argsToEncrypt, JSON.parse(offerInfo.argsPublicKey));
 
   const parentOrderInfo: OrderInfo = {
     offerId: params.teeOffer.id,

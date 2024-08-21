@@ -405,6 +405,7 @@ async function main(): Promise<void> {
       };
       const { pccsServiceApiUrl } = configLoader.loadSection('tii');
       const workflowConfig = configLoader.loadSection('workflow');
+      const storageConfig = configLoader.loadSection('storage');
       const requestParams: WorkflowCreateParams = {
         analytics: createAnalyticsService(configLoader),
         backendUrl: backend.url,
@@ -425,6 +426,14 @@ async function main(): Promise<void> {
         ordersLimit: Number(options.ordersLimit),
         pccsServiceApiUrl,
         skipHardwareCheck: options.skipHardwareCheck,
+        readStorageAccess: {
+          storageType: storageConfig.type,
+          credentials: {
+            bucket: storageConfig.bucket,
+            prefix: storageConfig.prefix,
+            token: storageConfig.readAccessToken,
+          },
+        },
       };
 
       await workflowsCreate(requestParams);
