@@ -28,13 +28,13 @@ import {
   getHoldDeposit,
   FethchedOffer,
   getFetchedOffers,
+  divideImagesAndSolutions,
 } from '../services/workflowHelpers';
 import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 import { MINUTES_IN_HOUR } from '../constants';
 import approveTeeTokens from '../services/approveTeeTokens';
 import { AnalyticEvent, IEventProperties, IOrderEventProperties } from '../services/analytics';
 import { EncryptionKey, Linkage } from '@super-protocol/dto-js';
-import { SolutionResourceFileValidator } from '../services/readResourceFile';
 
 export type WorkflowCreateParams = {
   analytics?: Analytics<AnalyticsEvent> | null;
@@ -97,13 +97,16 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     minRentMinutes: params.minRentMinutes,
   }).then(({ offers }) => offers[0]);
 
-  const solutions = await parseInputResourcesService({
+  let solutions = await parseInputResourcesService({
     options: params.solution,
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
     minRentMinutes: params.minRentMinutes,
-    resourceValidator: SolutionResourceFileValidator,
   });
+  const divideImagesAndSolutionResult = await divideImagesAndSolutions(solutions);
+  solutions = divideImagesAndSolutionResult.solutions;
+  const images = divideImagesAndSolutionResult.images;
+
   const solutionIds = solutions.offers.map((offer) => offer.id);
 
   const data = await parseInputResourcesService({
@@ -263,9 +266,8 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     ) || MINUTES_IN_HOUR;
 
   // eslint-disable-next-line prefer-const
-  let { solutionHashes, dataHashes, linkage } = await TIIGenerator.getOffersHashesAndLinkage(
-    solutionIds.concat(dataIds),
-  );
+  let { solutionHashes, dataHashes, imageHashes, linkage } =
+    await TIIGenerator.getOffersHashesAndLinkage(solutionIds.concat(dataIds));
 
   solutions.resourceFiles.forEach((resource) => {
     solutionHashes.push(resource.hash ?? constants.ZERO_HASH);
@@ -275,16 +277,21 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     }
   });
 
+  images.resourceFiles.forEach((resource) => {
+    imageHashes.push(resource.hash ?? constants.ZERO_HASH);
+  });
+
   data.resourceFiles.forEach((resource) => {
     dataHashes.push(resource.hash ?? constants.ZERO_HASH);
   });
 
   Printer.print('Generating input arguments for TEE');
-  const [solutionTIIs, dataTIIs] = await Promise.all([
+  const [solutionTIIs, dataTIIs, imageTIIs] = await Promise.all([
     Promise.all(
       solutions.resourceFiles.map((solution) =>
         TIIGenerator.generateByOffer({
           offerId: tee.id,
+          imageHashes,
           solutionHashes,
           linkageString: linkage,
           resource: solution.resource,
@@ -298,6 +305,21 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
       data.resourceFiles.map((data) =>
         TIIGenerator.generateByOffer({
           offerId: tee.id,
+          imageHashes,
+          solutionHashes,
+          linkageString: linkage,
+          resource: data.resource,
+          args: data.args,
+          encryption: data.encryption!,
+          sgxApiUrl: params.pccsServiceApiUrl,
+        }),
+      ),
+    ),
+    await Promise.all(
+      images.resourceFiles.map((data) =>
+        TIIGenerator.generateByOffer({
+          offerId: tee.id,
+          imageHashes,
           solutionHashes,
           linkageString: linkage,
           resource: data.resource,
@@ -314,6 +336,9 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   }
   if (data.tiis.length) {
     dataTIIs.push(...data.tiis);
+  }
+  if (images.tiis.length) {
+    imageTIIs.push(...images.tiis);
   }
 
   Printer.print('Calculating payment deposit');
@@ -357,6 +382,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     encryptionPrivateKey: params.resultEncryption,
     pccsServiceApiUrl: params.pccsServiceApiUrl,
     solutionHashes,
+    imageHashes,
     dataHashes,
     linkage: linkage || '',
   });
@@ -372,6 +398,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         argsToEncrypt: JSON.stringify({
           data: dataTIIs,
           solution: solutionTIIs,
+          image: imageTIIs,
         }),
         resultPublicKey: orderResultKeys.publicKey,
         encryptedInfo: orderResultKeys.encryptedInfo,
