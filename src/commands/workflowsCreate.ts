@@ -9,8 +9,8 @@ import {
   constants,
   AnalyticsEvent,
   RIGenerator,
-  StorageAccess,
 } from '@super-protocol/sdk-js';
+import { Config } from '../config';
 import Printer from '../printer';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
 import validateOfferWorkflowService from '../services/validateOfferWorkflow';
@@ -59,7 +59,7 @@ export type WorkflowCreateParams = {
   ordersLimit: number;
   skipHardwareCheck: boolean;
   pccsServiceApiUrl: string;
-  readStorageAccess?: StorageAccess;
+  storageAccess: Config['storage'];
 };
 
 const workflowCreate = async (params: WorkflowCreateParams): Promise<string | void> => {
@@ -406,7 +406,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         encryptedInfo: orderResultKeys.encryptedInfo,
         holdDeposit: holdDeposit.toString(),
         consumerAddress: consumerAddress!,
-        storageAccess: params.readStorageAccess,
+        storageAccess: params.storageAccess,
       })
         .then((workflowId) => {
           properties.push({

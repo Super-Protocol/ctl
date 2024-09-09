@@ -8,9 +8,9 @@ import {
   Orders,
   OrderSlots,
   OrderStatus,
-  StorageAccess,
   TeeOffer,
 } from '@super-protocol/sdk-js';
+import { Config } from '../config';
 import Printer from '../printer';
 import { generateExternalId } from '../utils';
 import doWithRetries from './doWithRetries';
@@ -38,13 +38,13 @@ export type CreateWorkflowParams = {
   argsToEncrypt: string;
   holdDeposit: string;
   consumerAddress: string;
-  storageAccess?: StorageAccess;
+  storageAccess: Config['storage'];
 };
 
 const prepareArgsToEncrypt = async (
   args: string,
   externalId: string,
-  access: StorageAccess,
+  storageAccess: CreateWorkflowParams['storageAccess'],
 ): Promise<string> => {
   let deserializeArgs: { data: string[]; solution: string[]; image: string[] };
   try {
@@ -70,14 +70,30 @@ const prepareArgsToEncrypt = async (
   stream.push(buffer);
   stream.push(null);
 
-  await uploadService(stream, remotePath, access, buffer.length);
+  await uploadService(
+    stream,
+    remotePath,
+    {
+      storageType: storageAccess.type,
+      credentials: {
+        bucket: storageAccess.bucket,
+        prefix: storageAccess.prefix,
+        token: storageAccess.writeAccessToken,
+      },
+    },
+    buffer.length,
+  );
 
   const result = {
     resource: {
       type: ResourceType.StorageProvider,
-      storageType: access.storageType,
+      storageType: storageAccess.type,
       filepath: remotePath,
-      credentials: access.credentials,
+      credentials: {
+        bucket: storageAccess.bucket,
+        prefix: storageAccess.prefix,
+        token: storageAccess.readAccessToken,
+      },
     },
   };
 

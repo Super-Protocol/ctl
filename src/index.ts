@@ -426,14 +426,7 @@ async function main(): Promise<void> {
         ordersLimit: Number(options.ordersLimit),
         pccsServiceApiUrl,
         skipHardwareCheck: options.skipHardwareCheck,
-        readStorageAccess: {
-          storageType: storageConfig.type,
-          credentials: {
-            bucket: storageConfig.bucket,
-            prefix: storageConfig.prefix,
-            token: storageConfig.readAccessToken,
-          },
-        },
+        storageAccess: storageConfig,
       };
 
       await workflowsCreate(requestParams);
