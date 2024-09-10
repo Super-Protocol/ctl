@@ -1,4 +1,4 @@
-import { ResourceType } from '@super-protocol/dto-js';
+import { Encryption, ResourceType } from '@super-protocol/dto-js';
 import { Readable } from 'stream';
 import {
   BlockchainConnector,
@@ -45,6 +45,7 @@ const prepareArgsToEncrypt = async (
   args: string,
   externalId: string,
   storageAccess: CreateWorkflowParams['storageAccess'],
+  encryption: Encryption,
 ): Promise<string> => {
   let deserializeArgs: { data: string[]; solution: string[]; image: string[] };
   try {
@@ -65,7 +66,8 @@ const prepareArgsToEncrypt = async (
   }
 
   const remotePath = `orders-data/${externalId}`;
-  const buffer = Buffer.from(args);
+  const encryptedData = JSON.stringify(await Crypto.encrypt(args, encryption));
+  const buffer = Buffer.from(encryptedData);
   const stream = new Readable();
   stream.push(buffer);
   stream.push(null);
@@ -107,7 +109,12 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
 
   const externalId = generateExternalId();
   const argsToEncrypt = params.storageAccess
-    ? await prepareArgsToEncrypt(params.argsToEncrypt, externalId, params.storageAccess)
+    ? await prepareArgsToEncrypt(
+        params.argsToEncrypt,
+        externalId,
+        params.storageAccess,
+        JSON.parse(offerInfo.argsPublicKey),
+      )
     : params.argsToEncrypt;
 
   Printer.print('Encrypting arguments');
