@@ -14,15 +14,15 @@ export type ParseInputResourcesParams = {
   resourceValidator?: ReadResourceFileParams['validator'];
 };
 
-const idRegexp = /^(?:\d+,)?\d+$/;
-
-export default async (
-  params: ParseInputResourcesParams,
-): Promise<{
+export type ParsedInputResource = {
   resourceFiles: ResourceFile[];
   offers: ValueOfferParams[];
   tiis: string[];
-}> => {
+};
+
+const idRegexp = /^(?:\d+,)?\d+$/;
+
+export default async (params: ParseInputResourcesParams): Promise<ParsedInputResource> => {
   const resourceFiles: ResourceFile[] = [],
     offers: ValueOfferParams[] = [],
     tiis: string[] = [];
