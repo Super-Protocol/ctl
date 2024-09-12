@@ -37,7 +37,7 @@ jobs:
                   fi
               shell: bash
             - name: "Save build results for release job"
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with:
                   name: release
                   path: dist/spctl-*
@@ -60,7 +60,7 @@ jobs:
         - name: Create a tarball from a package
           run: npm pack
         - name: "Save package for release job"
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v4
           with:
               name: package
               path: super-protocol-*.tgz
