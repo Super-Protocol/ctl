@@ -75,7 +75,7 @@ const createOrder = async (params: {
     pccsServiceApiUrl,
   } = params;
   Printer.print('Storage order creating...');
-  if (!Array.isArray(storage) || storage.length !== 2) {
+  if (!Array.isArray(storage) || !storage.length) {
     throw Error('Invalid storage param');
   }
 
