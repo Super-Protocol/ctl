@@ -39,7 +39,7 @@ jobs:
             - name: "Save build results for release job"
               uses: actions/upload-artifact@v4
               with:
-                  name: release-${{ matrix.runs-on }}
+                  name: release-${{ matrix.output }}
                   path: dist/spctl-*
                   retention-days: 1
 
