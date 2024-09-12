@@ -17,7 +17,7 @@ import { generateExternalId, preparePath, tryParse } from '../utils';
 import readJsonFileService from '../services/readJsonFile';
 import generateEncryptionService from '../services/generateEncryption';
 import ordersCreateCommand from './ordersCreate';
-import { Analytics, Crypto, OfferType } from '@super-protocol/sdk-js';
+import { Analytics, Crypto, OfferType, parseStorageCredentials } from '@super-protocol/sdk-js';
 import { Config as BlockchainConfig } from '@super-protocol/sdk-js';
 import doWithRetries from '../services/doWithRetries';
 import getOrderResult, { OrderResultError } from '../services/getOrderResult';
@@ -52,7 +52,7 @@ export type FilesUploadParams = {
   pccsServiceApiUrl: string;
 };
 
-const createOrder = async (params: {
+export type CreateOrderParams = {
   analytics?: FilesUploadParams['analytics'];
   storage: FilesUploadParams['storage'];
   minRentMinutes: FilesUploadParams['minRentMinutes'];
@@ -62,7 +62,9 @@ const createOrder = async (params: {
   blockchainConfig: FilesUploadParams['blockchainConfig'];
   resultEncryption: FilesUploadParams['resultEncryption'];
   pccsServiceApiUrl: FilesUploadParams['pccsServiceApiUrl'];
-}): Promise<string> => {
+};
+
+export const createOrder = async (params: CreateOrderParams): Promise<string> => {
   const {
     analytics,
     storage,
@@ -75,7 +77,7 @@ const createOrder = async (params: {
     pccsServiceApiUrl,
   } = params;
   Printer.print('Storage order creating...');
-  if (!Array.isArray(storage) || storage.length !== 2) {
+  if (!Array.isArray(storage) || !storage.length) {
     throw Error('Invalid storage param');
   }
 
@@ -110,7 +112,8 @@ interface ICredentials {
   bucket: string;
   prefix: string;
 }
-const getCredentials = async (params: {
+
+export const getCredentials = async (params: {
   accessToken: string;
   analytics?: Analytics<AnalyticsEvent> | null;
   backendUrl: string;
@@ -151,25 +154,14 @@ const getCredentials = async (params: {
     });
 
     Printer.print('Extracting data...');
-    const result = tryParse(decryptedResult) as {
-      downloadCredentials: string;
-      uploadCredentials: string;
-    };
-    const setCredentials = (deserializedValue: string): ICredentials => {
-      const credentials = tryParse(deserializedValue);
-      if (!credentials) {
-        throw Error('Invalid credentials');
-      }
-      return {
-        token: credentials.token,
-        bucket: credentials.bucket,
-        prefix: credentials.prefix,
-      };
-    };
+    const credentials = parseStorageCredentials<StorageType.StorJ>(decryptedResult);
+    if (!credentials.uploadCredentials || !credentials.downloadCredentials) {
+      throw new Error('Invalid credentials');
+    }
 
     return {
-      read: setCredentials(result.downloadCredentials),
-      write: setCredentials(result.uploadCredentials),
+      read: credentials.downloadCredentials,
+      write: credentials.uploadCredentials,
     };
   } catch (err: unknown) {
     if (err instanceof OrderResultError) {
