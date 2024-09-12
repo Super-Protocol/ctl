@@ -125,13 +125,13 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       },
     };
 
-    Printer.print('Order args will be stored into distributed storage');
+    Printer.print('Order arguments will be stored in distributed storage');
     if (!isStorageConfigValid(params.storageAccess)) {
       const storageOrderId = await createOrder({
         ...params,
         storage: [params.storageOffer.id],
       });
-      Printer.print(`Storage order has been created successfully (id=${storageOrderId})`);
+      Printer.print(`The storage order has been created successfully (id=${storageOrderId})`);
 
       const credentials = await getCredentials({
         ...params,
@@ -148,7 +148,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       access,
       encryption: JSON.parse(offerInfo.argsPublicKey),
     });
-    Printer.print("Order's args has been uploaded into distributed storage successfully");
+    Printer.print('Order arguments have been successfully uploaded to distributed storage.');
   }
 
   Printer.print('Encrypting arguments');
