@@ -394,6 +394,14 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   for (let pos = 0; pos < params.workflowNumber; pos++) {
     workflowPromises[pos] = new Promise((resolve) => {
       createWorkflowService({
+        accessToken: params.accessToken,
+        actionAccountKey: params.actionAccountKey,
+        backendUrl: params.backendUrl,
+        blockchainConfig: params.blockchainConfig,
+        minRentMinutes: 3 * 24 * MINUTES_IN_HOUR,
+        pccsServiceApiUrl: params.pccsServiceApiUrl,
+        resultEncryption: params.resultEncryption,
+        analytics: params.analytics,
         teeOffer: teeOfferParams,
         storageOffer: storage,
         inputOffers: inputOffersParams,
