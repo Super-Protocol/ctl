@@ -52,7 +52,7 @@ export type FilesUploadParams = {
   pccsServiceApiUrl: string;
 };
 
-const createOrder = async (params: {
+export type CreateOrderParams = {
   analytics?: FilesUploadParams['analytics'];
   storage: FilesUploadParams['storage'];
   minRentMinutes: FilesUploadParams['minRentMinutes'];
@@ -62,7 +62,9 @@ const createOrder = async (params: {
   blockchainConfig: FilesUploadParams['blockchainConfig'];
   resultEncryption: FilesUploadParams['resultEncryption'];
   pccsServiceApiUrl: FilesUploadParams['pccsServiceApiUrl'];
-}): Promise<string> => {
+};
+
+export const createOrder = async (params: CreateOrderParams): Promise<string> => {
   const {
     analytics,
     storage,
@@ -110,7 +112,8 @@ interface ICredentials {
   bucket: string;
   prefix: string;
 }
-const getCredentials = async (params: {
+
+export const getCredentials = async (params: {
   accessToken: string;
   analytics?: Analytics<AnalyticsEvent> | null;
   backendUrl: string;

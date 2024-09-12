@@ -8,6 +8,7 @@ import {
   Orders,
   OrderSlots,
   OrderStatus,
+  StorageAccess,
   TeeOffer,
 } from '@super-protocol/sdk-js';
 import { Config } from '../config';
@@ -15,6 +16,7 @@ import Printer from '../printer';
 import { generateExternalId } from '../utils';
 import doWithRetries from './doWithRetries';
 import uploadService from './uploadFile';
+import { createOrder, CreateOrderParams, getCredentials } from '../commands/filesUpload';
 
 export type TeeOfferParams = {
   id: string;
@@ -29,7 +31,7 @@ export type ValueOfferParams = {
   slotId: string;
 };
 
-export type CreateWorkflowParams = {
+export type CreateWorkflowParams = Omit<CreateOrderParams, 'storage'> & {
   teeOffer: TeeOfferParams;
   storageOffer: ValueOfferParams;
   inputOffers: ValueOfferParams[];
@@ -41,29 +43,40 @@ export type CreateWorkflowParams = {
   storageAccess: Config['storage'];
 };
 
-const prepareArgsToEncrypt = async (
-  args: string,
-  externalId: string,
-  storageAccess: CreateWorkflowParams['storageAccess'],
-  encryption: Encryption,
-): Promise<string> => {
-  let deserializeArgs: { data: string[]; solution: string[]; image: string[] };
+type TiiBlock = { data: string[]; solution: string[]; image: string[] };
+const useStorage = (args: string): boolean => {
   try {
-    deserializeArgs = {
+    const deserializeArgs: TiiBlock = {
       data: [],
       solution: [],
       image: [],
       ...JSON.parse(args),
     };
+
+    const count =
+      deserializeArgs.data.length + deserializeArgs.solution.length + deserializeArgs.image.length;
+
+    return count > 2;
   } catch (err) {
     throw new Error(`Invalid args to encrypt: ${(err as Error).message}`);
   }
+};
 
-  const count =
-    deserializeArgs.data.length + deserializeArgs.solution.length + deserializeArgs.image.length;
-  if (count <= 2) {
-    return args;
-  }
+const isStorageConfigValid = (access: CreateWorkflowParams['storageAccess']): boolean =>
+  Boolean(access.bucket && access.readAccessToken && access.writeAccessToken);
+
+type UploadCredentials = {
+  read: StorageAccess;
+  write: StorageAccess;
+};
+
+const uploadToStorage = async (params: {
+  args: string;
+  externalId: string;
+  access: UploadCredentials;
+  encryption: Encryption;
+}): Promise<string> => {
+  const { args, externalId, encryption } = params;
 
   const remotePath = `orders-data/${externalId}`;
   const encryptedData = JSON.stringify(await Crypto.encrypt(args, encryption));
@@ -72,30 +85,13 @@ const prepareArgsToEncrypt = async (
   stream.push(buffer);
   stream.push(null);
 
-  await uploadService(
-    stream,
-    remotePath,
-    {
-      storageType: storageAccess.type,
-      credentials: {
-        bucket: storageAccess.bucket,
-        prefix: storageAccess.prefix,
-        token: storageAccess.writeAccessToken,
-      },
-    },
-    buffer.length,
-  );
+  await uploadService(stream, remotePath, params.access.write, buffer.length);
 
   const result = {
     resource: {
       type: ResourceType.StorageProvider,
-      storageType: storageAccess.type,
       filepath: remotePath,
-      credentials: {
-        bucket: storageAccess.bucket,
-        prefix: storageAccess.prefix,
-        token: storageAccess.readAccessToken,
-      },
+      ...params.access.read,
     },
   };
 
@@ -108,14 +104,52 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
   const offerInfo = await teeOffer.getInfo();
 
   const externalId = generateExternalId();
-  const argsToEncrypt = params.storageAccess
-    ? await prepareArgsToEncrypt(
-        params.argsToEncrypt,
-        externalId,
-        params.storageAccess,
-        JSON.parse(offerInfo.argsPublicKey),
-      )
-    : params.argsToEncrypt;
+  let argsToEncrypt = params.argsToEncrypt;
+  if (useStorage(argsToEncrypt)) {
+    const access: UploadCredentials = {
+      read: {
+        storageType: params.storageAccess.type,
+        credentials: {
+          bucket: params.storageAccess.bucket,
+          prefix: params.storageAccess.prefix,
+          token: params.storageAccess.readAccessToken,
+        },
+      },
+      write: {
+        storageType: params.storageAccess.type,
+        credentials: {
+          bucket: params.storageAccess.bucket,
+          prefix: params.storageAccess.prefix,
+          token: params.storageAccess.writeAccessToken,
+        },
+      },
+    };
+
+    Printer.print('Order args will be stored into distributed storage');
+    if (!isStorageConfigValid(params.storageAccess)) {
+      const storageOrderId = await createOrder({
+        ...params,
+        storage: [params.storageOffer.id],
+      });
+      Printer.print(`Storage order has been created successfully (id=${storageOrderId})`);
+
+      const credentials = await getCredentials({
+        ...params,
+        key: params.resultEncryption.key,
+        orderId: storageOrderId,
+      });
+
+      access.read.credentials = credentials.read;
+      access.write.credentials = credentials.write;
+    }
+    argsToEncrypt = await uploadToStorage({
+      args: params.argsToEncrypt,
+      externalId,
+      access,
+      encryption: JSON.parse(offerInfo.argsPublicKey),
+    });
+    Printer.print("Order's args has been uploaded into distributed storage successfully");
+  }
 
   Printer.print('Encrypting arguments');
   const encryptedArgs = await Crypto.encrypt(argsToEncrypt, JSON.parse(offerInfo.argsPublicKey));
