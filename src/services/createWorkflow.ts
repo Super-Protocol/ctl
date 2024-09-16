@@ -130,7 +130,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
 
   Printer.print('Encrypting arguments');
   const encryptedArgs = await helpers.OrderArgsHelper.encryptOrderArgs(
-    storageProviderResource || teeOrderArgsToEncrypt,
+    { resource: storageProviderResource } || teeOrderArgsToEncrypt,
     JSON.parse(offerInfo.argsPublicKey),
   );
 
