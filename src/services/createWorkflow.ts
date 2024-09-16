@@ -1,4 +1,9 @@
-import { Encryption, StorageProviderResource, StorjCredentials } from '@super-protocol/dto-js';
+import {
+  Encryption,
+  StorageProviderResource,
+  StorjCredentials,
+  TeeOrderEncryptedArgs,
+} from '@super-protocol/dto-js';
 import {
   BlockchainConnector,
   BlockchainId,
@@ -61,7 +66,7 @@ const createStorageOrderByOfferId = async (
 
 const processUploadToStorage = async (
   params: CreateWorkflowParams & {
-    teeOrderArgsToEncrypt: helpers.TeeOrderEncryptedArgs;
+    teeOrderArgsToEncrypt: TeeOrderEncryptedArgs;
     key: string;
     encryption: Encryption;
   },
@@ -108,7 +113,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
   const teeOffer = new TeeOffer(params.teeOffer.id);
   const offerInfo = await teeOffer.getInfo();
   const externalId = generateExternalId();
-  let teeOrderArgsToEncrypt: helpers.TeeOrderEncryptedArgs | null = null;
+  let teeOrderArgsToEncrypt: TeeOrderEncryptedArgs | null = null;
   let storageProviderResource: StorageProviderResource | null = null;
   try {
     teeOrderArgsToEncrypt = JSON.parse(params.argsToEncrypt);
