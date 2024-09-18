@@ -456,6 +456,7 @@ export type OfferConfiguration = {
   /** @deprecated use minTimeMinutes/maxTimeMinutes instead */
   time: Array<Scalars['Float']>;
   traffic: Scalars['Float'];
+  vram: Scalars['Float'];
 };
 
 export type OfferConnection = {
@@ -471,6 +472,8 @@ export type OfferEdge = {
 };
 
 export type OfferFilter = {
+  /** filter by enabled, "false" by default */
+  enabled?: InputMaybe<Scalars['Boolean']>;
   /** exclude offers with selected ids */
   excludeIds?: InputMaybe<Array<Scalars['String']>>;
   /** exclude filter by offerInfo -> restrictions -> type */
@@ -1339,6 +1342,7 @@ export type SlotInfo = {
   diskUsage: Scalars['Float'];
   gpuCores: Scalars['Float'];
   ram: Scalars['Float'];
+  vram: Scalars['Float'];
 };
 
 export type SlotInfoInput = {
@@ -1346,6 +1350,7 @@ export type SlotInfoInput = {
   diskUsage: Scalars['Float'];
   gpuCores: Scalars['Float'];
   ram: Scalars['Float'];
+  vram: Scalars['Float'];
 };
 
 export type SlotUsage = {
@@ -1579,6 +1584,8 @@ export type TeeOfferFilter = {
   traffic?: InputMaybe<Scalars['Float']>;
   /** filter by slot/option usage → minTimeMinutes,maxTimeMinutes */
   usageMinutes?: InputMaybe<Scalars['Float']>;
+  /** filter by teeOfferInfo.hardwareInfo.slotInfo → vram */
+  vram?: InputMaybe<Array<Scalars['Float']>>;
 };
 
 export type TeeOfferInfo = {
@@ -1651,10 +1658,12 @@ export type TeeOfferSlotInput = {
 
 export type TeeOfferTcb = {
   __typename?: 'TeeOfferTcb';
+  checkedAt?: Maybe<Scalars['Float']>;
   id: Scalars['String'];
 };
 
 export type TeeOfferTcbInputType = {
+  checkedAt?: InputMaybe<Scalars['Float']>;
   id: Scalars['String'];
 };
 
@@ -1714,6 +1723,7 @@ export type ValidationErrors = {
   minTimeMinutes?: Maybe<ResourceRequirement>;
   ram?: Maybe<ResourceRequirement>;
   traffic?: Maybe<ResourceRequirement>;
+  vram?: Maybe<ResourceRequirement>;
 };
 
 export type ValidationResult = {
@@ -1829,7 +1839,7 @@ export type OffersQueryVariables = Exact<{
 }>;
 
 
-export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, metadata: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, linkage: string, hash: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
+export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, metadata: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, linkage: string, hash: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number, vram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
 
 export type OffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1852,14 +1862,14 @@ export type MinimalConfigurationQueryVariables = Exact<{
 }>;
 
 
-export type MinimalConfigurationQuery = { __typename?: 'Query', result: { __typename?: 'OfferConfiguration', cpuCores: number, ram: number, diskUsage: number, bandwidth: number, traffic: number, externalPort: number } };
+export type MinimalConfigurationQuery = { __typename?: 'Query', result: { __typename?: 'OfferConfiguration', cpuCores: number, ram: number, vram: number, diskUsage: number, bandwidth: number, traffic: number, externalPort: number } };
 
 export type ValidateConfiguraionQueryVariables = Exact<{
   input: WorkflowConfigurationValidation;
 }>;
 
 
-export type ValidateConfiguraionQuery = { __typename?: 'Query', result: { __typename?: 'ValidationResult', success: boolean, errors?: { __typename?: 'ValidationErrors', cpuCores?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, diskUsage?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, ram?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, bandwidth?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, traffic?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, externalPort?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, gpuCores?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null } | null } };
+export type ValidateConfiguraionQuery = { __typename?: 'Query', result: { __typename?: 'ValidationResult', success: boolean, errors?: { __typename?: 'ValidationErrors', cpuCores?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, diskUsage?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, ram?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, vram?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, bandwidth?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, traffic?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, externalPort?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null, gpuCores?: { __typename?: 'ResourceRequirement', required: number, provided: number } | null } | null } };
 
 export type AutoSelectValueSlotsQueryVariables = Exact<{
   minTimeMinutes?: InputMaybe<Scalars['Int']>;
@@ -2032,6 +2042,7 @@ export const OffersDocument = gql`
               gpuCores
               diskUsage
               ram
+              vram
             }
             usage {
               maxTimeMinutes
@@ -2115,6 +2126,7 @@ export const MinimalConfigurationDocument = gql`
   result: getMinimalConfiguration(offers: $offers) {
     cpuCores
     ram
+    vram
     diskUsage
     bandwidth
     traffic
@@ -2136,6 +2148,10 @@ export const ValidateConfiguraionDocument = gql`
         provided
       }
       ram {
+        required
+        provided
+      }
+      vram {
         required
         provided
       }

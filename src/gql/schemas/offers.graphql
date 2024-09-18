@@ -43,6 +43,7 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                             gpuCores
                             diskUsage
                             ram
+                            vram
                         }
                         usage {
                             maxTimeMinutes
@@ -123,6 +124,7 @@ query MinimalConfiguration($offers: [[String!]!]!) {
   result: getMinimalConfiguration(offers: $offers) {
     cpuCores
     ram
+    vram
     diskUsage
     bandwidth
     traffic
@@ -143,6 +145,10 @@ query validateConfiguraion($input: WorkflowConfigurationValidation!) {
         provided
       }
       ram {
+        required
+        provided
+      }
+      vram {
         required
         provided
       }
