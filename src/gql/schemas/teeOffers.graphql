@@ -37,6 +37,7 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                                 cpuCores
                                 gpuCores
                                 ram
+                                vram
                                 diskUsage
                             }
                             optionInfo {
@@ -54,6 +55,7 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                             gpuCores
                             diskUsage
                             ram
+                            vram
                         }
                         usage {
                             maxTimeMinutes
