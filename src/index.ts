@@ -972,6 +972,7 @@ async function main(): Promise<void> {
     .description('Create offer')
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
     .option('--path <filepath>', 'path to offer info json file', './offerInfo.json')
+    .option('--configuration <filepath>', 'path to configuration schema')
     .option(
       '--yes',
       'if true, then the command automatically refills the security deposit to create an offer',
@@ -979,7 +980,8 @@ async function main(): Promise<void> {
     )
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
+      const storageConfig = configLoader.loadSection('storage');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -994,6 +996,8 @@ async function main(): Promise<void> {
         actionAccountKey,
         offerInfoPath: options.path,
         enableAutoDeposit: options.yes,
+        storageConfig,
+        configurationPath: options.configuration,
       });
     });
 
@@ -1003,9 +1007,11 @@ async function main(): Promise<void> {
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
     .argument('id', 'Offer <id>')
     .requiredOption('--path <filepath>', 'path to offer info', './offerInfo.json')
+    .option('--configuration <filepath>', 'path to configuration schema')
     .action(async (type: 'tee' | 'value', id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
+      const storageConfig = configLoader.loadSection('storage');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1018,6 +1024,8 @@ async function main(): Promise<void> {
         actionAccountKey,
         blockchainConfig,
         offerInfoPath: options.path,
+        storageConfig,
+        configurationPath: options.configuration,
       });
     });
 

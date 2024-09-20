@@ -5,6 +5,9 @@ import createValueOffer from '../services/createValueOffer';
 import createTeeOffer from '../services/createTeeOffer';
 import { readValueOfferInfo } from '../services/readValueOfferInfo';
 import { readTeeOfferInfo } from '../services/readTeeOfferInfo';
+import { Config } from '../config';
+import readJsonFile from '../services/readJsonFile';
+import { uploadOfferInput } from '../services/uploadOfferInput';
 
 export type OffersCreateParams = {
   blockchainConfig: BlockchainConfig;
@@ -13,6 +16,8 @@ export type OffersCreateParams = {
   actionAccountKey: string;
   offerInfoPath: string;
   enableAutoDeposit: boolean;
+  storageConfig: Config['storage'];
+  configurationPath?: string;
 };
 
 export default async (params: OffersCreateParams): Promise<void> => {
@@ -47,6 +52,20 @@ export default async (params: OffersCreateParams): Promise<void> => {
       });
 
       Printer.print('Offer info file was read successfully');
+
+      if (params.configurationPath) {
+        const configuration = await readJsonFile({ path: params.configurationPath });
+        const input = { configuration };
+        const inputResource = await uploadOfferInput({
+          data: input,
+          offerName: offerInfo.name,
+          storageConfig: params.storageConfig,
+        });
+
+        offerInfo.input = JSON.stringify(inputResource);
+
+        Printer.print('Offer configuration was saved successfully');
+      }
 
       id = await createValueOffer({
         authority: params.authorityAccountKey,

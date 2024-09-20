@@ -1,9 +1,4 @@
-import {
-  Encryption,
-  StorageProviderResource,
-  StorjCredentials,
-  TeeOrderEncryptedArgs,
-} from '@super-protocol/dto-js';
+import { Encryption, StorageProviderResource, TeeOrderEncryptedArgs } from '@super-protocol/dto-js';
 import {
   BlockchainConnector,
   BlockchainId,
@@ -16,7 +11,7 @@ import {
 } from '@super-protocol/sdk-js';
 import { Config } from '../config';
 import Printer from '../printer';
-import { generateExternalId } from '../utils';
+import { convertReadWriteStorageAccess, generateExternalId, isStorageConfigValid } from '../utils';
 import doWithRetries from './doWithRetries';
 import { createOrder, CreateOrderParams, getCredentials } from '../commands/filesUpload';
 
@@ -45,23 +40,31 @@ export type CreateWorkflowParams = Omit<CreateOrderParams, 'storage'> & {
   storageAccess: Config['storage'];
 };
 
-const isStorageConfigValid = (access: CreateWorkflowParams['storageAccess']): boolean =>
-  Boolean(access.bucket && access.readAccessToken && access.writeAccessToken);
-
 const createStorageOrderByOfferId = async (
   params: CreateWorkflowParams,
-): Promise<ReturnType<typeof getCredentials>> => {
+): Promise<helpers.ReadWriteStorageAccess> => {
   const storageOrderId = await createOrder({
     ...params,
     storage: [params.storageOffer.id],
   });
   Printer.print(`The storage order has been created successfully (id=${storageOrderId})`);
 
-  return getCredentials({
+  const credentials = await getCredentials({
     ...params,
     key: params.resultEncryption.key,
     orderId: storageOrderId,
   });
+
+  return {
+    read: {
+      storageType: params.storageAccess.type,
+      credentials: credentials.read,
+    },
+    write: {
+      storageType: params.storageAccess.type,
+      credentials: credentials.write,
+    },
+  };
 };
 
 const processUploadToStorage = async (
@@ -72,35 +75,14 @@ const processUploadToStorage = async (
   },
 ): Promise<StorageProviderResource> => {
   Printer.print('TEE order arguments will be stored in distributed storage');
-  const storageCredentials: { read: StorjCredentials; write: StorjCredentials } =
-    isStorageConfigValid(params.storageAccess)
-      ? {
-          read: {
-            bucket: params.storageAccess.bucket,
-            prefix: params.storageAccess.prefix,
-            token: params.storageAccess.readAccessToken,
-          },
-          write: {
-            bucket: params.storageAccess.bucket,
-            prefix: params.storageAccess.prefix,
-            token: params.storageAccess.writeAccessToken,
-          },
-        }
-      : await createStorageOrderByOfferId(params);
+  const storageAccess: helpers.ReadWriteStorageAccess = isStorageConfigValid(params.storageAccess)
+    ? convertReadWriteStorageAccess(params.storageAccess)
+    : await createStorageOrderByOfferId(params);
 
   const resource = await helpers.OrderArgsHelper.uploadToStorage({
     args: params.teeOrderArgsToEncrypt,
     key: params.key,
-    access: {
-      read: {
-        storageType: params.storageAccess.type,
-        credentials: storageCredentials.read,
-      },
-      write: {
-        storageType: params.storageAccess.type,
-        credentials: storageCredentials.write,
-      },
-    },
+    access: storageAccess,
     encryption: params.encryption,
   });
   Printer.print('Order arguments have been successfully uploaded to distributed storage.');
