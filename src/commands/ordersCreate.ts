@@ -146,6 +146,7 @@ const buildOrderInfo = async (params: {
     encryptedArgs,
     externalId: generateExternalId(),
     offerId: params.offerId,
+    offerVersion: 0,
     resultInfo: {
       publicKey: orderResultKeys.publicKey,
       encryptedInfo: orderResultKeys.encryptedInfo,

@@ -30,7 +30,6 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                         description
                         teeType
                         properties
-                        tlb
                         argsPublicKey
                         hardwareInfo {
                             slotInfo {

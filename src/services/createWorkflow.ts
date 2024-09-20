@@ -123,11 +123,14 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
 
   const parentOrderInfo: OrderInfo = {
     offerId: params.teeOffer.id,
+    offerVersion: 0,
     externalId: externalId,
     status: OrderStatus.New,
     args: {
-      inputOffers: params.inputOffers.map((offer) => offer.id),
-      outputOffer: params.storageOffer.id,
+      inputOffersIds: params.inputOffers.map((offer) => offer.id),
+      outputOfferId: params.storageOffer.id,
+      outputOfferVersion: 0,
+      inputOffersVersions: [],
     },
     encryptedArgs,
     resultInfo: {
@@ -144,11 +147,14 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
 
   const subOrdersInfo: OrderInfo[] = params.inputOffers.map((subOrderParams) => ({
     offerId: subOrderParams.id,
+    offerVersion: 0,
     externalId: generateExternalId(),
     status: OrderStatus.New,
     args: {
-      inputOffers: [],
-      outputOffer: params.storageOffer.id,
+      inputOffersIds: [],
+      outputOfferId: params.storageOffer.id,
+      inputOffersVersions: [],
+      outputOfferVersion: 0,
     },
     encryptedArgs: '',
     resultInfo: {

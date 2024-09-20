@@ -708,13 +708,17 @@ export type Order = {
 
 export type OrderArgs = {
   __typename?: 'OrderArgs';
-  inputOffers: Array<Scalars['String']>;
-  outputOffer: Scalars['String'];
+  inputOffersIds: Array<Scalars['String']>;
+  inputOffersVersions: Array<Scalars['Float']>;
+  outputOfferId: Scalars['String'];
+  outputOfferVersion: Scalars['Float'];
 };
 
 export type OrderArgsInput = {
-  inputOffers: Array<Scalars['String']>;
-  outputOffer: Scalars['String'];
+  inputOffersIds: Array<Scalars['String']>;
+  inputOffersVersions: Array<Scalars['Float']>;
+  outputOfferId: Scalars['String'];
+  outputOfferVersion: Scalars['Float'];
 };
 
 export type OrderConnection = {
@@ -774,6 +778,7 @@ export type OrderInfo = {
   encryptedArgs: Scalars['String'];
   externalId: Scalars['String'];
   offerId: Scalars['String'];
+  offerVersion: Scalars['Float'];
   resultInfo: OrderResultInfo;
   /**
    * description of values:
@@ -806,6 +811,7 @@ export type OrderInfoInput = {
   encryptedArgs: Scalars['String'];
   externalId: Scalars['String'];
   offerId: Scalars['String'];
+  offerVersion: Scalars['Float'];
   resultInfo: OrderResultInfoInput;
   /**
    * description of values:
@@ -1596,7 +1602,6 @@ export type TeeOfferInfo = {
   name: Scalars['String'];
   properties: Scalars['String'];
   teeType: Scalars['String'];
-  tlb: Scalars['String'];
 };
 
 export type TeeOfferInfoInput = {
@@ -1606,7 +1611,6 @@ export type TeeOfferInfoInput = {
   name: Scalars['String'];
   properties: Scalars['String'];
   teeType: Scalars['String'];
-  tlb: Scalars['String'];
 };
 
 export type TeeOfferInputType = {
@@ -1907,7 +1911,7 @@ export type OrderQueryVariables = Exact<{
 }>;
 
 
-export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offerId: string, args: { __typename?: 'OrderArgs', inputOffers: Array<string>, outputOffer: string }, resultInfo: { __typename?: 'OrderResultInfo', encryptedInfo: string, publicKey: string } }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null }, parentOrder?: { __typename?: 'ParentOrder', id: string, offerType: TOfferType } | null } };
+export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offerId: string, args: { __typename?: 'OrderArgs', inputOffersIds: Array<string>, outputOfferId: string, inputOffersVersions: Array<number>, outputOfferVersion: number }, resultInfo: { __typename?: 'OrderResultInfo', encryptedInfo: string, publicKey: string } }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null }, parentOrder?: { __typename?: 'ParentOrder', id: string, offerType: TOfferType } | null } };
 
 export type SubOrdersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -1931,7 +1935,7 @@ export type TeeOffersQueryVariables = Exact<{
 }>;
 
 
-export type TeeOffersQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', _id: string, id: string, authority: string, disabledAfter: number, enabled: boolean, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, teeOfferInfo: { __typename?: 'TeeOfferInfo', name: string, description: string, teeType: string, properties: string, tlb: string, argsPublicKey: string, hardwareInfo: { __typename?: 'HardwareInfo', slotInfo: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, ram: number, vram: number, diskUsage: number }, optionInfo: { __typename?: 'OptionInfo', bandwidth: number, traffic: number, externalPort: number } } }, slots: Array<{ __typename?: 'TeeOfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number, vram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, options: Array<{ __typename?: 'TeeOfferOption', id: string, info: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, stats?: { __typename?: 'Stats', freeCores?: number | null, ordersInQueue?: number | null, new?: number | null, processing?: number | null } | null } | null }> | null, pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
+export type TeeOffersQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'TeeOfferConnection', edges?: Array<{ __typename?: 'TeeOfferEdge', cursor?: string | null, node?: { __typename?: 'TeeOffer', _id: string, id: string, authority: string, disabledAfter: number, enabled: boolean, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, teeOfferInfo: { __typename?: 'TeeOfferInfo', name: string, description: string, teeType: string, properties: string, argsPublicKey: string, hardwareInfo: { __typename?: 'HardwareInfo', slotInfo: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, ram: number, vram: number, diskUsage: number }, optionInfo: { __typename?: 'OptionInfo', bandwidth: number, traffic: number, externalPort: number } } }, slots: Array<{ __typename?: 'TeeOfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number, vram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, options: Array<{ __typename?: 'TeeOfferOption', id: string, info: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } }>, stats?: { __typename?: 'Stats', freeCores?: number | null, ordersInQueue?: number | null, new?: number | null, processing?: number | null } | null } | null }> | null, pageInfo?: { __typename?: 'TeeOfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null } } };
 
 export type TeeOffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -2312,8 +2316,10 @@ export const OrderDocument = gql`
       status
       offerId
       args {
-        inputOffers
-        outputOffer
+        inputOffersIds
+        outputOfferId
+        inputOffersVersions
+        outputOfferVersion
       }
       resultInfo {
         encryptedInfo
@@ -2455,7 +2461,6 @@ export const TeeOffersDocument = gql`
             description
             teeType
             properties
-            tlb
             argsPublicKey
             hardwareInfo {
               slotInfo {

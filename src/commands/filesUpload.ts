@@ -89,8 +89,10 @@ export const createOrder = async (params: CreateOrderParams): Promise<string> =>
     actionAccountKey,
     pccsServiceApiUrl,
     args: {
-      inputOffers: [],
-      outputOffer: '0',
+      inputOffersIds: [],
+      outputOfferId: '0',
+      inputOffersVersions: [],
+      outputOfferVersion: 0,
     },
     backendUrl,
     blockchainConfig,
