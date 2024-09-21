@@ -130,7 +130,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       inputOffersIds: params.inputOffers.map((offer) => offer.id),
       outputOfferId: params.storageOffer.id,
       outputOfferVersion: 0,
-      inputOffersVersions: [],
+      inputOffersVersions: params.inputOffers.map(() => 0),
     },
     encryptedArgs,
     resultInfo: {

@@ -31,7 +31,7 @@ export default async (params: FetchOrdersCountParams): Promise<number> => {
     return result.pageData?.count || 0;
   } catch (error: any) {
     let message = 'Fetching orders count error';
-    if (error?.response?.errors[0]?.message) message += ': ' + error.response.errors[0].message;
+    if (error?.response?.errors?.[0]?.message) message += ': ' + error.response.errors[0].message;
     throw ErrorWithCustomMessage(message, error);
   }
 };
