@@ -34,7 +34,7 @@ export type CreateWorkflowParams = Omit<CreateOrderParams, 'storage'> & {
   inputOffers: ValueOfferParams[];
   resultPublicKey: string;
   encryptedInfo: string;
-  argsToEncrypt: string;
+  argsToEncrypt: TeeOrderEncryptedArgs;
   holdDeposit: string;
   consumerAddress: string;
   storageAccess: Config['storage'];
@@ -95,13 +95,8 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
   const teeOffer = new TeeOffer(params.teeOffer.id);
   const offerInfo = await teeOffer.getInfo();
   const externalId = generateExternalId();
-  let teeOrderArgsToEncrypt: TeeOrderEncryptedArgs | null = null;
+  const teeOrderArgsToEncrypt: TeeOrderEncryptedArgs = params.argsToEncrypt;
   let storageProviderResource: StorageProviderResource | null = null;
-  try {
-    teeOrderArgsToEncrypt = JSON.parse(params.argsToEncrypt);
-  } catch (err) {
-    throw new Error(`Invalid args to encrypt: ${(err as Error).message}`);
-  }
 
   if (
     teeOrderArgsToEncrypt &&
@@ -117,7 +112,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
 
   Printer.print('Encrypting arguments');
   const encryptedArgs = await helpers.OrderArgsHelper.encryptOrderArgs(
-    { resource: storageProviderResource } || teeOrderArgsToEncrypt,
+    storageProviderResource ? { resource: storageProviderResource } : teeOrderArgsToEncrypt,
     JSON.parse(offerInfo.argsPublicKey),
   );
 

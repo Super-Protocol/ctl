@@ -405,11 +405,11 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         teeOffer: teeOfferParams,
         storageOffer: storage,
         inputOffers: inputOffersParams,
-        argsToEncrypt: JSON.stringify({
+        argsToEncrypt: {
           data: dataTIIs,
           solution: solutionTIIs,
           image: imageTIIs,
-        }),
+        },
         resultPublicKey: orderResultKeys.publicKey,
         encryptedInfo: orderResultKeys.encryptedInfo,
         holdDeposit: holdDeposit.toString(),
