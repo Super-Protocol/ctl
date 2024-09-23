@@ -2,15 +2,15 @@
     "name": "",
     "description": "cores: 24, \nram: 123 Gb, \nstorage: 830 Gb, \nnetwork: 1GBit",
     "teeType": "0",
+    "subType": "0",
     "properties": "",
-    "tlb": "",
     "argsPublicKey": {
         "algo": "ECIES",
         "encoding": "base64",
         "key": ""
     },
     "hardwareInfo": {
-        "slotInfo": { "cpuCores": 0, "ram": 0, "diskUsage": 0 },
+        "slotInfo": { "cpuCores": 0, "ram": 0, "diskUsage": 0, "gpuCores": 0, "vram": 0 },
         "optionInfo": {
             "bandwidth": 0,
             "traffic": 0,

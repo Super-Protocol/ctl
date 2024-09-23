@@ -5,6 +5,8 @@ export const SlotInfoValidator = z.object({
   cpuCores: z.number().min(0),
   ram: z.number().min(0),
   diskUsage: z.number().min(0),
+  gpuCores: z.number().min(0),
+  vram: z.number().min(0),
 });
 
 export const SlotUsageValidator = z.object({
