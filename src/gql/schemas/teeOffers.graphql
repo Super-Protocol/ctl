@@ -29,6 +29,7 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                         name
                         description
                         teeType
+                        subType
                         properties
                         argsPublicKey
                         hardwareInfo {
