@@ -12,6 +12,7 @@ export type ReadValueOfferInfoFileParams = {
 
 const OfferInfoRestrictionsValidator = z.object({
   offers: z.array(z.string()),
+  versions: z.array(z.string()),
   types: z.array(z.nativeEnum(OfferType)),
 });
 
@@ -29,7 +30,6 @@ const OfferInfoFileValidator = z.object({
   allowedAccounts: z.array(z.string()),
   argsPublicKey: z.string(),
   resultResource: z.string(),
-  linkage: z.string(),
   hash: z.string(),
 });
 
