@@ -44,6 +44,7 @@ export type OrderCreateParams = {
   backendUrl: string;
   blockchainConfig: BlockchainConfig;
   offerId: BlockchainId;
+  offerVersion: number;
   pccsServiceApiUrl: string;
   resultEncryption: EncryptionKey;
   slotId?: BlockchainId;
@@ -100,6 +101,7 @@ const getCheckedOfferById = async (params: {
 const buildOrderInfo = async (params: {
   args: OrderCreateParams['args'];
   offerId: OrderCreateParams['offerId'];
+  offerVersion: OrderCreateParams['offerVersion'];
   resultEncryption: OrderCreateParams['resultEncryption'];
   minRentMinutes: OrderCreateParams['minRentMinutes'];
   offerType: OfferType;
@@ -146,7 +148,7 @@ const buildOrderInfo = async (params: {
     encryptedArgs,
     externalId: generateExternalId(),
     offerId: params.offerId,
-    offerVersion: 0,
+    offerVersion: params.offerVersion,
     resultInfo: {
       publicKey: orderResultKeys.publicKey,
       encryptedInfo: orderResultKeys.encryptedInfo,
@@ -236,6 +238,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
     const orderInfo = await buildOrderInfo({
       args: params.args,
       offerId: params.offerId,
+      offerVersion: params.offerVersion,
       resultEncryption: params.resultEncryption,
       minRentMinutes: params.minRentMinutes ?? 0,
       slot,

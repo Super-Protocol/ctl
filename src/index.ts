@@ -666,8 +666,10 @@ async function main(): Promise<void> {
         accessToken: backend.accessToken,
         actionAccountKey: blockchain.accountPrivateKey,
         args: {
-          inputOffers: options.inputOffers,
-          outputOffer: options.outputOffer || '0',
+          inputOffersIds: options.inputOffers,
+          inputOffersVersions: options.inputOffers.map(() => 0),
+          outputOfferId: options.outputOffer || '0',
+          outputOfferVersion: 0,
         },
         backendUrl: backend.url,
         blockchainConfig: {
@@ -675,6 +677,7 @@ async function main(): Promise<void> {
           contractAddress: blockchain.smartContractAddress,
         },
         offerId: options.offer,
+        offerVersion: 0,
         pccsServiceApiUrl: tii.pccsServiceApiUrl,
         resultEncryption: workflowConfig.resultEncryption,
         slotId: options.slot,
