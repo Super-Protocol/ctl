@@ -98,6 +98,7 @@ export const createOrder = async (params: CreateOrderParams): Promise<string> =>
     blockchainConfig,
     minRentMinutes,
     offerId,
+    offerVersion: 0,
     options: { onlyOfferType: OfferType.Storage },
     resultEncryption,
     slotId,
