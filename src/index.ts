@@ -395,6 +395,13 @@ async function main(): Promise<void> {
     .addOption(
       new Option('--skip-hardware-check', 'Skip hardware validation').default(false).hideHelp(),
     )
+    .option(
+      '--data-configuration <filepath>',
+      'Data configuration file path (accepts multiple values)',
+      collectOptions,
+      [],
+    )
+    .option('--solution-configuration <filepath>', 'Solution configuration file path')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = configLoader.loadSection('backend');
@@ -419,6 +426,8 @@ async function main(): Promise<void> {
         storage: options.storage,
         solution: options.solution,
         data: options.data,
+        solutionConfigurationPath: options.solutionConfiguration,
+        dataConfigurationPaths: options.dataConfiguration,
         resultEncryption: workflowConfig.resultEncryption,
         userDepositAmount: options.deposit,
         minRentMinutes: Number(options.minRentMinutes || 0),
