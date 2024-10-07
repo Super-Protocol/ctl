@@ -37,9 +37,9 @@ jobs:
                   fi
               shell: bash
             - name: "Save build results for release job"
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with:
-                  name: release
+                  name: release-${{ matrix.output }}
                   path: dist/spctl-*
                   retention-days: 1
 
@@ -60,7 +60,7 @@ jobs:
         - name: Create a tarball from a package
           run: npm pack
         - name: "Save package for release job"
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v4
           with:
               name: package
               path: super-protocol-*.tgz
@@ -71,11 +71,12 @@ jobs:
         needs: [build-binary, build-package]
         steps:
             - name: "Download binary artifacts"
-              uses: actions/download-artifact@v2
+              uses: actions/download-artifact@v4
               with:
-                  name: release
+                  pattern: release-*
+                  merge-multiple: true
             - name: "Download package artifact"
-              uses: actions/download-artifact@v2
+              uses: actions/download-artifact@v4
               with:
                   name: package
             - name: Release
