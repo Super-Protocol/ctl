@@ -1,11 +1,20 @@
 import { ValueOfferParams } from './createWorkflow';
 import { OfferType } from '@super-protocol/sdk-js';
-import { etherToWei, getObjectKey, weiToEther } from '../utils';
+import {
+  ErrorWithCustomMessage,
+  createZodErrorMessage,
+  etherToWei,
+  getObjectKey,
+  weiToEther,
+} from '../utils';
 import fetchOffers, { OfferItem } from './fetchOffers';
 import { BigNumber } from 'ethers';
 import Printer from '../printer';
 import { MINUTES_IN_HOUR } from '../constants';
 import getTeeBalance from './getTeeBalance';
+import { ParsedInputResource } from './parseInputResources';
+import { SolutionResourceFileValidator } from './readResourceFile';
+import { ZodError } from 'zod';
 
 export type FethchedOffer = {
   id: NonNullable<OfferItem>['id'];
@@ -133,4 +142,56 @@ export const getHoldDeposit = async (params: {
   );
 
   return holdDeposit;
+};
+
+export const divideImagesAndSolutions = async (
+  solutionParsedResource: ParsedInputResource,
+): Promise<{ solutions: ParsedInputResource; images: ParsedInputResource }> => {
+  const { offers, resourceFiles, tiis } = solutionParsedResource;
+
+  const result: { solutions: ParsedInputResource; images: ParsedInputResource } = {
+    solutions: {
+      offers: solutionParsedResource.offers,
+      resourceFiles: [],
+      tiis: [],
+    },
+    images: {
+      offers: [],
+      resourceFiles: [],
+      tiis: [],
+    },
+  };
+
+  if (resourceFiles.length + tiis.length > 1) {
+    throw new Error(
+      `Only one resource can be run by resource file (or tii). Use base image from offer.`,
+    );
+  }
+
+  if (offers.length && resourceFiles.length) {
+    const resourceFile = resourceFiles[0];
+    await SolutionResourceFileValidator.parseAsync(resourceFile).catch((error) => {
+      const errorMessage = createZodErrorMessage((error as ZodError).issues);
+      throw ErrorWithCustomMessage(
+        `Schema validation failed for solution resource file :\n${errorMessage}`,
+        error as Error,
+      );
+    });
+
+    result.solutions.resourceFiles.push(...resourceFiles);
+  }
+
+  if (offers.length && tiis.length) {
+    result.solutions.tiis.push(...tiis);
+  }
+
+  if (offers.length === 0 && resourceFiles.length) {
+    result.images.resourceFiles.push(...resourceFiles);
+  }
+
+  if (offers.length === 0 && tiis.length) {
+    result.images.tiis.push(...tiis);
+  }
+
+  return result;
 };

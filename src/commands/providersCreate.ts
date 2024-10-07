@@ -6,17 +6,17 @@ import {
   ProviderInfo,
   ProviderRegistry,
   Superpro,
+  SuperproToken,
 } from '@super-protocol/sdk-js';
-import { BigNumber } from 'ethers';
 import inquirer, { QuestionCollection } from 'inquirer';
 import Printer from '../printer';
-import approveTeeTokens from '../services/approveTeeTokens';
 import doWithRetries from '../services/doWithRetries';
 import getTeeBalance from '../services/getTeeBalance';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import readJsonFile from '../services/readJsonFile';
-import { toTEE } from '../utils';
+import { etherToWei, toTEE } from '../utils';
 import { ProviderInfoValidator } from '../validators';
+import { DEFAULT_TEE_AMOUNT_FOR_APPROVE } from '../constants';
 
 interface ProvidersCreateParams {
   blockchainConfig: BlockchainConfig;
@@ -85,11 +85,12 @@ async function checkBalanceToCreateProvider(
       );
     }
 
-    await approveTeeTokens({
-      from: authorityAddress,
-      to: Deposits.address,
-      amount: BigNumber.from(requiredDeposit),
-    });
+    await SuperproToken.approve(
+      Deposits.address,
+      etherToWei(String(DEFAULT_TEE_AMOUNT_FOR_APPROVE)).toString(),
+      { from: authorityAddress },
+    );
+
     await Deposits.replenish(requiredDeposit.toString(), { from: authorityAddress });
 
     return Printer.print(`Refilled security deposit on ${toTEE(requiredDeposit)}`);

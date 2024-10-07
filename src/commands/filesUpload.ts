@@ -342,9 +342,9 @@ export default async (params: FilesUploadParams): Promise<void> => {
     );
     Printer.print(`File was not uploaded. Error: ${(err as Error).message}`);
   } finally {
-    if (params.withEncryption) {
+    if (encryptedFilePath) {
       Printer.print('Deleting temp files');
-      await fs.unlink(localPath);
+      await fs.unlink(encryptedFilePath);
     }
   }
 };

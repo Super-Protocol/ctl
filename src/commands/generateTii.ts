@@ -29,9 +29,12 @@ export default async (params: GenerateTiiParams): Promise<void> => {
     blockchainConfig: params.blockchainConfig,
   });
 
+  const isSolution = Boolean(linkage);
+
   const tii = await TIIGenerator.generateByOffer({
     offerId: params.teeOfferId,
-    solutionHashes: hash ? [hash] : [],
+    solutionHashes: isSolution && hash ? [hash] : [],
+    imageHashes: !isSolution && hash ? [hash] : [],
     linkageString: JSON.stringify(linkage),
     resource: resource,
     args: args,
