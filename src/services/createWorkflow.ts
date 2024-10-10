@@ -6,7 +6,6 @@ import {
   Orders,
   OrderSlots,
   OrderStatus,
-  StorageAccess,
   TeeOffer,
   helpers,
   RIGenerator,
@@ -30,7 +29,6 @@ export type ValueOfferParams = {
   slotId: string;
 };
 
-export type CreateWorkflowParams = Omit<CreateOrderParams, 'storage'> & {
 export type CreateWorkflowParams = Omit<CreateOrderParams, 'storage'> & {
   teeOffer: TeeOfferParams;
   storageOffer: ValueOfferParams;
