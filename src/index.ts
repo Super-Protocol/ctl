@@ -984,7 +984,10 @@ async function main(): Promise<void> {
     .description('Create offer')
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
     .option('--path <filepath>', 'path to offer info json file', './offerInfo.json')
-    .option('--configuration <filepath>', 'path to configuration schema')
+    .option(
+      '--configuration <filepath>',
+      'path to the configuration schema (only works with data and solution offers)',
+    )
     .option(
       '--yes',
       'if true, then the command automatically refills the security deposit to create an offer',
@@ -1018,8 +1021,11 @@ async function main(): Promise<void> {
     .description('Update offer info')
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
     .argument('id', 'Offer <id>')
-    .requiredOption('--path <filepath>', 'path to offer info', './offerInfo.json')
-    .option('--configuration <filepath>', 'path to configuration schema')
+    .option('--path <filepath>', 'path to offer info')
+    .option(
+      '--configuration <filepath>',
+      'path to the configuration schema (only works with data and solution offers)',
+    )
     .action(async (type: 'tee' | 'value', id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');

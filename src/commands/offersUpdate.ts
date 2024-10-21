@@ -3,8 +3,10 @@ import {
   Config as BlockchainConfig,
   Offer,
   OfferInfo,
+  OfferType,
   TeeOffer,
   TeeOfferInfo,
+  validateBySchema,
 } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import initBlockchainConnector from '../services/initBlockchainConnector';
@@ -13,11 +15,12 @@ import { readValueOfferInfo } from '../services/readValueOfferInfo';
 import { Config } from '../config';
 import readJsonFile from '../services/readJsonFile';
 import { uploadOfferInput } from '../services/uploadOfferInput';
+import { OfferAttributes } from '@super-protocol/dto-js';
 
 export type OffersUpdateParams = {
   id: string;
   type: 'tee' | 'value';
-  offerInfoPath: string;
+  offerInfoPath?: string;
   blockchainConfig: BlockchainConfig;
   actionAccountKey: string;
   storageConfig: Config['storage'];
@@ -60,12 +63,25 @@ class Executor<
     storageConfig: Config['storage'],
     newName?: string,
   ): Promise<void> {
+    const offerInfo = (await this.getOfferInfo()) as OfferInfo;
+    if (offerInfo.offerType === OfferType.Storage) {
+      Printer.print(`Configuration for Storage Offers is not supported and will be ignored`);
+      return;
+    }
+
     const configuration = await readJsonFile({ path });
-    const input = { configuration };
+    const { isValid, errors } = validateBySchema(
+      configuration,
+      OfferAttributes.Schemas.ArgumentSchemas.OfferInputSchema,
+      { allErrors: true },
+    );
+    if (!isValid) {
+      throw Error(`Configuration validation error! Errors: ${errors?.join(',')}`);
+    }
 
     const inputResource = await uploadOfferInput({
-      data: input,
-      offerName: newName || (await this.getOfferInfo()).name,
+      data: { configuration },
+      offerName: newName || offerInfo.name,
       storageConfig: storageConfig,
     });
 
@@ -90,6 +106,14 @@ export default async (params: OffersUpdateParams): Promise<void> => {
 
   switch (params.type) {
     case 'tee': {
+      if (!params.offerInfoPath) {
+        throw new Error(`--path parameter is mandatory for tee offer`);
+      }
+
+      if (params.configurationPath) {
+        Printer.print(`Configuration for tee offer is not supported and will be ignored`);
+      }
+
       const info = await readTeeOfferInfo({
         path: params.offerInfoPath,
         isPartialContent: true,
@@ -103,10 +127,12 @@ export default async (params: OffersUpdateParams): Promise<void> => {
       break;
     }
     case 'value': {
-      const info = await readValueOfferInfo({
-        path: params.offerInfoPath,
-        isPartialContent: true,
-      });
+      const info = params.offerInfoPath
+        ? await readValueOfferInfo({
+            path: params.offerInfoPath,
+            isPartialContent: true,
+          })
+        : {};
 
       Printer.print('Offer info file was read successfully, updating in blockchain');
 
