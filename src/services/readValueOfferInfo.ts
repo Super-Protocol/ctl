@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { OfferGroup, OfferInfo, OfferType } from '@super-protocol/sdk-js';
+import {OfferGroup, OfferInfo, OfferType, ValueOfferSubtype} from '@super-protocol/sdk-js';
 import z, { ZodError } from 'zod';
 import readJsonFile from './readJsonFile';
 import { EncryptionValidator, ResourceValidator } from './readResourceFile';
@@ -31,6 +31,7 @@ const OfferInfoFileValidator = z.object({
   argsPublicKey: z.string(),
   resultResource: z.string(),
   hash: z.string(),
+  subType: z.nativeEnum(ValueOfferSubtype),
 });
 
 const OptionalOfferInfoFileValidator = OfferInfoFileValidator.extend({
