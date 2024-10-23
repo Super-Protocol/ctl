@@ -35,6 +35,7 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         linkage
                         hash
                         signatureKey
+                        subType
                     }
                     enabled
                     slots {
