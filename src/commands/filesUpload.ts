@@ -10,6 +10,7 @@ import {
   Linkage,
   ResourceType,
   StorageType,
+  StorjCredentials,
 } from '@super-protocol/dto-js';
 import Printer from '../printer';
 import { isCommandSupported } from '../services/uplinkSetupHelper';
@@ -88,13 +89,16 @@ export const createOrder = async (params: CreateOrderParams): Promise<string> =>
     actionAccountKey,
     pccsServiceApiUrl,
     args: {
-      inputOffers: [],
-      outputOffer: '0',
+      inputOffersIds: [],
+      outputOfferId: '0',
+      inputOffersVersions: [],
+      outputOfferVersion: 0,
     },
     backendUrl,
     blockchainConfig,
     minRentMinutes,
     offerId,
+    offerVersion: 0,
     options: { onlyOfferType: OfferType.Storage },
     resultEncryption,
     slotId,
@@ -107,12 +111,6 @@ export const createOrder = async (params: CreateOrderParams): Promise<string> =>
   return orderId;
 };
 
-interface ICredentials {
-  token: string;
-  bucket: string;
-  prefix: string;
-}
-
 export const getCredentials = async (params: {
   accessToken: string;
   analytics?: Analytics<AnalyticsEvent> | null;
@@ -120,8 +118,8 @@ export const getCredentials = async (params: {
   key: string;
   orderId: string;
 }): Promise<{
-  read: ICredentials;
-  write: ICredentials;
+  read: StorjCredentials;
+  write: StorjCredentials;
 }> => {
   const { orderId, key } = params;
   let attemptCount = 1;

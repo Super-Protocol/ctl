@@ -29,14 +29,15 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                         name
                         description
                         teeType
+                        subType
                         properties
-                        tlb
                         argsPublicKey
                         hardwareInfo {
                             slotInfo {
                                 cpuCores
                                 gpuCores
                                 ram
+                                vram
                                 diskUsage
                             }
                             optionInfo {
@@ -54,6 +55,7 @@ query TeeOffers($pagination: ConnectionArgs!, $filter: TeeOfferFilter) {
                             gpuCores
                             diskUsage
                             ram
+                            vram
                         }
                         usage {
                             maxTimeMinutes

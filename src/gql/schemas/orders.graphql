@@ -120,8 +120,10 @@ query Order($id: String!) {
             status
             offerId
             args {
-                inputOffers
-                outputOffer
+                inputOffersIds
+                outputOfferId
+                inputOffersVersions
+                outputOfferVersion
             }
             resultInfo {
                 encryptedInfo
