@@ -9991,7 +9991,7 @@ export type MinimalConfigurationQueryVariables = Exact<{
 }>;
 
 
-export type MinimalConfigurationQuery = { __typename?: 'Query', result: { __typename?: 'OfferConfiguration', cpuCores: number, ram: number, vram: number, diskUsage: number, bandwidth: number, traffic: number, externalPort: number } };
+export type MinimalConfigurationQuery = { __typename?: 'Query', result: { __typename?: 'OfferConfiguration', cpuCores: number, gpuCores: number, ram: number, vram: number, diskUsage: number, bandwidth: number, traffic: number, externalPort: number } };
 
 export type ValidateConfiguraionQueryVariables = Exact<{
   input: WorkflowConfigurationValidation;
@@ -10695,6 +10695,8 @@ export const GetMatchingTeeSlotsDocument = gql`
             slot {
               id
               info {
+                gpuCores
+                vram
                 cpuCores
                 diskUsage
                 ram
