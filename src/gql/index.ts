@@ -10255,6 +10255,7 @@ export const OffersRestrictionsDocument = gql`
 export const MinimalConfigurationDocument = gql`
     query MinimalConfiguration($offers: [[String!]!]!) {
   result: getMinimalConfiguration(offers: $offers) {
+    gpuCores
     cpuCores
     ram
     vram
