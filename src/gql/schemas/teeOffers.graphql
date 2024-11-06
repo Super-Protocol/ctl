@@ -131,9 +131,11 @@ query GetMatchingTeeSlots($filter: TeeOfferFilter, $pagination: ConnectionArgs!)
             id
           }
           slotResult {
-						slot {
-							id
+            slot {
+              id
               info {
+                  gpuCores
+                  vram
                   cpuCores
                   diskUsage
                   ram

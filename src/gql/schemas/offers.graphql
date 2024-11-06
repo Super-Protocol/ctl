@@ -34,7 +34,8 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         resultResource
                         linkage
                         hash
-                        signatureKey
+                        signatureKeyHash
+                        hardwareContext
                         subType
                     }
                     enabled
@@ -128,6 +129,7 @@ query MinimalConfiguration($offers: [[String!]!]!) {
     ram
     vram
     diskUsage
+    gpuCores
     bandwidth
     traffic
     externalPort
