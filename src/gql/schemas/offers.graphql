@@ -24,6 +24,7 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         restrictions {
                             offers
                             types
+                            versions
                         }
                         metadata
                         input
