@@ -152,14 +152,14 @@ export type CoresStatisticPoint = {
 };
 
 export type DatasetsFilter = {
-  /** Filter by language codes */
+  /** Filter by models/datasets -> language codes */
   languages?: InputMaybe<Array<LanguageCodeEnum>>;
-  /** filter by models -> libraries */
-  libraries?: InputMaybe<SupportedLibrary>;
-  /** filter by models -> libraries */
+  /** filter by models/datasets -> libraries */
+  libraries?: InputMaybe<Array<SupportedLibrary>>;
+  /** filter by models/datasets -> license */
   license?: InputMaybe<LicenseCode>;
   /** filter by datasets -> tasks */
-  tasks?: InputMaybe<TaskFilter>;
+  tasks?: InputMaybe<TasksFilter>;
 };
 
 export type Erc20 = {
@@ -8360,11 +8360,11 @@ export type MatchingTeeOfferOptionInput = {
 };
 
 export type ModelsFilter = {
-  /** Filter by language codes */
+  /** Filter by models/datasets -> language codes */
   languages?: InputMaybe<Array<LanguageCodeEnum>>;
-  /** filter by models -> libraries */
-  libraries?: InputMaybe<SupportedLibrary>;
-  /** filter by models -> libraries */
+  /** filter by models/datasets -> libraries */
+  libraries?: InputMaybe<Array<SupportedLibrary>>;
+  /** filter by models/datasets -> license */
   license?: InputMaybe<LicenseCode>;
   /** filter by models -> task */
   task?: InputMaybe<TaskFilter>;
@@ -8501,6 +8501,7 @@ export type OfferInfo = {
    *
    */
   group: Scalars['String'];
+  hardwareContext: Scalars['String'];
   hash: Scalars['String'];
   input: Scalars['String'];
   linkage: Scalars['String'];
@@ -8522,7 +8523,7 @@ export type OfferInfo = {
   output: Scalars['String'];
   restrictions?: Maybe<OfferRestrictions>;
   resultResource: Scalars['String'];
-  signatureKey: Scalars['String'];
+  signatureKeyHash: Scalars['String'];
   subType: Scalars['String'];
 };
 
@@ -8541,6 +8542,7 @@ export type OfferInfoInput = {
    *
    */
   group: Scalars['String'];
+  hardwareContext: Scalars['String'];
   hash: Scalars['String'];
   input: Scalars['String'];
   linkage: Scalars['String'];
@@ -8562,7 +8564,7 @@ export type OfferInfoInput = {
   output: Scalars['String'];
   restrictions?: InputMaybe<OfferRestrictionsInput>;
   resultResource: Scalars['String'];
-  signatureKey: Scalars['String'];
+  signatureKeyHash: Scalars['String'];
   subType: Scalars['String'];
 };
 
@@ -8589,11 +8591,13 @@ export type OfferRestrictions = {
   __typename?: 'OfferRestrictions';
   offers?: Maybe<Array<Scalars['String']>>;
   types?: Maybe<Array<Scalars['String']>>;
+  versions?: Maybe<Array<Scalars['Float']>>;
 };
 
 export type OfferRestrictionsInput = {
   offers?: InputMaybe<Array<Scalars['String']>>;
   types?: InputMaybe<Array<Scalars['String']>>;
+  versions?: InputMaybe<Array<Scalars['Float']>>;
 };
 
 export type OfferSlot = {
@@ -9217,6 +9221,8 @@ export type Query = {
   events: ListEventResponse;
   getMatchingTeeSlots: ListTeeOffersAndSlots;
   getMinimalConfiguration: OfferConfiguration;
+  /** Get all pipeline types used in the system */
+  getUsedPipelineTypes: Array<PipelineType>;
   listErc20: ListErc20Response;
   offer: Offer;
   offerType: OfferType;
@@ -9289,6 +9295,11 @@ export type QueryGetMatchingTeeSlotsArgs = {
 
 export type QueryGetMinimalConfigurationArgs = {
   offers: Array<Array<Scalars['String']>>;
+};
+
+
+export type QueryGetUsedPipelineTypesArgs = {
+  filter?: InputMaybe<OfferFilter>;
 };
 
 
@@ -9632,6 +9643,11 @@ export type TaskFilter = {
   pipelineType?: InputMaybe<PipelineType>;
 };
 
+export type TasksFilter = {
+  /** filter by tasks -> pipelineType */
+  pipelineType?: InputMaybe<Array<PipelineType>>;
+};
+
 export type TeeOffer = {
   __typename?: 'TeeOffer';
   /** system identifier */
@@ -9968,7 +9984,7 @@ export type OffersQueryVariables = Exact<{
 }>;
 
 
-export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, metadata: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, linkage: string, hash: string, signatureKey: string, subType: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number, vram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
+export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, metadata: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, linkage: string, hash: string, signatureKeyHash: string, hardwareContext: string, subType: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null, versions?: Array<number> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number, vram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
 
 export type OffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -9991,7 +10007,7 @@ export type MinimalConfigurationQueryVariables = Exact<{
 }>;
 
 
-export type MinimalConfigurationQuery = { __typename?: 'Query', result: { __typename?: 'OfferConfiguration', cpuCores: number, ram: number, vram: number, diskUsage: number, bandwidth: number, traffic: number, externalPort: number } };
+export type MinimalConfigurationQuery = { __typename?: 'Query', result: { __typename?: 'OfferConfiguration', cpuCores: number, ram: number, vram: number, diskUsage: number, gpuCores: number, bandwidth: number, traffic: number, externalPort: number } };
 
 export type ValidateConfiguraionQueryVariables = Exact<{
   input: WorkflowConfigurationValidation;
@@ -10076,7 +10092,7 @@ export type GetMatchingTeeSlotsQueryVariables = Exact<{
 }>;
 
 
-export type GetMatchingTeeSlotsQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersAndSlots', page: { __typename?: 'TeeOffersAndSLotsConnection', edges?: Array<{ __typename?: 'TeeOffersAndSLotsEdge', node?: { __typename?: 'TeeOffersAndSLots', price: string, teeOffer: { __typename?: 'TeeOffer', id: string }, slotResult: { __typename?: 'MatchingSlot', multiplier: number, price: string, slot: { __typename?: 'TeeOfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } } }, optionsResult?: { __typename?: 'MatchingOptions', pricePerHour: string, priceFixed: string, optionResults: Array<{ __typename?: 'MatchingOptionResult', id: string, count: number, info: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, cumulativeValues: { __typename?: 'OptionInfo', bandwidth: number, traffic: number, externalPort: number } } | null } | null }> | null } } };
+export type GetMatchingTeeSlotsQuery = { __typename?: 'Query', result: { __typename?: 'ListTeeOffersAndSlots', page: { __typename?: 'TeeOffersAndSLotsConnection', edges?: Array<{ __typename?: 'TeeOffersAndSLotsEdge', node?: { __typename?: 'TeeOffersAndSLots', price: string, teeOffer: { __typename?: 'TeeOffer', id: string }, slotResult: { __typename?: 'MatchingSlot', multiplier: number, price: string, slot: { __typename?: 'TeeOfferSlot', id: string, info: { __typename?: 'SlotInfo', gpuCores: number, vram: number, cpuCores: number, diskUsage: number, ram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType } } }, optionsResult?: { __typename?: 'MatchingOptions', pricePerHour: string, priceFixed: string, optionResults: Array<{ __typename?: 'MatchingOptionResult', id: string, count: number, info: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, cumulativeValues: { __typename?: 'OptionInfo', bandwidth: number, traffic: number, externalPort: number } } | null } | null }> | null } } };
 
 export const PageDataDtoFragmentFragmentDoc = gql`
     fragment PageDataDtoFragment on PageDataDto {
@@ -10152,6 +10168,7 @@ export const OffersDocument = gql`
             restrictions {
               offers
               types
+              versions
             }
             metadata
             input
@@ -10162,7 +10179,8 @@ export const OffersDocument = gql`
             resultResource
             linkage
             hash
-            signatureKey
+            signatureKeyHash
+            hardwareContext
             subType
           }
           enabled
@@ -10259,6 +10277,7 @@ export const MinimalConfigurationDocument = gql`
     ram
     vram
     diskUsage
+    gpuCores
     bandwidth
     traffic
     externalPort
@@ -10694,6 +10713,8 @@ export const GetMatchingTeeSlotsDocument = gql`
             slot {
               id
               info {
+                gpuCores
+                vram
                 cpuCores
                 diskUsage
                 ram
