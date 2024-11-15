@@ -1,7 +1,7 @@
 import {
+  getMostActiveTeeOffers,
   validateSecret,
   validateSession,
-  getMostActiveTeeOffers,
 } from '@super-protocol/distributed-secrets';
 import {
   BlockchainId,
@@ -9,6 +9,7 @@ import {
   LoaderSecretsPublicKeys,
   LoaderSession,
   LoaderSessions,
+  OfferResources,
   OffersStorageAllocated,
   OffersStorageRequests,
   OfferStorageRequest,
@@ -60,9 +61,17 @@ export const findAllocatedOrderId = async (
 ): Promise<string | undefined> => {
   const { offerId, offerVersion } = params;
   const allocated = await OffersStorageAllocated.getByOfferVersion(offerId, offerVersion);
+
   if (allocated) {
-    return parseOrderId(allocated.storageOrderId);
+    const resources = (await OfferResources.getByOfferVersion(offerId, offerVersion)).filter(
+      (resource) => resource.storageOrderId === allocated.storageOrderId,
+    );
+
+    if (resources.length) {
+      return parseOrderId(allocated.storageOrderId);
+    }
   }
+
   return;
 };
 
