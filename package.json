@@ -1,6 +1,6 @@
 {
   "name": "@super-protocol/ctl",
-  "version": "0.9.0-beta.10",
+  "version": "0.9.0-beta.13",
   "description": "A tool for publishing values in a secure and reliable way.",
   "main": "./build/index.js",
   "type": "commonjs",
@@ -34,7 +34,7 @@
   "dependencies": {
     "@amplitude/node": "^1.10.2",
     "@iarna/toml": "^2.2.5",
-    "@super-protocol/distributed-secrets": "0.0.17-beta.1",
+    "@super-protocol/distributed-secrets": "0.0.18",
     "@super-protocol/dto-js": "0.1.12",
     "@super-protocol/sdk-js": "2.2.0-beta.121",
     "@types/tar-stream": "^3.1.3",
