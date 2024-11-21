@@ -29,7 +29,7 @@ export const uploadOfferInput = async (
     credentials: {
       bucket: storageConfig.bucket,
       prefix: storageConfig.prefix,
-      token: storageConfig.readAccessToken,
+      token: storageConfig.writeAccessToken,
     },
   };
   const nextInputIndex = await getNextInputIndex(offerName, storageAccess);
