@@ -1,4 +1,4 @@
-import { TeeOfferInfo } from '@super-protocol/sdk-js';
+import { TeeOfferInfo, TeeOfferSubtype } from '@super-protocol/sdk-js';
 import z from 'zod';
 import readJsonFile from './readJsonFile';
 import { EncryptionValidator } from './readResourceFile';
@@ -25,7 +25,7 @@ const TeeOfferInfoFileValidator = z.object({
   description: z.string(),
   teeType: z.string(),
   properties: z.string(),
-  tlb: z.string(),
+  subType: z.nativeEnum(TeeOfferSubtype),
   argsPublicKey: z.string(),
   hardwareInfo: HardwareInfoValidator,
 });

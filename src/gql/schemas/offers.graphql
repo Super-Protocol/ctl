@@ -15,6 +15,7 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                     _id
                     id
                     authority
+                    configuration
                     offerInfo {
                         name
                         group
@@ -24,6 +25,7 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         restrictions {
                             offers
                             types
+                            versions
                         }
                         metadata
                         input
@@ -34,6 +36,9 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         resultResource
                         linkage
                         hash
+                        signatureKeyHash
+                        hardwareContext
+                        subType
                     }
                     enabled
                     slots {
@@ -43,6 +48,7 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                             gpuCores
                             diskUsage
                             ram
+                            vram
                         }
                         usage {
                             maxTimeMinutes
@@ -123,7 +129,9 @@ query MinimalConfiguration($offers: [[String!]!]!) {
   result: getMinimalConfiguration(offers: $offers) {
     cpuCores
     ram
+    vram
     diskUsage
+    gpuCores
     bandwidth
     traffic
     externalPort
@@ -143,6 +151,10 @@ query validateConfiguraion($input: WorkflowConfigurationValidation!) {
         provided
       }
       ram {
+        required
+        provided
+      }
+      vram {
         required
         provided
       }

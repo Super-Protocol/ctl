@@ -35,6 +35,8 @@ export default async (params: FetchMatchingTeeSlotsParams): Promise<MatchingTeeS
 
     const filter: TeeOfferFilter = {
       cpuCores: [minConfiguration.cpuCores || CPU_CORES_FOR_CUSTOM_SOLUTION],
+      gpuCores: [minConfiguration.gpuCores],
+      vram: [minConfiguration.vram],
       ram: [minConfiguration.ram],
       diskUsage: [minConfiguration.diskUsage],
       bandwidth: minConfiguration.bandwidth,

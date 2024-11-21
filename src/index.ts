@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 
 import packageJson from '../package.json';
+import offersGetConfiguration from './commands/offersGetConfiguration';
 import ConfigLoader from './config';
 import download from './commands/filesDownload';
 import upload from './commands/filesUpload';
@@ -395,6 +396,13 @@ async function main(): Promise<void> {
     .addOption(
       new Option('--skip-hardware-check', 'Skip hardware validation').default(false).hideHelp(),
     )
+    .option(
+      '--data-configuration <filepath>',
+      'Data configuration file path (accepts multiple values)',
+      collectOptions,
+      [],
+    )
+    .option('--solution-configuration <filepath>', 'Solution configuration file path')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = configLoader.loadSection('backend');
@@ -419,6 +427,8 @@ async function main(): Promise<void> {
         storage: options.storage,
         solution: options.solution,
         data: options.data,
+        solutionConfigurationPath: options.solutionConfiguration,
+        dataConfigurationPaths: options.dataConfiguration,
         resultEncryption: workflowConfig.resultEncryption,
         userDepositAmount: options.deposit,
         minRentMinutes: Number(options.minRentMinutes || 0),
@@ -666,8 +676,10 @@ async function main(): Promise<void> {
         accessToken: backend.accessToken,
         actionAccountKey: blockchain.accountPrivateKey,
         args: {
-          inputOffers: options.inputOffers,
-          outputOffer: options.outputOffer || '0',
+          inputOffersIds: options.inputOffers,
+          inputOffersVersions: options.inputOffers.map(() => 0),
+          outputOfferId: options.outputOffer || '0',
+          outputOfferVersion: 0,
         },
         backendUrl: backend.url,
         blockchainConfig: {
@@ -675,6 +687,7 @@ async function main(): Promise<void> {
           contractAddress: blockchain.smartContractAddress,
         },
         offerId: options.offer,
+        offerVersion: 0,
         pccsServiceApiUrl: tii.pccsServiceApiUrl,
         resultEncryption: workflowConfig.resultEncryption,
         slotId: options.slot,
@@ -934,7 +947,7 @@ async function main(): Promise<void> {
     .option('--save-to <filepath>', 'Save result to a file')
     .action(async (type: 'tee' | 'value', id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       await offersGetInfo({
         backendUrl: backend.url,
@@ -954,7 +967,7 @@ async function main(): Promise<void> {
     .option('--save-to <path>', 'Directory to save the content to', './')
     .action(async (offerId: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -973,13 +986,18 @@ async function main(): Promise<void> {
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
     .option('--path <filepath>', 'path to offer info json file', './offerInfo.json')
     .option(
+      '--configuration <filepath>',
+      'path to the configuration schema (only works with data and solution offers)',
+    )
+    .option(
       '--yes',
       'if true, then the command automatically refills the security deposit to create an offer',
       false,
     )
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
+      const storageConfig = configLoader.loadSection('storage');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -994,6 +1012,8 @@ async function main(): Promise<void> {
         actionAccountKey,
         offerInfoPath: options.path,
         enableAutoDeposit: options.yes,
+        storageConfig,
+        configurationPath: options.configuration,
       });
     });
 
@@ -1002,10 +1022,15 @@ async function main(): Promise<void> {
     .description('Update offer info')
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
     .argument('id', 'Offer <id>')
-    .requiredOption('--path <filepath>', 'path to offer info', './offerInfo.json')
+    .option('--path <filepath>', 'path to offer info')
+    .option(
+      '--configuration <filepath>',
+      'path to the configuration schema (only works with data and solution offers)',
+    )
     .action(async (type: 'tee' | 'value', id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
+      const storageConfig = configLoader.loadSection('storage');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1018,6 +1043,8 @@ async function main(): Promise<void> {
         actionAccountKey,
         blockchainConfig,
         offerInfoPath: options.path,
+        storageConfig,
+        configurationPath: options.configuration,
       });
     });
 
@@ -1027,7 +1054,7 @@ async function main(): Promise<void> {
     .argument('id', 'Offer <id>')
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1047,7 +1074,7 @@ async function main(): Promise<void> {
     .argument('id', 'Offer <id>')
     .action(async (id: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1067,7 +1094,7 @@ async function main(): Promise<void> {
     .requiredOption('--by-providers <filepath>', 'path to providers list', './providers.json')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1085,7 +1112,7 @@ async function main(): Promise<void> {
     .requiredOption('--by-providers <filepath>', 'path to providers list', './providers.json')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1106,7 +1133,7 @@ async function main(): Promise<void> {
     .option('--save-to <filepath>', 'Save result to a file')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       await offersGetSlot({
         backendUrl: backend.url,
@@ -1126,7 +1153,7 @@ async function main(): Promise<void> {
     .requiredOption('--path <filepath>', 'path to slot info', './offerSlot.json')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1151,7 +1178,7 @@ async function main(): Promise<void> {
     .requiredOption('--path <filepath>', 'path to slot info', './offerSlot.json')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1176,7 +1203,7 @@ async function main(): Promise<void> {
     .requiredOption('--slot <id>', 'Slot <id>')
     .action(async (type: 'tee' | 'value', options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1200,7 +1227,7 @@ async function main(): Promise<void> {
     .option('--save-to <filepath>', 'Save result to a file')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       await offersGetOption({
         backendUrl: backend.url,
@@ -1218,7 +1245,7 @@ async function main(): Promise<void> {
     .requiredOption('--path <filepath>', 'path to option info', './offerOption.json')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1241,7 +1268,7 @@ async function main(): Promise<void> {
     .requiredOption('--path <filepath>', 'path to option info', './offerOption.json')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
@@ -1276,6 +1303,23 @@ async function main(): Promise<void> {
         actionAccountKey,
         offerId: options.offer,
         optionId: options.option,
+      });
+    });
+
+  offersCommand
+    .command('get-configuration')
+    .description('Get value offer configuration')
+    .argument('id', 'Value offer <id>')
+    .option('--save-to <filepath>', 'Save result to a file')
+    .action(async (id: string, options: any) => {
+      const configLoader = new ConfigLoader(options.config);
+      const backend = await configLoader.loadSection('backend');
+
+      await offersGetConfiguration({
+        backendUrl: backend.url,
+        accessToken: backend.accessToken,
+        saveTo: options.saveTo,
+        id,
       });
     });
 
