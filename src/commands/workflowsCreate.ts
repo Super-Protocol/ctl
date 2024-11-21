@@ -9,10 +9,12 @@ import {
   constants,
   AnalyticsEvent,
   RIGenerator,
+  helpers,
 } from '@super-protocol/sdk-js';
 import { Config } from '../config';
 import Printer from '../printer';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
+import readJsonFile from '../services/readJsonFile';
 import validateOfferWorkflowService from '../services/validateOfferWorkflow';
 import createWorkflowService, { ValueOfferParams } from '../services/createWorkflow';
 import parseInputResourcesService from '../services/parseInputResources';
@@ -35,7 +37,13 @@ import fetchConfigurationErrors from '../services/fetchConfigurationErrors';
 import { MINUTES_IN_HOUR } from '../constants';
 import approveTeeTokens from '../services/approveTeeTokens';
 import { AnalyticEvent, IEventProperties, IOrderEventProperties } from '../services/analytics';
-import { EncryptionKey, Linkage } from '@super-protocol/dto-js';
+import {
+  EncryptionKey,
+  Hash,
+  Linkage,
+  TeeOrderEncryptedArgs,
+  TeeOrderEncryptedArgsConfiguration,
+} from '@super-protocol/dto-js';
 
 export type WorkflowCreateParams = {
   analytics?: Analytics<AnalyticsEvent> | null;
@@ -43,15 +51,15 @@ export type WorkflowCreateParams = {
   accessToken: string;
   blockchainConfig: BlockchainConfig;
   actionAccountKey: string;
-
   tee?: string;
   teeSlotCount?: number;
   teeOptionsIds: string[];
   teeOptionsCount: number[];
-
   storage: string;
   solution: string[];
   data: string[];
+  solutionConfigurationPath?: string;
+  dataConfigurationPaths: string[];
   resultEncryption: EncryptionKey;
   userDepositAmount: string;
   minRentMinutes: number;
@@ -62,7 +70,29 @@ export type WorkflowCreateParams = {
   storageAccess: Config['storage'];
 };
 
+const buildConfiguration = async (params: {
+  solutionConfigPath: string;
+  dataConfigurationPaths: string[];
+}): Promise<TeeOrderEncryptedArgsConfiguration> => {
+  Printer.print('The configuration is used');
+  const [solution, ...data] = await Promise.all([
+    readJsonFile({ path: params.solutionConfigPath }),
+    ...params.dataConfigurationPaths.map((path) => readJsonFile({ path })),
+  ]);
+
+  return {
+    solution,
+    data,
+  };
+};
+
 const workflowCreate = async (params: WorkflowCreateParams): Promise<string | void> => {
+  if (params.dataConfigurationPaths.length && !params.solutionConfigurationPath) {
+    throw new Error(
+      'Invalid solution-configuration param. It must be specified if at least one data-configuration param is provided.',
+    );
+  }
+
   Printer.print('Connecting to the blockchain');
   const consumerAddress = await initBlockchainConnectorService({
     blockchainConfig: params.blockchainConfig,
@@ -379,6 +409,21 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
   });
   const inputOffersParams = [...solutions.offers, ...data.offers];
 
+  const argsToEncrypt: TeeOrderEncryptedArgs = {
+    data: dataTIIs,
+    solution: solutionTIIs,
+    image: imageTIIs,
+  };
+  let argsHash: Hash | null = null;
+  if (params.solutionConfigurationPath) {
+    const configuration = await buildConfiguration({
+      solutionConfigPath: params.solutionConfigurationPath,
+      dataConfigurationPaths: params.dataConfigurationPaths,
+    });
+    argsToEncrypt.configuration = JSON.stringify(configuration);
+    argsHash = await helpers.OrderArgsHelper.calculateArgsHash(argsToEncrypt);
+  }
+
   const orderResultKeys = await RIGenerator.generate({
     offerId: teeOfferParams.id,
     encryptionPrivateKey: params.resultEncryption,
@@ -386,6 +431,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     solutionHashes,
     imageHashes,
     dataHashes,
+    ...(argsHash && { argsHash }),
     linkage: linkage || '',
   });
 
@@ -405,11 +451,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         teeOffer: teeOfferParams,
         storageOffer: storage,
         inputOffers: inputOffersParams,
-        argsToEncrypt: JSON.stringify({
-          data: dataTIIs,
-          solution: solutionTIIs,
-          image: imageTIIs,
-        }),
+        argsToEncrypt,
         resultPublicKey: orderResultKeys.publicKey,
         encryptedInfo: orderResultKeys.encryptedInfo,
         holdDeposit: holdDeposit.toString(),

@@ -6,7 +6,8 @@
     "description": "<a href=\"https://github.com/Super-Protocol/solutions/tree/main/Python\" target=\"_blank\">Solution description</a>",
     "restrictions": {
         "offers": [],
-        "types": []
+        "types": [],
+        "versions": []
     },
     "metadata": "",
     "input": "",
@@ -27,6 +28,6 @@
             "storageId": ""
         }
     },
-    "linkage": "",
+    "signatureKey": "",
     "hash": ""
 }

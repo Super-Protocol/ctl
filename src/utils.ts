@@ -7,6 +7,8 @@ import { ErrorMessageOptions, generateErrorMessage } from 'zod-error';
 import { ZodIssue } from 'zod';
 import path from 'path';
 import { CONFIG_DEFAULT_FILENAME, TX_REVERTED_BY_EVM_ERROR } from './constants';
+import { Config } from './config';
+import { helpers } from '@super-protocol/sdk-js';
 
 export const exec = promisify(execCallback);
 
@@ -196,4 +198,30 @@ export const tryParse = (text: string) => {
   } catch {
     /* empty */
   }
+};
+
+export const isStorageConfigValid = (access: Config['storage']): boolean =>
+  Boolean(access.bucket && access.readAccessToken && access.writeAccessToken);
+
+export const convertReadWriteStorageAccess = (
+  configStorageAccess: Config['storage'],
+): helpers.ReadWriteStorageAccess => {
+  return {
+    read: {
+      storageType: configStorageAccess.type,
+      credentials: {
+        bucket: configStorageAccess.bucket,
+        prefix: configStorageAccess.prefix,
+        token: configStorageAccess.readAccessToken,
+      },
+    },
+    write: {
+      storageType: configStorageAccess.type,
+      credentials: {
+        bucket: configStorageAccess.bucket,
+        prefix: configStorageAccess.prefix,
+        token: configStorageAccess.writeAccessToken,
+      },
+    },
+  };
 };
