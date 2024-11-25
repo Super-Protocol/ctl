@@ -86,7 +86,7 @@ async function checkBalanceToCreateProvider(
     }
 
     await SuperproToken.approve(
-      SuperproToken.addressHttps,
+      Deposits.address,
       etherToWei(String(DEFAULT_TEE_AMOUNT_FOR_APPROVE)).toString(),
       { from: authorityAddress },
     );
