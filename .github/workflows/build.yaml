@@ -9,7 +9,7 @@ jobs:
         strategy:
             matrix:
                 include:
-                    - os: macos-12 # Intel Mac
+                    - os: macos-13 # Intel Mac
                       output: spctl-macos-x64
                     - os: ubuntu-20.04
                       output: spctl-linux-x64
