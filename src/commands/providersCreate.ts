@@ -86,7 +86,7 @@ async function checkBalanceToCreateProvider(
     }
 
     await SuperproToken.approve(
-      Deposits.address,
+      Superpro.address,
       etherToWei(String(DEFAULT_TEE_AMOUNT_FOR_APPROVE)).toString(),
       { from: authorityAddress },
     );
@@ -120,6 +120,16 @@ export default async function providersCreate(params: ProvidersCreateParams): Pr
 
   await ProviderRegistry.registerProvider(providerInfo, { from: authorityAddress });
   await waitProviderRegistrationFinish(authorityAddress);
+
+  const actionAddress = await BlockchainConnector.getInstance().initializeActionAccount(
+    params.actionAccountKey,
+  );
+
+  await SuperproToken.approve(
+    Superpro.address,
+    etherToWei(String(DEFAULT_TEE_AMOUNT_FOR_APPROVE)).toString(),
+    { from: actionAddress },
+  );
 
   Printer.print(`Provider with wallet address ${authorityAddress} is registered`);
 }
