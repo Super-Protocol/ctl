@@ -5,10 +5,9 @@ import {
   Encoding,
   Encryption,
   EncryptionKey,
-  Hash,
   HashAlgorithm,
-  Linkage,
   ResourceType,
+  RuntimeInputInfo,
   StorageType,
   StorjCredentials,
 } from '@super-protocol/dto-js';
@@ -182,7 +181,8 @@ export default async (params: FilesUploadParams): Promise<void> => {
     return;
   }
 
-  let metadata: { linkage?: Linkage; hash?: Hash } = {};
+  let metadata: Partial<Pick<RuntimeInputInfo, 'hash' | 'hardwareContext' | 'signatureKeyHash'>> =
+    {};
 
   if (params.metadataPath) {
     metadata = await readJsonFileService({ path: preparePath(params.metadataPath) });
@@ -208,12 +208,11 @@ export default async (params: FilesUploadParams): Promise<void> => {
     });
 
     originFileStream.on('end', () => {
-      const resultHash: Hash = {
+      metadata.hash = {
         algo: HashAlgorithm.SHA256,
         encoding: Encoding.hex,
         hash: hash.digest(Encoding.hex),
       };
-      metadata.hash = resultHash;
     });
 
     originFileStream.pause();

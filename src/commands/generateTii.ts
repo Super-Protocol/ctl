@@ -1,9 +1,10 @@
-import { promises as fs } from 'fs';
+import { RuntimeInputInfo } from '@super-protocol/dto-js';
 import { Config as BlockchainConfig, TIIGenerator } from '@super-protocol/sdk-js';
-import readResourceFile from '../services/readResourceFile';
-import { preparePath } from '../utils';
+import { promises as fs } from 'fs';
 import Printer from '../printer';
 import initBlockchainConnector from '../services/initBlockchainConnector';
+import readResourceFile from '../services/readResourceFile';
+import { preparePath } from '../utils';
 
 export type GenerateTiiParams = {
   blockchainConfig: BlockchainConfig;
@@ -18,7 +19,7 @@ export default async (params: GenerateTiiParams): Promise<void> => {
     path: preparePath(params.resourcePath),
   });
 
-  const { resource, encryption, hash, linkage, args } = resourceFile;
+  const { resource, encryption, hash, signatureKeyHash, hardwareContext, args } = resourceFile;
 
   if (!encryption) {
     throw new Error('Resource encryption missing');
@@ -29,17 +30,25 @@ export default async (params: GenerateTiiParams): Promise<void> => {
     blockchainConfig: params.blockchainConfig,
   });
 
-  const isSolution = Boolean(linkage);
+  const runtimeInputInfos: RuntimeInputInfo[] = hash
+    ? [
+        {
+          args,
+          hash,
+          ...(signatureKeyHash && { signatureKeyHash }),
+          type: signatureKeyHash && hardwareContext?.mrEnclave ? 'Solution' : 'Image',
+          ...(Object.keys(hardwareContext ?? {}).length && { hardwareContext }),
+        },
+      ]
+    : [];
 
   const tii = await TIIGenerator.generateByOffer({
     offerId: params.teeOfferId,
-    solutionHashes: isSolution && hash ? [hash] : [],
-    imageHashes: !isSolution && hash ? [hash] : [],
-    linkageString: JSON.stringify(linkage),
     resource: resource,
-    args: args,
+    args,
     encryption: encryption,
     sgxApiUrl: params.pccsServiceApiUrl,
+    runtimeInputInfos,
   });
 
   const outputPath = preparePath(params.outputPath);

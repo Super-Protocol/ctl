@@ -60,7 +60,6 @@ export default async (params: OffersCreateParams): Promise<void> => {
         path: params.offerInfoPath,
         isPartialContent: false,
       });
-      offerInfo.linkage = '';
 
       Printer.print('Offer info file was read successfully');
 

@@ -32,6 +32,10 @@ const OfferInfoFileValidator = z.object({
   resultResource: z.string(),
   hash: z.string(),
   subType: z.nativeEnum(ValueOfferSubtype),
+  signatureKey: z.string(),
+  hardwareContext: z.object({
+    mrEnclave: z.string().optional(),
+  }).optional(),
 });
 
 const OptionalOfferInfoFileValidator = OfferInfoFileValidator.extend({
