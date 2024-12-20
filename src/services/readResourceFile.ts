@@ -66,12 +66,13 @@ export const EncryptedResourceFileValidator = ResourceFileValidator.extend({
 });
 
 export const SolutionResourceFileValidator = ResourceFileValidator.extend({
-  signatureKeyHash: HashValidator.optional(),
+  signatureKeyHash: HashValidator.nullable().optional(),
   hardwareContext: z
     .object({
       mrEnclave: HashValidator.optional(),
     })
     .catchall(z.unknown())
+    .nullable()
     .optional(),
 });
 

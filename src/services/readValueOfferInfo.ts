@@ -2,7 +2,7 @@
 import {OfferGroup, OfferInfo, OfferType, ValueOfferSubtype} from '@super-protocol/sdk-js';
 import z, { ZodError } from 'zod';
 import readJsonFile from './readJsonFile';
-import { EncryptionValidator, ResourceValidator } from './readResourceFile';
+import {EncryptionValidator, HashValidator, ResourceValidator} from './readResourceFile';
 import { ErrorWithCustomMessage, createZodErrorMessage } from '../utils';
 
 export type ReadValueOfferInfoFileParams = {
@@ -12,7 +12,7 @@ export type ReadValueOfferInfoFileParams = {
 
 const OfferInfoRestrictionsValidator = z.object({
   offers: z.array(z.string()),
-  versions: z.array(z.string()),
+  versions: z.array(z.number()),
   types: z.array(z.nativeEnum(OfferType)),
 });
 
@@ -32,10 +32,14 @@ const OfferInfoFileValidator = z.object({
   resultResource: z.string(),
   hash: z.string(),
   subType: z.nativeEnum(ValueOfferSubtype),
-  signatureKey: z.string(),
-  hardwareContext: z.object({
-    mrEnclave: z.string().optional(),
-  }).optional(),
+  signatureKeyHash: HashValidator.nullable().optional(),
+  hardwareContext: z
+    .object({
+      mrEnclave: HashValidator.optional(),
+    })
+    .catchall(z.unknown())
+    .nullable()
+    .optional(),
 });
 
 const OptionalOfferInfoFileValidator = OfferInfoFileValidator.extend({
