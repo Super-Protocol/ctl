@@ -458,41 +458,18 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
                   })),
                 }),
               },
-              ...fetchedValueOffers.map((offer) => {
-                let mrSigner = '';
-                if (offer.offerInfo.signatureKeyHash) {
-                  try {
-                    mrSigner = JSON.parse(offer.offerInfo.signatureKeyHash).hash || '';
-                  } catch (err) {
-                    throw new Error(
-                      `Failed to parse signatureKeyHash for offer ${offer.id}: ${(err as Error).message}`,
-                    );
-                  }
-                }
-                let mrEnclave = '';
-                if (offer.offerInfo.hardwareContext) {
-                  try {
-                    mrEnclave = JSON.parse(offer.offerInfo.hardwareContext).mrEnclave?.hash || '';
-                  } catch (err) {
-                    throw new Error(
-                      `Failed to parse hardwareContext for offer ${offer.id}: ${(err as Error).message}`,
-                    );
-                  }
-                }
-
-                return {
-                  offer: offer.id,
-                  ...(offer.slots.length && {
-                    slot: {
-                      id: offer.slots[0].id,
-                      count: 1,
-                    },
-                  }),
-                  offerType: getObjectKey(offer.offerInfo.offerType, OfferType) as TOfferType,
-                  mrSigner,
-                  mrEnclave,
-                };
-              }),
+              ...fetchedValueOffers.map((offer) => ({
+                offer: offer.id,
+                ...(offer.slots.length && {
+                  slot: {
+                    id: offer.slots[0].id,
+                    count: 1,
+                  },
+                }),
+                offerType: getObjectKey(offer.offerInfo.offerType, OfferType) as TOfferType,
+                mrSigner: offer.offerInfo.signatureKeyHash?.hash ?? '',
+                mrEnclave: offer.offerInfo.hardwareContext?.mrEnclave?.hash ?? '',
+              })),
             ],
           });
           resolve(workflowId);
