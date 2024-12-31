@@ -34,7 +34,6 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         allowedAccounts
                         argsPublicKey
                         resultResource
-                        linkage
                         hash
                         signatureKeyHash
                         hardwareContext

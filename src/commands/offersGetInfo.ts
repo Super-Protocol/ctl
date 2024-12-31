@@ -1,7 +1,7 @@
+import { OfferInfo, TeeOfferInfo } from '@super-protocol/sdk-js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import Printer from '../printer';
-import { OfferInfo, TeeOfferInfo } from '@super-protocol/sdk-js';
 import fetchTeeOffers from '../services/fetchTeeOffers';
 import fetchOffers from '../services/fetchOffers';
 

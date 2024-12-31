@@ -1491,12 +1491,12 @@ async function main(): Promise<void> {
     .option('--output <path>', 'Path to write the result into', 'tii.json')
     .action(async (resourcePath: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const blockchain = await configLoader.loadSection('blockchain');
+      const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const { pccsServiceApiUrl } = await configLoader.loadSection('tii');
+      const { pccsServiceApiUrl } = configLoader.loadSection('tii');
 
       await generateTii({
         blockchainConfig,

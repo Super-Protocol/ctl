@@ -8501,10 +8501,9 @@ export type OfferInfo = {
    *
    */
   group: Scalars['String'];
-  hardwareContext: Scalars['String'];
+  hardwareContext?: Maybe<Scalars['JSON']>;
   hash: Scalars['String'];
   input: Scalars['String'];
-  linkage: Scalars['String'];
   metadata: Scalars['String'];
   name: Scalars['String'];
   /**
@@ -8523,7 +8522,7 @@ export type OfferInfo = {
   output: Scalars['String'];
   restrictions?: Maybe<OfferRestrictions>;
   resultResource: Scalars['String'];
-  signatureKeyHash: Scalars['String'];
+  signatureKeyHash?: Maybe<Scalars['JSON']>;
   subType: Scalars['String'];
 };
 
@@ -8542,10 +8541,9 @@ export type OfferInfoInput = {
    *
    */
   group: Scalars['String'];
-  hardwareContext: Scalars['String'];
+  hardwareContext?: InputMaybe<Scalars['JSON']>;
   hash: Scalars['String'];
   input: Scalars['String'];
-  linkage: Scalars['String'];
   metadata: Scalars['String'];
   name: Scalars['String'];
   /**
@@ -8564,7 +8562,7 @@ export type OfferInfoInput = {
   output: Scalars['String'];
   restrictions?: InputMaybe<OfferRestrictionsInput>;
   resultResource: Scalars['String'];
-  signatureKeyHash: Scalars['String'];
+  signatureKeyHash?: InputMaybe<Scalars['JSON']>;
   subType: Scalars['String'];
 };
 
@@ -8973,6 +8971,8 @@ export type OrdersFilter = {
   offerId?: InputMaybe<Scalars['String']>;
   /** filter by orderInfo -> offerId */
   offerIds?: InputMaybe<Array<Scalars['String']>>;
+  /** filter by offerInfo -> subType */
+  offerSubType?: InputMaybe<Array<ValueOfferSubtype>>;
   /** filter by offerType */
   offerType?: InputMaybe<TOfferType>;
   /** filter by orderInfo -> args -> outputOffers */
@@ -8981,6 +8981,8 @@ export type OrdersFilter = {
   parentOrder?: InputMaybe<Scalars['String']>;
   /** filter by orderInfo -> status */
   status?: InputMaybe<Scalars['String']>;
+  /** filter by teeOfferInfo -> subType */
+  teeOfferSubType?: InputMaybe<Array<TeeOfferSubtype>>;
 };
 
 export type Origins = {
@@ -9519,7 +9521,9 @@ export type SubscriptionOrderArgs = {
   consumer?: InputMaybe<Scalars['String']>;
   eventTypes?: InputMaybe<Array<OrderEventType>>;
   externalId?: InputMaybe<Scalars['String']>;
+  offerSubType?: InputMaybe<Array<ValueOfferSubtype>>;
   orderIds?: InputMaybe<Array<Scalars['String']>>;
+  teeOfferSubType?: InputMaybe<Array<TeeOfferSubtype>>;
 };
 
 
@@ -9984,7 +9988,7 @@ export type OffersQueryVariables = Exact<{
 }>;
 
 
-export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, configuration?: any | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, metadata: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, linkage: string, hash: string, signatureKeyHash: string, hardwareContext: string, subType: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null, versions?: Array<number> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number, vram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
+export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, configuration?: any | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, metadata: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, hash: string, signatureKeyHash?: any | null, hardwareContext?: any | null, subType: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null, versions?: Array<number> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number, vram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string } } | null }> | null } } };
 
 export type OffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -10178,7 +10182,6 @@ export const OffersDocument = gql`
             allowedAccounts
             argsPublicKey
             resultResource
-            linkage
             hash
             signatureKeyHash
             hardwareContext
