@@ -1021,13 +1021,13 @@ async function main(): Promise<void> {
     .command('update')
     .description('Update offer info')
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
-    .argument('id', 'Offer <id>')
+    .argument('ids...', 'Offer <ids>')
     .option('--path <filepath>', 'path to offer info')
     .option(
       '--configuration <filepath>',
       'path to the configuration schema (only works with data and solution offers)',
     )
-    .action(async (type: 'tee' | 'value', id: string, options: any) => {
+    .action(async (type: 'tee' | 'value', ids: string[], options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
       const storageConfig = configLoader.loadSection('storage');
@@ -1038,7 +1038,7 @@ async function main(): Promise<void> {
       const actionAccountKey = blockchain.accountPrivateKey;
 
       await offersUpdate({
-        id,
+        ids,
         type,
         actionAccountKey,
         blockchainConfig,
