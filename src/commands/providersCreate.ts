@@ -91,7 +91,7 @@ async function checkBalanceToCreateProvider(
       { from: authorityAddress },
     );
 
-    await Deposits.replenish(requiredDeposit.toString(), { from: authorityAddress });
+    await Deposits.replenish(requiredDeposit.toString(), undefined, { from: authorityAddress });
 
     return Printer.print(`Refilled security deposit on ${toTEE(requiredDeposit)}`);
   }
@@ -118,7 +118,7 @@ export default async function providersCreate(params: ProvidersCreateParams): Pr
   }
   await checkBalanceToCreateProvider({ authorityAddress, silent: params.silent });
 
-  await ProviderRegistry.registerProvider(providerInfo, { from: authorityAddress });
+  await ProviderRegistry.registerProvider(providerInfo, undefined, { from: authorityAddress });
   await waitProviderRegistrationFinish(authorityAddress);
 
   const actionAddress = await BlockchainConnector.getInstance().initializeActionAccount(

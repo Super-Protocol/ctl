@@ -79,6 +79,7 @@ export default async function checkBalanceToCreateOffer(
     await ProviderRegistry.refillSecurityDepositFor(
       secDepositToCreateOffer.toString(),
       authorityAddress,
+      undefined,
       {
         from: actionAddress,
       },
