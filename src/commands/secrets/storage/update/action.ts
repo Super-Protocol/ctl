@@ -35,7 +35,7 @@ export const updateAction = async (
     const params: RegisterStorageParams = {
       offerId,
       offerVersion: options.version,
-      copyPreviousData: true, // (!)
+      copyPreviousData: false, // (!)
       replicationFactor: options.replicationFactor,
       storageOfferId: options.storageOffer,
       storageSlotId: options.storageSlot,
