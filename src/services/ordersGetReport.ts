@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import { Config as BlockchainConfig, Order } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import initBlockchainConnector from './initBlockchainConnector';
+import { constants } from '@super-protocol/sdk-js';
 
 export type OrderGetReportParams = {
   blockchainConfig: BlockchainConfig;
@@ -23,6 +24,9 @@ export const ordersGetReport = async (params: OrderGetReportParams): Promise<voi
     Printer.error(`There is no report for order ${params.orderId}`);
     return;
   }
+
+  //add root cert at the end of certificate chain to have full chain
+  orderReport.certificate += `\n${constants.SUPERPROTOCOL_CA}`;
 
   Printer.print(JSON.stringify(orderReport, null, 2));
 
