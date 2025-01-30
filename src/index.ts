@@ -1336,10 +1336,6 @@ async function main(): Promise<void> {
     .option('--skip-encryption', 'Skip file encryption before upload')
     .option('--metadata <path>', 'Path to a metadata file for adding fields to the resource file')
     .option(
-      '--maximum-concurrent <number>',
-      'Maximum concurrent pieces to upload at once per transfer',
-    )
-    .option(
       '--storage <id,slot>',
       'Storage offer <id,slot>. If used, credentials for temporary storage will be created to upload the file.',
       collectOptions,
@@ -1370,7 +1366,6 @@ async function main(): Promise<void> {
         outputPath: options.output,
         metadataPath: options.metadata,
         withEncryption: !options.skipEncryption,
-        maximumConcurrent: options.maximumConcurrent,
         storage: options.storage,
         minRentMinutes: Number(options.minRentMinutes),
         accessToken: backendConfig.accessToken,

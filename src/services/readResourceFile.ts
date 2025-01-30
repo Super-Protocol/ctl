@@ -2,7 +2,7 @@ import z from 'zod';
 import {
   CryptoAlgorithm,
   Encoding,
-  Encryption,
+  EncryptionWithIV,
   HashAlgorithm,
   Resource,
   ResourceType,
@@ -23,7 +23,7 @@ export type ResourceFile = Partial<
   Pick<RuntimeInputInfo, 'args' | 'hash' | 'hardwareContext' | 'signatureKeyHash'>
 > & {
   resource: Resource;
-  encryption?: Encryption;
+  encryption?: EncryptionWithIV;
 };
 
 export const UrlResourceValidator = z.object({

@@ -1,9 +1,9 @@
-import deleteFileService from '../services/deleteFile';
 import { isCommandSupported } from '../services/uplinkSetupHelper';
 import readResourceFileService from '../services/readResourceFile';
 import { ResourceType, StorageProviderResource, StorjCredentials } from '@super-protocol/dto-js';
 import Printer from '../printer';
 import { preparePath } from '../utils';
+import { deleteResource } from '@super-protocol/sp-files-addon';
 
 export type FilesDeleteParams = {
   resourcePath: string;
@@ -25,9 +25,6 @@ export default async (params: FilesDeleteParams): Promise<void> => {
 
   resource.credentials.token = params.writeAccessToken;
   Printer.print('Deleting file');
-  await deleteFileService({
-    storageAccess: resource,
-    remotePath: resource.filepath,
-  });
+  await deleteResource(resource);
   Printer.print('File was deleted');
 };
