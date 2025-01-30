@@ -403,7 +403,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
       dataConfigurationPaths: params.dataConfigurationPaths,
     });
     argsToEncrypt.configuration = JSON.stringify(configuration);
-    argsHash = await helpers.OrderArgsHelper.calculateArgsHash(argsToEncrypt);
+    argsHash = await helpers.calculateObjectHash(argsToEncrypt);
   }
 
   const orderResultKeys = await RIGenerator.generate({
