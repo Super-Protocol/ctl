@@ -9,8 +9,11 @@ import packageJson from '../package.json';
 import offersGetConfiguration from './commands/offersGetConfiguration';
 import ConfigLoader from './config';
 import download from './commands/filesDownload';
+import addonDownload from './commands/filesDownload.addon';
 import upload from './commands/filesUpload';
+import addonUpload, { FilesUploadParams } from './commands/filesUpload.addon';
 import filesDelete from './commands/filesDelete';
+import addonFilesDelete from './commands/filesDelete.addon';
 import providersList from './commands/providersList';
 import providersGet from './commands/providersGet';
 import ordersList from './commands/ordersList';
@@ -1336,6 +1339,10 @@ async function main(): Promise<void> {
     .option('--skip-encryption', 'Skip file encryption before upload')
     .option('--metadata <path>', 'Path to a metadata file for adding fields to the resource file')
     .option(
+      '--maximum-concurrent <number>',
+      'Maximum concurrent pieces to upload at once per transfer',
+    )
+    .option(
       '--storage <id,slot>',
       'Storage offer <id,slot>. If used, credentials for temporary storage will be created to upload the file.',
       collectOptions,
@@ -1346,6 +1353,9 @@ async function main(): Promise<void> {
       'Storage rent time to be paid in advance. ("storage" option is required)',
       String(MINUTES_IN_HOUR),
     )
+    .addOption(
+      new Option('--use-addon', 'work will be performed via the addon').default(false).hideHelp(),
+    )
     .action(async (localPath: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const storageConfig = configLoader.loadSection('storage');
@@ -1353,8 +1363,7 @@ async function main(): Promise<void> {
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
       const tiiConfig = configLoader.loadSection('tii');
-
-      await upload({
+      const params: FilesUploadParams = {
         analytics: createAnalyticsService(configLoader),
         localPath,
         storageType: storageConfig.type,
@@ -1366,6 +1375,7 @@ async function main(): Promise<void> {
         outputPath: options.output,
         metadataPath: options.metadata,
         withEncryption: !options.skipEncryption,
+        maximumConcurrent: options.maximumConcurrent,
         storage: options.storage,
         minRentMinutes: Number(options.minRentMinutes),
         accessToken: backendConfig.accessToken,
@@ -1377,7 +1387,12 @@ async function main(): Promise<void> {
         },
         resultEncryption: workflowConfig.resultEncryption,
         pccsServiceApiUrl: tiiConfig.pccsServiceApiUrl,
-      });
+      };
+      if (options.useAddon) {
+        await addonUpload(params);
+      } else {
+        await upload(params);
+      }
     });
 
   filesCommand
@@ -1387,25 +1402,45 @@ async function main(): Promise<void> {
     )
     .argument('resourcePath', 'Path to a resource file')
     .argument('localDirectory', 'Path to save downloaded file')
-    .action(async (resourcePath: string, localDirectory: string) => {
-      await download({
-        resourcePath,
-        localDirectory,
-      });
+    .addOption(
+      new Option('--use-addon', 'work will be performed via the addon').default(false).hideHelp(),
+    )
+    .action(async (resourcePath: string, localDirectory: string, options: any) => {
+      if (options.useAddon) {
+        await addonDownload({
+          resourcePath,
+          localDirectory,
+        });
+      } else {
+        await download({
+          resourcePath,
+          localDirectory,
+        });
+      }
     });
 
   filesCommand
     .command('delete')
     .description('Delete a file in the remote storage using resource file <resourcePath>')
     .argument('resourcePath', 'Path to a resource file')
+    .addOption(
+      new Option('--use-addon', 'work will be performed via the addon').default(false).hideHelp(),
+    )
     .action(async (resourcePath: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const storage = await configLoader.loadSection('storage');
+      const storage = configLoader.loadSection('storage');
 
-      await filesDelete({
-        resourcePath,
-        writeAccessToken: storage.writeAccessToken,
-      });
+      if (options.useAddon) {
+        await addonFilesDelete({
+          resourcePath,
+          writeAccessToken: storage.writeAccessToken,
+        });
+      } else {
+        await filesDelete({
+          resourcePath,
+          writeAccessToken: storage.writeAccessToken,
+        });
+      }
     });
 
   solutionsCommand

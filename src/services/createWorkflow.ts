@@ -14,7 +14,7 @@ import { Config } from '../config';
 import Printer from '../printer';
 import { convertReadWriteStorageAccess, generateExternalId, isStorageConfigValid } from '../utils';
 import doWithRetries from './doWithRetries';
-import { createOrder, CreateOrderParams, getCredentials } from '../commands/filesUpload';
+import { createOrder, CreateOrderParams, getCredentials } from '../commands/filesUpload.addon';
 
 export type TeeOfferParams = {
   id: string;
