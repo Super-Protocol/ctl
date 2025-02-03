@@ -21,6 +21,7 @@ teeOfferSlot.json
 teeOfferOption.json
 encryption.json
 providers.json
+resource.json
 error.log
 keys
 .DS_Store
