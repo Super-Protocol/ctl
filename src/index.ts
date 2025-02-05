@@ -60,6 +60,8 @@ import { TerminatedOrderStatus } from './services/completeOrder';
 import ordersCreate, { OrderCreateParams } from './commands/ordersCreate';
 import { AnalyticEvent, createAnalyticsService } from './services/analytics';
 import { secretsCommand } from './commands/secrets';
+import { OrderValidateReportParams, ordersValidateReport } from './commands/ordersValidateReport';
+import { OrderGetReportParams, ordersGetReport } from './commands/ordersGetReport';
 
 const ORDER_STATUS_KEYS = Object.keys(OrderStatus) as Array<keyof typeof OrderStatus>;
 const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce(
@@ -638,6 +640,39 @@ async function main(): Promise<void> {
       };
 
       await ordersDownloadResult(requestParams);
+    });
+
+  ordersCommand
+    .command('get-report')
+    .description('Download order report')
+    .argument('id', 'Order <id>')
+    .option('--save-to <path>', 'Path to save the result')
+    .action(async (orderId: string, options: any) => {
+      const configLoader = new ConfigLoader(options.config);
+      const blockchain = configLoader.loadSection('blockchain');
+      const blockchainConfig = {
+        contractAddress: blockchain.smartContractAddress,
+        blockchainUrl: blockchain.rpcUrl,
+      };
+      const params: OrderGetReportParams = {
+        blockchainConfig,
+        orderId,
+        saveTo: options.saveTo,
+      };
+
+      await ordersGetReport(params);
+    });
+
+  ordersCommand
+    .command('validate-report')
+    .description('Validates order report from file')
+    .requiredOption('--path <path>', 'Path to order report file')
+    .action(async (option: any) => {
+      const params: OrderValidateReportParams = {
+        reportPath: option.path,
+      };
+
+      await ordersValidateReport(params);
     });
 
   ordersCommand
