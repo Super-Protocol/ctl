@@ -19,7 +19,6 @@ import getOrderResult, { OrderResultError } from '../services/getOrderResult';
 import cancelOrder from '../services/cancelOrder';
 import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, AnalyticsUtils } from '../services/analytics';
-import { upload } from '@super-protocol/sp-files-addon';
 import path, { basename, dirname } from 'path';
 
 const MAX_ATTEMPT_COUNT = 12;
@@ -234,6 +233,7 @@ export default async (params: FilesUploadParams): Promise<void> => {
       writeCredentials = credentials.write;
     }
 
+    const { upload } = await import('@super-protocol/sp-files-addon');
     const uploadResult = await upload(
       localPath,
       {

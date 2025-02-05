@@ -4,7 +4,6 @@ import { isCommandSupported } from '../services/uplinkSetupHelper';
 import readResourceFileService from '../services/readResourceFile';
 import { ResourceType, StorageProviderResource } from '@super-protocol/dto-js';
 import { preparePath } from '../utils';
-import { download } from '@super-protocol/sp-files-addon';
 
 export type FilesDownloadParams = {
   resourcePath: string;
@@ -31,6 +30,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
   }
 
   try {
+    const { download } = await import('@super-protocol/sp-files-addon');
     await download(resource, localPath, {
       encryption: resourceFile.encryption,
       progressCallback: ({ key, current, total }) => {
