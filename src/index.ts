@@ -21,7 +21,7 @@ import ordersGet from './commands/ordersGet';
 import ordersCancel from './commands/ordersCancel';
 import ordersComplete, { OrderCompleteParams } from './commands/ordersComplete';
 import ordersReplenishDeposit from './commands/ordersReplenishDeposit';
-import workflowsCreate, { WorkflowCreateParams } from './commands/workflowsCreate';
+import workflowsCreate, { WorkflowCreateCommandParams } from './commands/workflowsCreate';
 import Printer from './printer';
 import { collectOptions, commaSeparatedList, processSubCommands, validateFields } from './utils';
 import generateSolutionKey from './commands/solutionsGenerateKey';
@@ -408,6 +408,10 @@ async function main(): Promise<void> {
       [],
     )
     .option('--solution-configuration <filepath>', 'Solution configuration file path')
+    .option(
+      '--token <symbol>',
+      'Token symbol (if not specified, the first primary token will be used)',
+    )
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = configLoader.loadSection('backend');
@@ -419,7 +423,7 @@ async function main(): Promise<void> {
       const { pccsServiceApiUrl } = configLoader.loadSection('tii');
       const workflowConfig = configLoader.loadSection('workflow');
       const storageConfig = configLoader.loadSection('storage');
-      const requestParams: WorkflowCreateParams = {
+      const requestParams: WorkflowCreateCommandParams = {
         analytics: createAnalyticsService(configLoader),
         backendUrl: backend.url,
         accessToken: backend.accessToken,
@@ -442,6 +446,7 @@ async function main(): Promise<void> {
         pccsServiceApiUrl,
         skipHardwareCheck: options.skipHardwareCheck,
         storageAccess: storageConfig,
+        tokenSymbol: options.token,
       };
 
       await workflowsCreate(requestParams);
@@ -697,6 +702,10 @@ async function main(): Promise<void> {
       '--min-rent-minutes <number>',
       'Minutes of TEE processing that will be paid in advance. If less than minTimeMinutes in slot, the latter is used',
     )
+    .option(
+      '--token <symbol>',
+      'Token symbol (if not specified, the first primary token will be used)',
+    )
     .addOption(
       new Option(
         '--output-offer <id>',
@@ -730,6 +739,7 @@ async function main(): Promise<void> {
         resultEncryption: workflowConfig.resultEncryption,
         slotId: options.slot,
         userDepositAmount: options.deposit,
+        tokenSymbol: options.token,
         ...(options.minRentMinutes && { minRentMinutes: Number(options.minRentMinutes) }),
       };
 

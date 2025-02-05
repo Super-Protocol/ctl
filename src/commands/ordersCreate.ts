@@ -25,7 +25,13 @@ import {
 import { PriceType, SlotUsage, TOfferType } from '../gql';
 import { BigNumber } from 'ethers';
 import { MINUTES_IN_HOUR } from '../constants';
-import { generateExternalId, getObjectKey } from '../utils';
+import {
+  findFirstPrimaryToken,
+  findTokenBySymbol,
+  generateExternalId,
+  getObjectKey,
+  Token,
+} from '../utils';
 import approveTeeTokens from '../services/approveTeeTokens';
 import fetchMatchingValueSlots from '../services/fetchMatchingValueSlots';
 import createOrderService from '../services/createOrder';
@@ -39,6 +45,7 @@ interface IOrderCreateCommandOptions {
 export type OrderCreateParams = {
   accessToken: string;
   actionAccountKey: string;
+  tokenSymbol?: string;
   analytics?: Analytics<AnalyticsEvent> | null;
   args: OrderArgs;
   backendUrl: string;
@@ -108,6 +115,7 @@ const buildOrderInfo = async (params: {
   slot: ValueOfferSlot;
   offerArgsPublicKey: string;
   pccsServiceApiUrl: string;
+  token: Pick<Token, 'address'>;
 }): Promise<OrderInfo> => {
   const orderResultKeys = {
     publicKey: JSON.stringify(Crypto.getPublicKey(params.resultEncryption)),
@@ -154,6 +162,7 @@ const buildOrderInfo = async (params: {
       encryptedInfo: orderResultKeys.encryptedInfo,
     },
     status: OrderStatus.New,
+    tokenAddress: params.token.address,
   };
 };
 
@@ -217,6 +226,9 @@ const calcDepositBySlot = async (slot: ValueOfferSlot, minRentMinutes = 0): Prom
 export default async (params: OrderCreateParams): Promise<string | undefined> => {
   try {
     const consumerAddress = await initBlockchain(params);
+    const token = params.tokenSymbol
+      ? await findTokenBySymbol(params.tokenSymbol)
+      : await findFirstPrimaryToken();
 
     let slotId = params.slotId;
     if (!slotId) {
@@ -245,6 +257,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       offerType: offer.offerInfo.offerType as OfferType,
       offerArgsPublicKey: offer.offerInfo.argsPublicKey,
       pccsServiceApiUrl: params.pccsServiceApiUrl,
+      token,
     });
     const slots = buildOrderSlots({
       ...params,
@@ -252,6 +265,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
     });
     const holdDeposit = await getHoldDeposit({
       consumerAddress,
+      token,
       userDepositAmount: params.userDepositAmount,
       holdDeposit: await calcDepositBySlot(slot, params.minRentMinutes),
       minRentMinutes: getMinRentMinutes({
@@ -264,6 +278,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       amount: holdDeposit,
       from: consumerAddress,
       to: Orders.address,
+      token,
     });
 
     const orderId = await createOrderService({
@@ -272,7 +287,9 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       consumerAddress,
       deposit: holdDeposit.toString(),
     });
-    Printer.print(`Order (id=${orderId}) has been created successfully`);
+    Printer.print(
+      `Order has been created successfully (orderId=${orderId}, token=${token.symbol})`,
+    );
 
     const eventProperties: IOrderEventProperties = {
       orderId,

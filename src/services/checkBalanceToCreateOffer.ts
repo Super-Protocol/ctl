@@ -2,7 +2,7 @@ import inquirer, { QuestionCollection } from 'inquirer';
 import { Provider, ProviderRegistry, ParamName, Superpro } from '@super-protocol/sdk-js';
 import { BigNumber } from 'ethers';
 import Printer from '../printer';
-import { weiToEther } from '../utils';
+import { findFirstPrimaryToken, weiToEther } from '../utils';
 import approveTeeTokens from './approveTeeTokens';
 
 type OfferType = 'tee' | 'value';
@@ -71,10 +71,13 @@ export default async function checkBalanceToCreateOffer(
   };
 
   if (await isDepositConfirmed()) {
+    const token = await findFirstPrimaryToken();
+
     await approveTeeTokens({
       amount: secDepositToCreateOffer,
       from: actionAddress,
       to: contractAddress,
+      token,
     });
     await ProviderRegistry.refillSecurityDepositFor(
       secDepositToCreateOffer.toString(),

@@ -45,7 +45,7 @@ import {
   getFetchedOffers,
   getHoldDeposit,
 } from '../services/workflowHelpers';
-import { formatTeeOptions, getObjectKey } from '../utils';
+import { findFirstPrimaryToken, findTokenBySymbol, formatTeeOptions, getObjectKey } from '../utils';
 
 export type WorkflowCreateParams = {
   analytics?: Analytics<AnalyticsEvent> | null;
@@ -88,7 +88,9 @@ const buildConfiguration = async (params: {
   };
 };
 
-const workflowCreate = async (params: WorkflowCreateParams): Promise<string | void> => {
+export type WorkflowCreateCommandParams = WorkflowCreateParams & { tokenSymbol?: string };
+
+const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<string | void> => {
   if (params.dataConfigurationPaths.length && !params.solutionConfigurationPath) {
     throw new Error(
       'Invalid solution-configuration param. It must be specified if at least one data-configuration param is provided.',
@@ -100,6 +102,10 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     blockchainConfig: params.blockchainConfig,
     actionAccountKey: params.actionAccountKey,
   });
+
+  const token = params.tokenSymbol
+    ? await findTokenBySymbol(params.tokenSymbol)
+    : await findFirstPrimaryToken();
 
   const ordersCount = await fetchOrdersCountService({
     backendUrl: params.backendUrl,
@@ -378,6 +384,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
 
   holdDeposit = await getHoldDeposit({
     holdDeposit,
+    token,
     userDepositAmount: params.userDepositAmount,
     consumerAddress: consumerAddress!,
     minRentMinutes: workflowMinTimeMinutes,
@@ -388,6 +395,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
     amount: holdDeposit,
     from: consumerAddress!,
     to: Orders.address,
+    token,
   });
   const inputOffersParams = [...solutions.offers, ...data.offers];
 
@@ -403,7 +411,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
       dataConfigurationPaths: params.dataConfigurationPaths,
     });
     argsToEncrypt.configuration = JSON.stringify(configuration);
-    argsHash = await helpers.calculateObjectHash(argsToEncrypt);
+    argsHash = helpers.calculateObjectHash(argsToEncrypt);
   }
 
   const orderResultKeys = await RIGenerator.generate({
@@ -436,6 +444,7 @@ const workflowCreate = async (params: WorkflowCreateParams): Promise<string | vo
         holdDeposit: holdDeposit.toString(),
         consumerAddress: consumerAddress!,
         storageAccess: params.storageAccess,
+        token,
       })
         .then((workflowId) => {
           properties.push({

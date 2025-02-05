@@ -2,7 +2,7 @@ import { Wallet } from 'ethers';
 import getMaticBalanceService from '../services/getMaticBalance';
 import getTeeBalanceService from '../services/getTeeBalance';
 import Printer from '../printer';
-import { Config as BlockchainConfig } from '@super-protocol/sdk-js';
+import { Config as BlockchainConfig, getTokensInfo } from '@super-protocol/sdk-js';
 import initBlockchainConnectorService from '../services/initBlockchainConnector';
 import { weiToEther } from '../utils';
 
@@ -19,11 +19,14 @@ export default async (params: TokensBalanceParams): Promise<void> => {
   Printer.print('Connecting to the blockchain');
   await initBlockchainConnectorService({ blockchainConfig: params.blockchainConfig });
 
-  Printer.print('Fetching Super Protocol TEE tokens balance');
-  const balanceTee = await getTeeBalanceService({ address });
-  Printer.print(`Balance of ${address}: ${weiToEther(balanceTee)} TEE`);
+  Printer.print('\nFetching Super Protocol tokens balance');
+  const tokens = await getTokensInfo();
+  for (const token of tokens) {
+    const balance = await getTeeBalanceService({ address, token });
+    Printer.print(`Balance of ${address}: ${weiToEther(balance)} ${token.symbol}`);
+  }
 
-  Printer.print('Fetching Polygon MATIC tokens balance');
+  Printer.print('\nFetching POL tokens balance');
   const balanceMatic = await getMaticBalanceService({ address });
-  Printer.print(`Balance of ${address}: ${weiToEther(balanceMatic)} MATIC`);
+  Printer.print(`Balance of ${address}: ${weiToEther(balanceMatic)} POL`);
 };

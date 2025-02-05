@@ -14,7 +14,7 @@ import doWithRetries from '../services/doWithRetries';
 import getTeeBalance from '../services/getTeeBalance';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import readJsonFile from '../services/readJsonFile';
-import { etherToWei, toTEE } from '../utils';
+import { etherToWei, findFirstPrimaryToken, toTEE } from '../utils';
 import { ProviderInfoValidator } from '../validators';
 import { DEFAULT_TEE_AMOUNT_FOR_APPROVE } from '../constants';
 
@@ -75,20 +75,25 @@ async function checkBalanceToCreateProvider(
   };
 
   if (params.silent || (await isDepositConfirmed())) {
-    const teeBalance = await getTeeBalance({ address: authorityAddress });
+    const token = await findFirstPrimaryToken();
+    const teeBalance = await getTeeBalance({ address: authorityAddress, token });
 
     if (teeBalance.toBigInt() < BigInt(requiredDeposit)) {
       throw new Error(
         `Your wallet balance (${toTEE(
           teeBalance,
-        )}) does not have enough TEE tokens to make the deposit.`,
+        )}) does not have enough ${token.symbol} tokens to make the deposit.`,
       );
     }
 
+    const contract = SuperproToken.createContract(token.address);
+    const checkTxBeforeSend = false;
     await SuperproToken.approve(
       Superpro.address,
       etherToWei(String(DEFAULT_TEE_AMOUNT_FOR_APPROVE)).toString(),
       { from: authorityAddress },
+      checkTxBeforeSend,
+      contract,
     );
 
     await Deposits.replenish(requiredDeposit.toString(), undefined, { from: authorityAddress });
