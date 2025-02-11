@@ -251,6 +251,7 @@ export default async (params: FilesUploadParams): Promise<void> => {
       },
     );
 
+    uploadResult.resource.storageType = StorageType.StorJ;
     uploadResult.resource.credentials = readCredentials;
 
     Printer.stopProgress();
