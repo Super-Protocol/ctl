@@ -9,8 +9,11 @@ import packageJson from '../package.json';
 import offersGetConfiguration from './commands/offersGetConfiguration';
 import ConfigLoader from './config';
 import download from './commands/filesDownload';
+import addonDownload from './commands/filesDownload.addon';
 import upload from './commands/filesUpload';
+import addonUpload, { FilesUploadParams } from './commands/filesUpload.addon';
 import filesDelete from './commands/filesDelete';
+import addonFilesDelete from './commands/filesDelete.addon';
 import providersList from './commands/providersList';
 import providersGet from './commands/providersGet';
 import ordersList from './commands/ordersList';
@@ -18,7 +21,7 @@ import ordersGet from './commands/ordersGet';
 import ordersCancel from './commands/ordersCancel';
 import ordersComplete, { OrderCompleteParams } from './commands/ordersComplete';
 import ordersReplenishDeposit from './commands/ordersReplenishDeposit';
-import workflowsCreate, { WorkflowCreateParams } from './commands/workflowsCreate';
+import workflowsCreate, { WorkflowCreateCommandParams } from './commands/workflowsCreate';
 import Printer from './printer';
 import { collectOptions, commaSeparatedList, processSubCommands, validateFields } from './utils';
 import generateSolutionKey from './commands/solutionsGenerateKey';
@@ -57,6 +60,8 @@ import { TerminatedOrderStatus } from './services/completeOrder';
 import ordersCreate, { OrderCreateParams } from './commands/ordersCreate';
 import { AnalyticEvent, createAnalyticsService } from './services/analytics';
 import { secretsCommand } from './commands/secrets';
+import { OrderValidateReportParams, ordersValidateReport } from './commands/ordersValidateReport';
+import { OrderGetReportParams, ordersGetReport } from './commands/ordersGetReport';
 
 const ORDER_STATUS_KEYS = Object.keys(OrderStatus) as Array<keyof typeof OrderStatus>;
 const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce(
@@ -403,6 +408,10 @@ async function main(): Promise<void> {
       [],
     )
     .option('--solution-configuration <filepath>', 'Solution configuration file path')
+    .option(
+      '--token <symbol>',
+      'Token symbol (if not specified, the first primary token will be used)',
+    )
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = configLoader.loadSection('backend');
@@ -414,7 +423,7 @@ async function main(): Promise<void> {
       const { pccsServiceApiUrl } = configLoader.loadSection('tii');
       const workflowConfig = configLoader.loadSection('workflow');
       const storageConfig = configLoader.loadSection('storage');
-      const requestParams: WorkflowCreateParams = {
+      const requestParams: WorkflowCreateCommandParams = {
         analytics: createAnalyticsService(configLoader),
         backendUrl: backend.url,
         accessToken: backend.accessToken,
@@ -437,6 +446,7 @@ async function main(): Promise<void> {
         pccsServiceApiUrl,
         skipHardwareCheck: options.skipHardwareCheck,
         storageAccess: storageConfig,
+        tokenSymbol: options.token,
       };
 
       await workflowsCreate(requestParams);
@@ -638,6 +648,39 @@ async function main(): Promise<void> {
     });
 
   ordersCommand
+    .command('get-report')
+    .description('Download order report')
+    .argument('id', 'Order <id>')
+    .option('--save-to <path>', 'Path to save the result')
+    .action(async (orderId: string, options: any) => {
+      const configLoader = new ConfigLoader(options.config);
+      const blockchain = configLoader.loadSection('blockchain');
+      const blockchainConfig = {
+        contractAddress: blockchain.smartContractAddress,
+        blockchainUrl: blockchain.rpcUrl,
+      };
+      const params: OrderGetReportParams = {
+        blockchainConfig,
+        orderId,
+        saveTo: options.saveTo,
+      };
+
+      await ordersGetReport(params);
+    });
+
+  ordersCommand
+    .command('validate-report')
+    .description('Validates order report from file')
+    .requiredOption('--path <path>', 'Path to order report file')
+    .action(async (option: any) => {
+      const params: OrderValidateReportParams = {
+        reportPath: option.path,
+      };
+
+      await ordersValidateReport(params);
+    });
+
+  ordersCommand
     .command('create')
     .description('Create an order, supported only value offers')
     .requiredOption('--offer <id>', 'Offer id')
@@ -658,6 +701,10 @@ async function main(): Promise<void> {
     .option(
       '--min-rent-minutes <number>',
       'Minutes of TEE processing that will be paid in advance. If less than minTimeMinutes in slot, the latter is used',
+    )
+    .option(
+      '--token <symbol>',
+      'Token symbol (if not specified, the first primary token will be used)',
     )
     .addOption(
       new Option(
@@ -692,6 +739,7 @@ async function main(): Promise<void> {
         resultEncryption: workflowConfig.resultEncryption,
         slotId: options.slot,
         userDepositAmount: options.deposit,
+        tokenSymbol: options.token,
         ...(options.minRentMinutes && { minRentMinutes: Number(options.minRentMinutes) }),
       };
 
@@ -1021,13 +1069,13 @@ async function main(): Promise<void> {
     .command('update')
     .description('Update offer info')
     .addArgument(new Argument('type', 'Offer <type>').choices(['tee', 'value']))
-    .argument('id', 'Offer <id>')
+    .argument('ids...', 'Offer <ids>')
     .option('--path <filepath>', 'path to offer info')
     .option(
       '--configuration <filepath>',
       'path to the configuration schema (only works with data and solution offers)',
     )
-    .action(async (type: 'tee' | 'value', id: string, options: any) => {
+    .action(async (type: 'tee' | 'value', ids: string[], options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
       const storageConfig = configLoader.loadSection('storage');
@@ -1038,7 +1086,7 @@ async function main(): Promise<void> {
       const actionAccountKey = blockchain.accountPrivateKey;
 
       await offersUpdate({
-        id,
+        ids,
         type,
         actionAccountKey,
         blockchainConfig,
@@ -1350,6 +1398,9 @@ async function main(): Promise<void> {
       'Storage rent time to be paid in advance. ("storage" option is required)',
       String(MINUTES_IN_HOUR),
     )
+    .addOption(
+      new Option('--use-addon', 'work will be performed via the addon').default(false).hideHelp(),
+    )
     .action(async (localPath: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const storageConfig = configLoader.loadSection('storage');
@@ -1357,8 +1408,7 @@ async function main(): Promise<void> {
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
       const tiiConfig = configLoader.loadSection('tii');
-
-      await upload({
+      const params: FilesUploadParams = {
         analytics: createAnalyticsService(configLoader),
         localPath,
         storageType: storageConfig.type,
@@ -1382,7 +1432,12 @@ async function main(): Promise<void> {
         },
         resultEncryption: workflowConfig.resultEncryption,
         pccsServiceApiUrl: tiiConfig.pccsServiceApiUrl,
-      });
+      };
+      if (options.useAddon) {
+        await addonUpload(params);
+      } else {
+        await upload(params);
+      }
     });
 
   filesCommand
@@ -1392,25 +1447,45 @@ async function main(): Promise<void> {
     )
     .argument('resourcePath', 'Path to a resource file')
     .argument('localDirectory', 'Path to save downloaded file')
-    .action(async (resourcePath: string, localDirectory: string) => {
-      await download({
-        resourcePath,
-        localDirectory,
-      });
+    .addOption(
+      new Option('--use-addon', 'work will be performed via the addon').default(false).hideHelp(),
+    )
+    .action(async (resourcePath: string, localDirectory: string, options: any) => {
+      if (options.useAddon) {
+        await addonDownload({
+          resourcePath,
+          localDirectory,
+        });
+      } else {
+        await download({
+          resourcePath,
+          localDirectory,
+        });
+      }
     });
 
   filesCommand
     .command('delete')
     .description('Delete a file in the remote storage using resource file <resourcePath>')
     .argument('resourcePath', 'Path to a resource file')
+    .addOption(
+      new Option('--use-addon', 'work will be performed via the addon').default(false).hideHelp(),
+    )
     .action(async (resourcePath: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const storage = await configLoader.loadSection('storage');
+      const storage = configLoader.loadSection('storage');
 
-      await filesDelete({
-        resourcePath,
-        writeAccessToken: storage.writeAccessToken,
-      });
+      if (options.useAddon) {
+        await addonFilesDelete({
+          resourcePath,
+          writeAccessToken: storage.writeAccessToken,
+        });
+      } else {
+        await filesDelete({
+          resourcePath,
+          writeAccessToken: storage.writeAccessToken,
+        });
+      }
     });
 
   solutionsCommand

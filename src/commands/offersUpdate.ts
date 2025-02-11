@@ -18,7 +18,7 @@ import { uploadOfferInput } from '../services/uploadOfferInput';
 import { OfferAttributes } from '@super-protocol/dto-js';
 
 export type OffersUpdateParams = {
-  id: string;
+  ids: string[];
   type: 'tee' | 'value';
   offerInfoPath?: string;
   blockchainConfig: BlockchainConfig;
@@ -121,8 +121,12 @@ export default async (params: OffersUpdateParams): Promise<void> => {
 
       Printer.print('TEE offer info file was read successfully, updating in blockchain');
 
-      const executor = new Executor<TeeOffer, Partial<TeeOfferInfo>>(params.id, info, TeeOffer);
-      await executor.exec();
+      for (const id of params.ids) {
+        const executor = new Executor<TeeOffer, Partial<TeeOfferInfo>>(id, info, TeeOffer);
+        await executor.exec();
+
+        Printer.print(`Offer ${id} was updated successfully`);
+      }
 
       break;
     }
@@ -136,17 +140,19 @@ export default async (params: OffersUpdateParams): Promise<void> => {
 
       Printer.print('Offer info file was read successfully, updating in blockchain');
 
-      const executor = new Executor<Offer, Partial<OfferInfo>>(params.id, info, Offer);
-      if (params.configurationPath) {
-        await executor.updateInput(params.configurationPath, params.storageConfig, info.name);
+      for (const id of params.ids) {
+        const executor = new Executor<Offer, Partial<OfferInfo>>(id, info, Offer);
+        if (params.configurationPath) {
+          await executor.updateInput(params.configurationPath, params.storageConfig, info.name);
+        }
+        await executor.exec();
+
+        Printer.print(`Offer ${id} was updated successfully`);
       }
-      await executor.exec();
 
       break;
     }
     default:
       throw new Error(`Unknown offer type ${params.type} provided`);
   }
-
-  Printer.print(`Offer ${params.id} was updated successfully`);
 };

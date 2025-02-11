@@ -12,9 +12,14 @@ import {
 } from '@super-protocol/sdk-js';
 import { Config } from '../config';
 import Printer from '../printer';
-import { convertReadWriteStorageAccess, generateExternalId, isStorageConfigValid } from '../utils';
+import {
+  convertReadWriteStorageAccess,
+  generateExternalId,
+  isStorageConfigValid,
+  Token,
+} from '../utils';
 import doWithRetries from './doWithRetries';
-import { createOrder, CreateOrderParams, getCredentials } from '../commands/filesUpload';
+import { createOrder, CreateOrderParams, getCredentials } from '../commands/filesUpload.addon';
 
 export type TeeOfferParams = {
   id: string;
@@ -39,6 +44,7 @@ export type CreateWorkflowParams = Omit<CreateOrderParams, 'storage'> & {
   holdDeposit: string;
   consumerAddress: string;
   storageAccess: Config['storage'];
+  token: Pick<Token, 'address'>;
 };
 
 const createStorageOrderByOfferId = async (
@@ -139,6 +145,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       publicKey: params.resultPublicKey,
       encryptedInfo: params.encryptedInfo,
     },
+    tokenAddress: params.token.address,
   };
   const parentOrderSlot: OrderSlots = {
     slotId: params.teeOffer.slotId,
@@ -163,6 +170,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       publicKey: '',
       encryptedInfo: '',
     },
+    tokenAddress: params.token.address,
   }));
   const subOrdersSlots: OrderSlots[] = params.inputOffers.map((subOrderParams) => ({
     slotId: subOrderParams.slotId,

@@ -8,7 +8,7 @@ import { ZodIssue } from 'zod';
 import path from 'path';
 import { CONFIG_DEFAULT_FILENAME, TX_REVERTED_BY_EVM_ERROR } from './constants';
 import { Config } from './config';
-import { helpers } from '@super-protocol/sdk-js';
+import { getTokensInfo, helpers } from '@super-protocol/sdk-js';
 
 export const exec = promisify(execCallback);
 
@@ -224,4 +224,36 @@ export const convertReadWriteStorageAccess = (
       },
     },
   };
+};
+
+export type Token = {
+  index: number;
+  symbol: string;
+  address: string;
+  isPrimary: boolean;
+  protocolCommissionPercent: number;
+};
+
+export const findTokenBySymbol = async (tokenSymbol: string): Promise<Token> => {
+  const tokens = await getTokensInfo();
+
+  const token = tokens.find((token) => token.symbol === tokenSymbol);
+  if (!token) {
+    throw new Error(
+      `Token ${tokenSymbol} not found. Available tokens: ${tokens.map((token) => token.symbol).join(', ')}`,
+    );
+  }
+
+  return token;
+};
+
+export const findFirstPrimaryToken = async (): Promise<Token> => {
+  const tokens = await getTokensInfo();
+
+  const primaryToken = tokens.find((token) => token.isPrimary === true);
+  if (!primaryToken) {
+    throw new Error('Primary token not found');
+  }
+
+  return primaryToken;
 };

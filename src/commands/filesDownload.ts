@@ -5,12 +5,8 @@ import Printer from '../printer';
 import { isCommandSupported } from '../services/uplinkSetupHelper';
 import readResourceFileService from '../services/readResourceFile';
 import { ResourceType, StorageProviderResource } from '@super-protocol/dto-js';
+import type { FilesDownloadParams } from './filesDownload.addon';
 import { preparePath } from '../utils';
-
-export type FilesDownloadParams = {
-  resourcePath: string;
-  localDirectory: string;
-};
 
 export default async (params: FilesDownloadParams): Promise<void> => {
   if (!isCommandSupported()) return;
@@ -30,6 +26,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
   if (!info.isDirectory()) {
     throw new Error('localDirectory argument must be the path to a folder');
   }
+
   localPathEncrypted += `/${resource.filepath}`;
   let localPath;
   if (/\.encrypted$/.test(localPathEncrypted)) {
