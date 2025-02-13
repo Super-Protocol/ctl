@@ -2,6 +2,7 @@ import { ValueOfferParams } from './createWorkflow';
 import { OfferType } from '@super-protocol/sdk-js';
 import {
   ErrorWithCustomMessage,
+  Token,
   createZodErrorMessage,
   etherToWei,
   getObjectKey,
@@ -109,11 +110,12 @@ export const getFetchedOffers = async (params: {
 
 export const getHoldDeposit = async (params: {
   holdDeposit: BigNumber;
+  token: Pick<Token, 'address' | 'symbol'>;
   userDepositAmount?: string;
   consumerAddress: string;
   minRentMinutes?: number;
 }): Promise<BigNumber> => {
-  const { userDepositAmount, minRentMinutes = MINUTES_IN_HOUR, consumerAddress } = params;
+  const { userDepositAmount, minRentMinutes = MINUTES_IN_HOUR, consumerAddress, token } = params;
   let holdDeposit = params.holdDeposit;
 
   if (userDepositAmount) {
@@ -122,23 +124,23 @@ export const getHoldDeposit = async (params: {
       throw Error(
         `Provided deposit is less than the minimum required deposit of (${weiToEther(
           holdDeposit,
-        )} TEE)`,
+        )} ${token.symbol})`,
       );
     }
     holdDeposit = userDeposit;
 
-    const balance = await getTeeBalance({ address: consumerAddress });
+    const balance = await getTeeBalance({ address: consumerAddress, token });
     if (balance.lt(holdDeposit)) {
       throw Error(
         `Balance of your account (${weiToEther(
           balance,
-        )} TEE) is less than hold deposit (${weiToEther(holdDeposit)} TEE)`,
+        )} ${token.symbol}) is less than hold deposit (${weiToEther(holdDeposit)} ${token.symbol})`,
       );
     }
   }
 
   Printer.print(
-    `Total deposit is ${weiToEther(holdDeposit)} TEE tokens for ${minRentMinutes} minutes`,
+    `Total deposit is ${weiToEther(holdDeposit)} ${token.symbol} tokens for ${minRentMinutes} minutes`,
   );
 
   return holdDeposit;

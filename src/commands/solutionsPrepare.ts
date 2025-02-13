@@ -6,7 +6,7 @@ import Printer from '../printer';
 import { extractManifest, signManifest } from '../services/prepareSolution';
 import packFolderService from '../services/packFolder';
 import { assertSize, preparePath } from '../utils';
-import { Encoding, Hash, HashAlgorithm, Linkage } from '@super-protocol/dto-js';
+import { Encoding, HashAlgorithm, RuntimeInputInfo } from '@super-protocol/dto-js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
@@ -140,16 +140,23 @@ export default async (params: PrepareSolutionParams): Promise<void> => {
 
     Printer.print('Saving metadata to file');
     const metadataPath = preparePath(params.metadataPath);
-    const metadata: { linkage: Linkage; hash: Hash } = {
-      linkage: {
-        encoding: Encoding.base64,
-        mrenclave: Buffer.from(result.mrenclave, 'hex').toString(Encoding.base64),
-        mrsigner: Buffer.from(result.mrsigner, 'hex').toString(Encoding.base64),
+    const metadata: Pick<RuntimeInputInfo, 'hash' | 'hardwareContext' | 'signatureKeyHash'> = {
+      signatureKeyHash: {
+        hash: result.mrsigner,
+        encoding: Encoding.hex,
+        algo: HashAlgorithm.SHA256,
+      },
+      hardwareContext: {
+        mrEnclave: {
+          hash: result.mrenclave,
+          encoding: Encoding.hex,
+          algo: HashAlgorithm.SHA256,
+        },
       },
       hash: {
-        encoding: Encoding.base64,
+        encoding: Encoding.hex,
         algo: solutionHashAlgo as HashAlgorithm,
-        hash: Buffer.from(solutionHash, 'hex').toString(Encoding.base64),
+        hash: solutionHash,
       },
     };
     await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));

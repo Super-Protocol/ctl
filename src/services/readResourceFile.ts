@@ -2,12 +2,11 @@ import z from 'zod';
 import {
   CryptoAlgorithm,
   Encoding,
-  Encryption,
-  Hash,
+  EncryptionWithIV,
   HashAlgorithm,
-  Linkage,
   Resource,
   ResourceType,
+  RuntimeInputInfo,
   StorageType,
 } from '@super-protocol/dto-js';
 import readJsonFile from './readJsonFile';
@@ -20,12 +19,11 @@ export type ReadResourceFileParams = {
     | typeof EncryptedResourceFileValidator;
 };
 
-export type ResourceFile = {
+export type ResourceFile = Partial<
+  Pick<RuntimeInputInfo, 'args' | 'hash' | 'hardwareContext' | 'signatureKeyHash'>
+> & {
   resource: Resource;
-  encryption?: Encryption;
-  linkage?: Linkage;
-  hash?: Hash;
-  args?: any;
+  encryption?: EncryptionWithIV;
 };
 
 export const UrlResourceValidator = z.object({
@@ -50,17 +48,17 @@ export const EncryptionValidator = z.object(
   { required_error: 'required. Resource must be encrypted' },
 );
 
+export const HashValidator = z.object({
+  algo: z.nativeEnum(HashAlgorithm),
+  hash: z.string(),
+  encoding: z.nativeEnum(Encoding),
+});
+
 export const ResourceFileValidator = z.object({
   resource: ResourceValidator,
   encryption: EncryptionValidator.optional(),
-  hash: z
-    .object({
-      algo: z.nativeEnum(HashAlgorithm),
-      hash: z.string(),
-      encoding: z.nativeEnum(Encoding),
-    })
-    .optional(),
-  args: z.any().optional(),
+  hash: HashValidator.optional(),
+  args: z.unknown().optional(),
 });
 
 export const EncryptedResourceFileValidator = ResourceFileValidator.extend({
@@ -68,11 +66,14 @@ export const EncryptedResourceFileValidator = ResourceFileValidator.extend({
 });
 
 export const SolutionResourceFileValidator = ResourceFileValidator.extend({
-  linkage: z.object({
-    encoding: z.nativeEnum(Encoding),
-    mrenclave: z.string(),
-    mrsigner: z.string(),
-  }),
+  signatureKeyHash: HashValidator.nullable().optional(),
+  hardwareContext: z
+    .object({
+      mrEnclave: HashValidator.optional(),
+    })
+    .catchall(z.unknown())
+    .nullable()
+    .optional(),
 });
 
 const readResourceFile = async (params: ReadResourceFileParams): Promise<ResourceFile> => {

@@ -7,7 +7,7 @@ export default async (
   localPath: string,
   storageAccess: StorageAccess,
   progressListener?: (total: number, current: number) => void,
-) => {
+): Promise<void> => {
   const storageProvider = getStorageProvider(storageAccess);
   const downloaderStream = await storageProvider.downloadFile(remotePath, {}, progressListener);
   await pipeline(downloaderStream, fs.createWriteStream(localPath));

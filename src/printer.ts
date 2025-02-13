@@ -4,10 +4,11 @@ import colors from 'colors';
 
 class Printer {
   private static multibar = new MultiBar({
-    format: '{title} |' + colors.white('{bar}') + '| {percentage}%',
+    format: '' + colors.white('{bar}') + '| {percentage}% | {title}',
     barCompleteChar: '\u2588',
     barIncompleteChar: '\u2591',
     hideCursor: true,
+    autopadding: true,
   });
   private static progressBarMap: Map<string, SingleBar> = new Map();
 

@@ -21,7 +21,7 @@ const readJsonFile = async (params: ReadJsonFileParams) => {
   }
 
   try {
-    await params.validator?.parseAsync(JSON.parse(jsonString));
+    await params.validator?.parseAsync(parsedValue);
   } catch (error) {
     const errorMessage = createZodErrorMessage((error as ZodError).issues);
     throw ErrorWithCustomMessage(

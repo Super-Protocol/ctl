@@ -15,7 +15,7 @@ export type OffersGetParams = {
 };
 
 export default async (params: OffersGetParams): Promise<void> => {
-  let offer: OfferDto | TeeOfferDto | undefined;
+  let offer: OfferDto | TeeOfferDto | undefined | null;
   switch (params.type) {
     case 'tee':
       offer = await fetchTeeOffers({
@@ -23,7 +23,7 @@ export default async (params: OffersGetParams): Promise<void> => {
         accessToken: params.accessToken,
         limit: 1,
         filter: { id: params.id },
-      }).then(({ list }) => formatFetchedTeeOffer(list[0]));
+      }).then(({ list }) => list[0] && formatFetchedTeeOffer(list[0]));
       break;
     case 'value':
       offer = await fetchOffers({
@@ -31,7 +31,7 @@ export default async (params: OffersGetParams): Promise<void> => {
         accessToken: params.accessToken,
         limit: 1,
         id: params.id,
-      }).then(({ list }) => formatFetchedOffer(list[0]));
+      }).then(({ list }) => list[0] && formatFetchedOffer(list[0]));
       break;
 
     default:

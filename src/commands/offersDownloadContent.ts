@@ -49,10 +49,10 @@ export default async (params: OfferDownloadParamsParams): Promise<void> => {
       });
       break;
 
-    case ResourceType.StorageProvider:
+    case ResourceType.StorageProvider: {
       if (!isCommandSupported()) return;
 
-      const storageProviderResource: StorageProviderResource = resource as StorageProviderResource;
+      const storageProviderResource = resource as StorageProviderResource;
       localPath = `${localDir}/${storageProviderResource.filepath}`;
       await downloadService(
         storageProviderResource.filepath,
@@ -63,6 +63,7 @@ export default async (params: OfferDownloadParamsParams): Promise<void> => {
         },
       );
       break;
+    }
     default:
       throw Error(`Resource type ${resource.type} is not supported`);
   }

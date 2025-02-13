@@ -25,11 +25,7 @@ export default async (
     }
   });
 
-  const fileEncryption = await Crypto.encryptStream(readStream, writeStream, {
-    algo: encryptionConfig.algo,
-    encoding: encryptionConfig.encoding,
-    key: encryptionConfig.key,
-  });
+  const fileEncryption = await Crypto.encryptStream(readStream, writeStream, encryptionConfig);
 
   if (progressListener) {
     progressListener(fileSize, fileSize);
