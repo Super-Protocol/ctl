@@ -204,6 +204,14 @@ export default async (params: FilesUploadParams): Promise<void> => {
     prefix: path.join(params.prefix, remotePath),
   };
 
+  let maximumConcurrent: number | undefined;
+  if (params.maximumConcurrent) {
+    maximumConcurrent = parseInt(params.maximumConcurrent, 10);
+    if (maximumConcurrent < 1 || maximumConcurrent > 1000) {
+      throw new Error('Value of maximumConcurrent must be between 1 and 1000');
+    }
+  }
+
   try {
     if (params.storage.length) {
       if (!params.resultEncryption.key) {
@@ -244,6 +252,7 @@ export default async (params: FilesUploadParams): Promise<void> => {
       },
       {
         sourcePath,
+        threads: maximumConcurrent,
         encryption: params.withEncryption,
         progressCallback: ({ current, total, key }) => {
           Printer.progress(key, total, current);
