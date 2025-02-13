@@ -24,8 +24,11 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     );
 
   const localPath = preparePath(params.localDirectory).replace(/\/$/, '');
-  const info = await fs.stat(localPath);
-  if (!info.isDirectory()) {
+  const exists = await fs.stat(localPath).catch(() => null);
+
+  if (!exists) {
+    await fs.mkdir(localPath, { recursive: true });
+  } else if (!exists.isDirectory()) {
     throw new Error('localDirectory argument must be the path to a folder');
   }
 
