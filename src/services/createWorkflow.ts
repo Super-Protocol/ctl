@@ -8,7 +8,6 @@ import {
   OrderStatus,
   TeeOffer,
   helpers,
-  RIGenerator,
 } from '@super-protocol/sdk-js';
 import { Config } from '../config';
 import Printer from '../printer';
@@ -104,15 +103,6 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
   const externalId = generateExternalId();
   const teeOrderArgsToEncrypt: TeeOrderEncryptedArgs = params.argsToEncrypt;
   let storageProviderResource: StorageProviderResource | null = null;
-
-  if (teeOrderArgsToEncrypt.configuration) {
-    const encryptedConfiguration = await RIGenerator.encryptByTeeBlock(
-      params.teeOffer.id,
-      teeOrderArgsToEncrypt.configuration,
-      params.pccsServiceApiUrl,
-    );
-    teeOrderArgsToEncrypt.configuration = JSON.stringify(encryptedConfiguration);
-  }
 
   if (helpers.OrderArgsHelper.isMoreThanGivenSize(teeOrderArgsToEncrypt, Math.floor(2.5 * 1024))) {
     storageProviderResource = await processUploadToStorage({
