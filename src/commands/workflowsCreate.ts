@@ -1,7 +1,6 @@
 import {
   EncryptionKey,
   RIIType,
-  Hash,
   RuntimeInputInfo,
   TeeOrderEncryptedArgs,
   TeeOrderEncryptedArgsConfiguration,
@@ -404,22 +403,27 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     solution: solutionTIIs,
     image: imageTIIs,
   };
-  let argsHash: Hash | null = null;
   if (params.solutionConfigurationPath) {
     const configuration = await buildConfiguration({
       solutionConfigPath: params.solutionConfigurationPath,
       dataConfigurationPaths: params.dataConfigurationPaths,
     });
-    argsToEncrypt.configuration = JSON.stringify(configuration);
-    argsHash = helpers.calculateObjectHash(argsToEncrypt);
+    const encryptedConfiguration = await RIGenerator.encryptByTeeBlock(
+      teeOfferParams.id,
+      JSON.stringify(configuration),
+      params.pccsServiceApiUrl,
+    );
+    argsToEncrypt.configuration = JSON.stringify(encryptedConfiguration);
   }
+
+  const argsHash = helpers.calculateObjectHash(argsToEncrypt);
 
   const orderResultKeys = await RIGenerator.generate({
     offerId: teeOfferParams.id,
     encryptionPrivateKey: params.resultEncryption,
     pccsServiceApiUrl: params.pccsServiceApiUrl,
     runtimeInputInfos,
-    ...(argsHash && { argsHash }),
+    argsHash,
   });
 
   Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
