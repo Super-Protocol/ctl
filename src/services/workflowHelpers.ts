@@ -1,5 +1,5 @@
 import { ValueOfferParams } from './createWorkflow';
-import { OfferType } from '@super-protocol/sdk-js';
+import { OfferType, OfferVersion } from '@super-protocol/sdk-js';
 import {
   ErrorWithCustomMessage,
   Token,
@@ -13,18 +13,20 @@ import { BigNumber } from 'ethers';
 import Printer from '../printer';
 import { MINUTES_IN_HOUR } from '../constants';
 import getTeeBalance from './getTeeBalance';
+import { selectLastValueOfferVersion } from './offerValueVersionHelper';
 import { ParsedInputResource } from './parseInputResources';
 import { SolutionResourceFileValidator } from './readResourceFile';
 import { ZodError } from 'zod';
 
-export type FethchedOffer = {
+export type FetchedOffer = {
   id: NonNullable<OfferItem>['id'];
   offerInfo: NonNullable<OfferItem>['offerInfo'];
+  version?: OfferVersion;
   slots: NonNullable<OfferItem>['slots'];
 };
 export function calculateValueOffersMinTimeMinutes(
   offersWithSlot: ValueOfferParams[],
-  allOffers: Map<string, FethchedOffer>,
+  allOffers: Map<string, FetchedOffer>,
 ): number {
   return offersWithSlot.reduce((greatestMinTimeMinutes: number, valueOffer: ValueOfferParams) => {
     const valueOfferSlot = allOffers
@@ -65,7 +67,7 @@ export const checkSlot = (
 
 export const checkFetchedOffers = (
   ids: Array<{ id: string; slotId: string }>,
-  offers: Map<string, FethchedOffer>,
+  offers: Map<string, FetchedOffer>,
   type: OfferType,
 ): void => {
   ids.forEach(({ id, slotId }) => {
@@ -96,15 +98,16 @@ export const getFetchedOffers = async (params: {
   accessToken: string;
   limit: number;
   ids: string[];
-}): Promise<FethchedOffer[]> => {
+}): Promise<FetchedOffer[]> => {
   const result = await fetchOffers(params);
 
-  return <FethchedOffer[]>result.list
+  return <FetchedOffer[]>result.list
     .filter((item) => Boolean(item))
     .map((item) => ({
       offerInfo: item?.offerInfo || {},
       slots: item?.slots || [],
       id: item?.id,
+      version: selectLastValueOfferVersion(item?.versions as OfferVersion[]),
     }));
 };
 
