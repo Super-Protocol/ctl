@@ -1,6 +1,6 @@
 {
   "name": "@super-protocol/ctl",
-  "version": "0.10.5",
+  "version": "0.10.8",
   "description": "A tool for publishing values in a secure and reliable way.",
   "main": "./build/index.js",
   "type": "commonjs",
