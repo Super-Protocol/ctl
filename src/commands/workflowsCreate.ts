@@ -40,7 +40,7 @@ import {
   checkFetchedOffers,
   checkSlot,
   divideImagesAndSolutions,
-  FethchedOffer,
+  FetchedOffer,
   getFetchedOffers,
   getHoldDeposit,
 } from '../services/workflowHelpers';
@@ -165,7 +165,7 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     ids: valueOfferIds,
   });
 
-  const offersMap = new Map<string, FethchedOffer>(fetchedValueOffers.map((o) => [o.id, o]));
+  const offersMap = new Map<string, FetchedOffer>(fetchedValueOffers.map((o) => [o.id, o]));
 
   checkFetchedOffers([storage], offersMap, OfferType.Storage);
   checkFetchedOffers(solutions.offers, offersMap, OfferType.Solution);
@@ -480,8 +480,8 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
                   },
                 }),
                 offerType: getObjectKey(offer.offerInfo.offerType, OfferType) as TOfferType,
-                mrSigner: offer.offerInfo.signatureKeyHash?.hash ?? '',
-                mrEnclave: offer.offerInfo.hardwareContext?.mrEnclave?.hash ?? '',
+                mrSigner: offer.version?.info.signatureKeyHash?.hash ?? '',
+                hash: offer.version?.info.hash?.hash ?? '',
               })),
             ],
           });
