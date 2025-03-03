@@ -5,7 +5,7 @@ import { registerAction } from './action';
 export const registerCommand = new Command(REGISTER_COMMAND)
   .description('Register secrets storage')
   .argument('offer-id', 'Solution offer id')
-  .option('--version <number>', 'Solution offer version')
+  .option('--offer-version <number>', 'Solution offer version')
   .requiredOption('--storage-offer <id>', 'Storage offer id')
   .requiredOption('--storage-slot <id>', 'Storage slot id')
   .requiredOption('--min-rent <hours>', 'Min rent time in hours')
