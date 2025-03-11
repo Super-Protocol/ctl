@@ -32,6 +32,8 @@ export default async (params: CreateTeeOfferParams): Promise<BlockchainId> => {
     offerType: 'tee',
   });
 
+  const currentBlock = await BlockchainConnector.getInstance().getLastBlockInfo();
+
   Printer.print('Creating TEE offer');
 
   await TeeOffers.create(authorityAddress, params.offerInfo, externalId, enable, {
@@ -39,7 +41,11 @@ export default async (params: CreateTeeOfferParams): Promise<BlockchainId> => {
   });
 
   const offerLoaderFn = (): Promise<string> =>
-    TeeOffers.getByExternalId({ externalId, creator: actionAddress }).then((event) => {
+    TeeOffers.getByExternalId(
+      { externalId, creator: actionAddress },
+      currentBlock.index,
+      'latest',
+    ).then((event) => {
       if (event && event?.offerId !== '-1') {
         return event.offerId;
       }
