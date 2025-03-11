@@ -187,6 +187,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
     Orders.getByExternalId(
       { externalId, consumer: params.consumerAddress },
       workflowCreationBLock.index,
+      'latest',
     ).then((event) => {
       if (event && event?.orderId !== '-1') {
         return event.orderId;

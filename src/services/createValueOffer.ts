@@ -32,13 +32,18 @@ export default async (params: CreateOfferParams): Promise<BlockchainId> => {
   });
 
   Printer.print('Creating value offer');
+  const currentBlock = await BlockchainConnector.getInstance().getLastBlockInfo();
 
   await Offers.create(authorityAddress, params.offerInfo, externalId, enable, {
     from: actionAddress,
   });
 
   const offerLoaderFn = (): Promise<string> =>
-    Offers.getByExternalId({ externalId, creator: actionAddress }).then((event) => {
+    Offers.getByExternalId(
+      { externalId, creator: actionAddress },
+      currentBlock.index,
+      'latest',
+    ).then((event) => {
       if (event && event?.offerId !== '-1') {
         return event.offerId;
       }
