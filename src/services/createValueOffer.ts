@@ -45,7 +45,7 @@ export default async (params: CreateOfferParams): Promise<BlockchainId> => {
       throw new Error("Value offer wasn't created. Try increasing the gas price.");
     });
 
-  const offerId = await doWithRetries(offerLoaderFn);
+  const offerId = await doWithRetries(offerLoaderFn, 10, 5000);
 
   return offerId;
 };

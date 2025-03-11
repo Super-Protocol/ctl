@@ -194,5 +194,5 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       throw new Error("TEE order wasn't created. Try increasing the gas price.");
     });
 
-  return doWithRetries(orderLoaderFn);
+  return doWithRetries(orderLoaderFn, 10, 5000);
 };

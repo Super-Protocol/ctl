@@ -92,7 +92,7 @@ export default async (params: OffersAddSlotParams): Promise<void> => {
       throw new Error(`Unknown offer type ${params.type} provided`);
   }
 
-  const newSlotId = await doWithRetries(slotLoaderFn);
+  const newSlotId = await doWithRetries(slotLoaderFn, 10, 5000);
 
   Printer.print(`Slot was created with id ${newSlotId}`);
 };

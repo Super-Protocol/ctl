@@ -42,7 +42,7 @@ export default async (params: OffersAddOptionParams): Promise<void> => {
       throw new Error("Option wasn't created. Try increasing the gas price.");
     });
 
-  const newOption = await doWithRetries(optionLoaderFn);
+  const newOption = await doWithRetries(optionLoaderFn, 10, 5000);
 
   Printer.print(`Option ${newOption} was added to offer ${params.offerId}`);
 };
