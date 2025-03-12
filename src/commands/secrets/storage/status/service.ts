@@ -12,7 +12,7 @@ import { getObjectKey } from '../../../../utils';
 
 type GetStorageRegistrationStatusParams = {
   offerId: BlockchainId;
-  offerVersion?: number;
+  offerVersion: number;
 };
 
 export type StorageRegistrationStatus = {

@@ -1,8 +1,8 @@
 import { Wallet } from 'ethers';
 import requestTeeService from '../services/requestTee';
-import requestCustomMaticService from '../services/requestCustomMatic';
+import requestCustomBnbService from '../services/requestCustomBnb';
 import requestCustomTeeService from '../services/requestCustomTee';
-import requestMaticService from '../services/requestMatic';
+import requestBnbService from '../services/requestBnb';
 import Printer from '../printer';
 import { program } from 'commander';
 
@@ -10,15 +10,15 @@ export type TokensRequestParams = {
   actionAccountPrivateKey: string;
   backendUrl: string;
   accessToken: string;
-  requestMatic?: boolean;
+  requestBnb?: boolean;
   requestTee?: boolean;
   customAccountPrivateKey?: string;
 };
 
 export default async (params: TokensRequestParams): Promise<void> => {
-  if (!params.requestTee && !params.requestMatic) {
+  if (!params.requestTee && !params.requestBnb) {
     Printer.print(
-      'No token type was specified, please add --tee or --matic flag to request specific tokens',
+      'No token type was specified, please add --tee or --bnb flag to request specific tokens',
     );
     program.help();
   }
@@ -41,13 +41,13 @@ export default async (params: TokensRequestParams): Promise<void> => {
     Printer.print(`TEE tokens will be transferred to ${address} shortly`);
   }
 
-  if (params.requestMatic) {
-    Printer.print(`Requesting Polygon MATIC tokens for ${address}`);
+  if (params.requestBnb) {
+    Printer.print(`Requesting opBNB tokens for ${address}`);
     if (params.customAccountPrivateKey) {
-      await requestCustomMaticService(requestParams);
+      await requestCustomBnbService(requestParams);
     } else {
-      await requestMaticService(requestParams);
+      await requestBnbService(requestParams);
     }
-    Printer.print(`MATIC tokens will be transferred to ${address} shortly`);
+    Printer.print(`BNB tokens will be transferred to ${address} shortly`);
   }
 };

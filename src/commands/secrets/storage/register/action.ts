@@ -4,10 +4,10 @@ import Printer from '../../../../printer';
 import initBlockchainConnector from '../../../../services/initBlockchainConnector';
 import { buildStatusCommand, buildUpdateStorageCommand } from '../command-builders';
 import { checkParamsToRegisterStorage, registerStorage, RegisterStorageParams } from '../service';
-import { findAllocatedOrderId, findRequestOrderId } from '../../utils';
+import { findAllocatedOrderId, findLastOfferVersion, findRequestOrderId } from '../../utils';
 
 export type RegisterActionOptions = {
-  version?: number;
+  offerVersion?: number;
   storageOffer: string;
   storageSlot: string;
   minRent: number;
@@ -37,13 +37,16 @@ export const registerAction = async (
 
     await checkParamsToRegisterStorage({
       offerId,
+      offerVersion: options.offerVersion,
       storageOfferId: options.storageOffer,
       storageSlotId: options.storageSlot,
     });
 
     const params: RegisterStorageParams = {
       offerId,
-      offerVersion: options.version,
+      offerVersion: options.offerVersion
+        ? options.offerVersion
+        : await findLastOfferVersion({ offerId }),
       copyPreviousData: false, // (!)
       replicationFactor: options.replicationFactor,
       storageOfferId: options.storageOffer,
@@ -71,7 +74,10 @@ export const registerAction = async (
     if (id) {
       Printer.print(`Storage is registered (orderId=${id})`);
     } else {
-      const statusCommand = buildStatusCommand(offerId, options);
+      const statusCommand = buildStatusCommand(offerId, {
+        offerVersion: params.offerVersion,
+        config: options.config,
+      });
       const msg = [
         `The resource has not yet met the replication target.`,
         `Please check back later using the command:\n\n ${statusCommand}`,
@@ -85,7 +91,7 @@ export const registerAction = async (
 };
 
 export const findStorageOrderId = async (
-  params: Pick<OfferStorageRequest, 'offerId' | 'offerVersion'>,
+  params: Pick<Required<OfferStorageRequest>, 'offerId' | 'offerVersion'>,
 ): Promise<string | undefined> => {
   const allocatedOrderId = await findAllocatedOrderId(params);
   if (allocatedOrderId) {

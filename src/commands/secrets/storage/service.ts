@@ -20,7 +20,7 @@ import Printer from '../../../printer';
 
 export type RegisterStorageParams = CalculateStorageOrderDepositParams & {
   offerId: BlockchainId;
-  offerVersion?: number;
+  offerVersion: number;
   copyPreviousData: boolean;
   retryCount: number;
   retryInterval: number;
@@ -29,12 +29,25 @@ export type RegisterStorageParams = CalculateStorageOrderDepositParams & {
 
 export const checkParamsToRegisterStorage = async (params: {
   offerId: string;
+  offerVersion?: number;
   storageOfferId: string;
   storageSlotId: string;
 }): Promise<void> => {
   const type = await new Offer(params.offerId).getOfferType();
   if (type !== OfferType.Solution) {
     throw Error(`Invalid solution offer id ${params.offerId}`);
+  }
+
+  if (params.offerVersion === undefined) {
+    const versionCount = await new Offer(params.offerId).getVersionCount();
+    if (versionCount === 0) {
+      throw Error(`Offer ${params.offerId} has no versions`);
+    }
+  } else if (params.offerVersion < 0) {
+    throw Error(`Offer version number must be greater than or equal to 0`);
+  } else {
+    // checks if version exists
+    await new Offer(params.offerId).getVersion(params.offerVersion);
   }
 
   const offerStorage = new Offer(params.storageOfferId);
@@ -56,7 +69,7 @@ export const registerStorage = async (
   const { offerId, offerVersion, retryCount, retryInterval } = params;
   const { replicationFactor } = await setOfferStorageRequest({
     ...params,
-    offerVersion: 0,
+    offerVersion,
   });
 
   const orderId = await doWithRetries(
@@ -121,10 +134,7 @@ const setOfferStorageRequest = async (params: {
     teeOfferIssuerId,
     storageOfferId,
     storageSlotId,
-    replicationFactor: calculateReplicationFactor({
-      activeTeeOfferIds,
-      replicationFactor,
-    }),
+    replicationFactor,
     deposit: await calculateStorageOrderDeposit(params),
     copyPreviousData,
   });

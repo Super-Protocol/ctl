@@ -9,6 +9,7 @@ import {
   LoaderSecretsPublicKeys,
   LoaderSession,
   LoaderSessions,
+  Offer,
   OfferResources,
   OffersStorageAllocated,
   OffersStorageRequests,
@@ -57,7 +58,7 @@ const parseOrderId = (orderId: string | undefined): string | undefined =>
   orderId === '0' ? undefined : orderId;
 
 export const findAllocatedOrderId = async (
-  params: Pick<OfferStorageRequest, 'offerId' | 'offerVersion'>,
+  params: Pick<Required<OfferStorageRequest>, 'offerId' | 'offerVersion'>,
 ): Promise<string | undefined> => {
   const { offerId, offerVersion } = params;
   const allocated = await OffersStorageAllocated.getByOfferVersion(offerId, offerVersion);
@@ -76,7 +77,7 @@ export const findAllocatedOrderId = async (
 };
 
 export const findRequestOrderId = async (
-  params: Pick<OfferStorageRequest, 'offerId' | 'offerVersion'>,
+  params: Pick<Required<OfferStorageRequest>, 'offerId' | 'offerVersion'>,
 ): Promise<string | undefined> => {
   const { offerId, offerVersion } = params;
   const request = await OffersStorageRequests.getByOfferVersion(offerId, offerVersion);
@@ -85,4 +86,16 @@ export const findRequestOrderId = async (
   }
 
   return;
+};
+
+export const findLastOfferVersion = async (
+  params: Pick<OfferStorageRequest, 'offerId'>,
+): Promise<number> => {
+  const { offerId } = params;
+  const lastVersionNumber = await new Offer(offerId).getLastVersionNumber();
+  if (lastVersionNumber === null) {
+    throw Error(`Last version number for offer ${offerId} not found`);
+  }
+
+  return lastVersionNumber;
 };
