@@ -40,6 +40,7 @@ export default async (params: CreateOfferParams): Promise<BlockchainId> => {
   });
 
   Printer.print('Creating value offer');
+  const currentBlock = await BlockchainConnector.getInstance().getLastBlockInfo();
 
   await Offers.create({
     providerAuthorityAccount: authorityAddress,
@@ -49,14 +50,18 @@ export default async (params: CreateOfferParams): Promise<BlockchainId> => {
   });
 
   const offerLoaderFn = (): Promise<string> =>
-    Offers.getByExternalId({ externalId, creator: actionAddress }).then((event) => {
+    Offers.getByExternalId(
+      { externalId, creator: actionAddress },
+      currentBlock.index,
+      'latest',
+    ).then((event) => {
       if (event && event?.offerId !== '-1') {
         return event.offerId;
       }
       throw new Error("Value offer wasn't created. Try increasing the gas price.");
     });
 
-  const offerId = await doWithRetries(offerLoaderFn);
+  const offerId = await doWithRetries(offerLoaderFn, 10, 5000);
   await addValueOfferVersion({
     action: params.action,
     offerId,

@@ -23,5 +23,5 @@ export default async (params: CreateOrderParams): Promise<string> => {
 
   await Orders.createOrder(params.orderInfo, params.slots, params.deposit);
 
-  return doWithRetries(orderLoaderFn);
+  return doWithRetries(orderLoaderFn, 10, 5000);
 };
