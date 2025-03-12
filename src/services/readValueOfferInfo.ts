@@ -1,5 +1,10 @@
 /* eslint-disable prettier/prettier */
-import {OfferGroup, OfferInfo, OfferType, ValueOfferSubtype} from '@super-protocol/sdk-js';
+import {
+  OfferGroup,
+  OfferInfo,
+  OfferType, OfferVersion,
+  ValueOfferSubtype
+} from '@super-protocol/sdk-js';
 import z, { ZodError } from 'zod';
 import readJsonFile from './readJsonFile';
 import {EncryptionValidator, HashValidator, ResourceValidator} from './readResourceFile';
@@ -10,55 +15,61 @@ export type ReadValueOfferInfoFileParams = {
   isPartialContent?: boolean;
 };
 
-const OfferInfoRestrictionsValidator = z.object({
+const OfferInfoRestrictionsSchema = z.object({
   offers: z.array(z.string()),
   versions: z.array(z.number()),
   types: z.array(z.nativeEnum(OfferType)),
 });
 
-const OfferInfoFileValidator = z.object({
+const OfferVersionInfoSchema = z.object({
+  metadata: z.object({}).catchall(z.unknown()).optional(),
+  signatureKeyHash: HashValidator.optional(),
+  hash: HashValidator.optional(),
+});
+const OfferVersionSchema = z.object({
+  version: z.number(),
+  info: OfferVersionInfoSchema,
+});
+const OfferInfoSchema = z.object({
   name: z.string(),
   group: z.nativeEnum(OfferGroup),
   offerType: z.nativeEnum(OfferType),
   cancelable: z.boolean(),
   description: z.string(),
-  restrictions: OfferInfoRestrictionsValidator,
-  metadata: z.string(),
+  restrictions: OfferInfoRestrictionsSchema,
   input: z.string(),
   output: z.string(),
   allowedArgs: z.string(),
   allowedAccounts: z.array(z.string()),
   argsPublicKey: z.string(),
   resultResource: z.string(),
-  hash: z.string(),
   subType: z.nativeEnum(ValueOfferSubtype),
-  signatureKeyHash: HashValidator.nullable().optional(),
-  hardwareContext: z
-    .object({
-      mrEnclave: HashValidator.optional(),
-    })
-    .catchall(z.unknown())
-    .nullable()
-    .optional(),
+  version: OfferVersionSchema.partial({ version: true }),
 });
 
-const OptionalOfferInfoFileValidator = OfferInfoFileValidator.extend({
-  restrictions: OfferInfoRestrictionsValidator.partial(),
-}).partial();
+const OfferInfoFileSchema = OfferInfoSchema;
+
+const OptionalOfferInfoFileValidator = OfferInfoSchema
+  .omit({ version: true })
+  .extend({ restrictions: OfferInfoRestrictionsSchema.partial()})
+  .partial();
+
+type OfferInfoFileType = OfferInfo & { version: OfferVersion };
+type OptionalOfferInfoFileType = Partial<OfferInfo>;
 
 export async function readValueOfferInfo(
   params: ReadValueOfferInfoFileParams & { isPartialContent: false },
-): Promise<OfferInfo>;
+): Promise<OfferInfoFileType>;
 export async function readValueOfferInfo(
   params: ReadValueOfferInfoFileParams & { isPartialContent: true },
-): Promise<Partial<OfferInfo>>;
+): Promise<OptionalOfferInfoFileType>;
 export async function readValueOfferInfo({
                     path,
                     isPartialContent = false,
-                  }: ReadValueOfferInfoFileParams): Promise<OfferInfo | Partial<OfferInfo>> {
+                  }: ReadValueOfferInfoFileParams): Promise<OfferInfoFileType | OptionalOfferInfoFileType> {
   const offerInfo = await readJsonFile({
     path,
-    validator: isPartialContent ? OptionalOfferInfoFileValidator : OfferInfoFileValidator,
+    validator: isPartialContent ? OptionalOfferInfoFileValidator : OfferInfoFileSchema,
   });
 
   if (offerInfo.argsPublicKey) {

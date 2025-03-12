@@ -18,7 +18,7 @@ import { Encryption, EncryptionKey } from '@super-protocol/dto-js';
 import Printer from '../printer';
 import {
   checkFetchedOffers,
-  FethchedOffer,
+  FetchedOffer,
   getFetchedOffers,
   getHoldDeposit,
 } from '../services/workflowHelpers';
@@ -68,8 +68,8 @@ const getCheckedOfferById = async (params: {
   offerId: OrderCreateParams['offerId'];
   slotId: string;
   options?: Partial<IOrderCreateCommandOptions>;
-}): Promise<FethchedOffer> => {
-  const offers: FethchedOffer[] = await getFetchedOffers({
+}): Promise<FetchedOffer> => {
+  const offers: FetchedOffer[] = await getFetchedOffers({
     backendUrl: params.backendUrl,
     accessToken: params.accessToken,
     limit: 1,
@@ -80,7 +80,7 @@ const getCheckedOfferById = async (params: {
     throw Error(`Offer ${params.offerId} does not exist`);
   }
 
-  const offer: FethchedOffer = offers[0];
+  const offer: FetchedOffer = offers[0];
   if (offer.offerInfo.offerType === OfferType.TeeOffer) {
     throw Error(`Unsupported offer type: ${getObjectKey(offer.offerInfo.offerType, OfferType)}`);
   }
@@ -98,7 +98,7 @@ const getCheckedOfferById = async (params: {
 
   checkFetchedOffers(
     [{ id: params.offerId, slotId: params.slotId }],
-    new Map<string, FethchedOffer>(offers.map((o) => [o.id, o])),
+    new Map<string, FetchedOffer>(offers.map((o) => [o.id, o])),
     offer.offerInfo.offerType as OfferType,
   );
 
@@ -241,7 +241,7 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
 
       slotId = result[0].slotId;
     }
-    const offer: FethchedOffer = await getCheckedOfferById({
+    const offer: FetchedOffer = await getCheckedOfferById({
       ...params,
       slotId,
     });
