@@ -1,5 +1,6 @@
 import {
   Config as BlockchainConfig,
+  BlockchainConnector,
   BlockchainId,
   Offer,
   TeeOffer,
@@ -29,6 +30,7 @@ export default async (params: OffersAddSlotParams): Promise<void> => {
 
   const slotExternalId = generateExternalId();
   let slotLoaderFn: () => Promise<BlockchainId>;
+  const currentBlock = await BlockchainConnector.getInstance().getLastBlockInfo();
 
   switch (params.type) {
     case 'tee': {
@@ -44,11 +46,15 @@ export default async (params: OffersAddSlotParams): Promise<void> => {
       await teeOffer.addSlot(teeOfferSlot.info, teeOfferSlot.usage, slotExternalId);
 
       slotLoaderFn = (): Promise<string> =>
-        TeeOffers.getSlotByExternalId({
-          creator,
-          offerId: params.offerId,
-          externalId: slotExternalId,
-        }).then((event) => {
+        TeeOffers.getSlotByExternalId(
+          {
+            creator,
+            offerId: params.offerId,
+            externalId: slotExternalId,
+          },
+          currentBlock.index,
+          'latest',
+        ).then((event) => {
           if (event?.slotId) {
             return event.slotId;
           }
@@ -75,11 +81,15 @@ export default async (params: OffersAddSlotParams): Promise<void> => {
       );
 
       slotLoaderFn = (): Promise<string> =>
-        Offers.getSlotByExternalId({
-          creator,
-          offerId: params.offerId,
-          externalId: slotExternalId,
-        }).then((event) => {
+        Offers.getSlotByExternalId(
+          {
+            creator,
+            offerId: params.offerId,
+            externalId: slotExternalId,
+          },
+          currentBlock.index,
+          'latest',
+        ).then((event) => {
           if (event?.slotId) {
             return event.slotId;
           }
@@ -92,7 +102,7 @@ export default async (params: OffersAddSlotParams): Promise<void> => {
       throw new Error(`Unknown offer type ${params.type} provided`);
   }
 
-  const newSlotId = await doWithRetries(slotLoaderFn);
+  const newSlotId = await doWithRetries(slotLoaderFn, 10, 5000);
 
   Printer.print(`Slot was created with id ${newSlotId}`);
 };

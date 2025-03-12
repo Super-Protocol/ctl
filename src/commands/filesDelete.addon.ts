@@ -32,7 +32,7 @@ export default async (params: FilesDeleteParams): Promise<void> => {
   const resource = await prepareResource(params);
   Printer.print('Deleting file');
 
-  const { deleteResource } = await import('@super-protocol/sp-files-addon') ;
+  const { deleteResource } = await import('@super-protocol/sp-files-addon');
   await deleteResource(resource);
   Printer.print('File was deleted');
 };
