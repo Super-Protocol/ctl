@@ -5,8 +5,8 @@ import {
 } from '@super-protocol/distributed-secrets';
 import {
   BlockchainId,
-  LoaderSecretPublicKey,
-  LoaderSecretsPublicKeys,
+  LoaderSecretAccessPublicKey,
+  LoaderSecretsAccessPublicKeys,
   LoaderSession,
   LoaderSessions,
   Offer,
@@ -19,7 +19,7 @@ import {
 export const validateKeys = async (
   keys: {
     session?: LoaderSession;
-    secret?: LoaderSecretPublicKey;
+    secret?: LoaderSecretAccessPublicKey;
   },
   pccsServiceApiUrl: string,
 ): Promise<boolean> => {
@@ -46,7 +46,7 @@ export const getMostRecentlyActiveTeeOfferIds = (params: {
     async verifyOffer(offerId) {
       const [session, secret] = await Promise.all([
         LoaderSessions.get(offerId),
-        LoaderSecretsPublicKeys.get(offerId),
+        LoaderSecretsAccessPublicKeys.get(offerId),
       ]);
 
       return validateKeys({ session, secret }, pccsServiceApiUrl);
