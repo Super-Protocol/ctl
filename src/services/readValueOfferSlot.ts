@@ -12,6 +12,7 @@ const ValueOfferSlotFileValidator = z.object({
   info: SlotInfoValidator,
   usage: SlotUsageValidator,
   option: OptionInfoValidator,
+  metadata: z.string().default(''),
 });
 
 export default async (params: ReadFileParams): Promise<ValueOfferSlot> => {

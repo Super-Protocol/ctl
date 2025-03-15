@@ -44,6 +44,7 @@ export default async (params: OffersAddSlotParams) => {
         valueOfferSlot.info,
         valueOfferSlot.option,
         valueOfferSlot.usage,
+        valueOfferSlot.metadata,
       );
       break;
     }
