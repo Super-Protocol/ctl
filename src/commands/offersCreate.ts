@@ -24,6 +24,7 @@ export type OffersCreateParams = {
   enableAutoDeposit: boolean;
   storageConfig: Config['storage'];
   configurationPath?: string;
+  enabled?: boolean;
 };
 
 export default async (params: OffersCreateParams): Promise<void> => {
@@ -56,7 +57,7 @@ export default async (params: OffersCreateParams): Promise<void> => {
       break;
     }
     case 'value': {
-      const offerInfo = await readValueOfferInfo({
+      const { version, ...offerInfo } = await readValueOfferInfo({
         path: params.offerInfoPath,
         isPartialContent: false,
       });
@@ -93,6 +94,8 @@ export default async (params: OffersCreateParams): Promise<void> => {
         contractAddress: params.blockchainConfig.contractAddress,
         enableAutoDeposit: params.enableAutoDeposit,
         offerInfo,
+        versionInfo: version.info,
+        enabled: params.enabled ?? true,
       });
       break;
     }

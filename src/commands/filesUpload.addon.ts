@@ -176,6 +176,17 @@ export default async (params: FilesUploadParams): Promise<void> => {
     return;
   }
 
+  const outputPath = preparePath(params.outputPath);
+
+  try {
+    await fs.stat(outputPath);
+    throw new Error('Output path already exists');
+  } catch (err) {
+    if (err instanceof Error && 'code' in err && err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+
   let metadata: Partial<Pick<RuntimeInputInfo, 'hardwareContext' | 'signatureKeyHash'>> = {};
 
   if (params.metadataPath) {
@@ -271,7 +282,6 @@ export default async (params: FilesUploadParams): Promise<void> => {
       ...uploadResult,
     };
 
-    const outputPath = preparePath(params.outputPath);
     await fs.writeFile(outputPath, JSON.stringify(result, null, 2));
     Printer.print(`Resource file was created in ${outputPath}`);
 

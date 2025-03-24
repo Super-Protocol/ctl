@@ -1,5 +1,5 @@
 import { Wallet } from 'ethers';
-import getMaticBalanceService from '../services/getMaticBalance';
+import getBnbBalanceService from '../services/getBnbBalance';
 import getTeeBalanceService from '../services/getTeeBalance';
 import Printer from '../printer';
 import { Config as BlockchainConfig, getTokensInfo } from '@super-protocol/sdk-js';
@@ -26,7 +26,7 @@ export default async (params: TokensBalanceParams): Promise<void> => {
     Printer.print(`Balance of ${address}: ${weiToEther(balance)} ${token.symbol}`);
   }
 
-  Printer.print('\nFetching POL tokens balance');
-  const balanceMatic = await getMaticBalanceService({ address });
-  Printer.print(`Balance of ${address}: ${weiToEther(balanceMatic)} POL`);
+  Printer.print('\nFetching BNB tokens balance');
+  const balanceBnb = await getBnbBalanceService({ address });
+  Printer.print(`Balance of ${address}: ${weiToEther(balanceBnb)} BNB`);
 };

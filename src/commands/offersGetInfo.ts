@@ -1,9 +1,10 @@
-import { OfferInfo, TeeOfferInfo } from '@super-protocol/sdk-js';
+import { OfferInfo, OfferVersion, TeeOfferInfo } from '@super-protocol/sdk-js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import Printer from '../printer';
+import fetchOffers, { OfferItem } from '../services/fetchOffers';
 import fetchTeeOffers from '../services/fetchTeeOffers';
-import fetchOffers from '../services/fetchOffers';
+import { selectLastValueOfferVersion } from '../services/offerValueVersionHelper';
 
 export type OffersGetInfoParams = {
   backendUrl: string;
@@ -14,9 +15,9 @@ export type OffersGetInfoParams = {
 };
 
 export default async (params: OffersGetInfoParams): Promise<void> => {
-  let offer: OfferInfo | TeeOfferInfo | undefined;
+  let offer: (OfferInfo & { version?: OfferVersion }) | TeeOfferInfo | undefined;
   switch (params.type) {
-    case 'tee':
+    case 'tee': {
       offer = await fetchTeeOffers({
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
@@ -24,15 +25,28 @@ export default async (params: OffersGetInfoParams): Promise<void> => {
         filter: { id: params.id },
       }).then(({ list }) => <TeeOfferInfo>list[0]?.teeOfferInfo);
       break;
-    case 'value':
+    }
+    case 'value': {
+      const convert = (offer?: OfferItem): (OfferInfo & { version?: OfferVersion }) | undefined => {
+        if (!offer) {
+          return;
+        }
+
+        const version = selectLastValueOfferVersion(offer.versions as OfferVersion[]);
+
+        return {
+          ...(offer.offerInfo as OfferInfo),
+          ...(version && { version: version as OfferVersion }),
+        };
+      };
       offer = await fetchOffers({
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,
         limit: 1,
         id: params.id,
-      }).then(({ list }) => <OfferInfo>list[0]?.offerInfo);
+      }).then(({ list }) => convert(list[0]));
       break;
-
+    }
     default:
       throw new Error(`Unknown offer type ${params.type} provided`);
   }

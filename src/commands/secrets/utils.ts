@@ -5,10 +5,11 @@ import {
 } from '@super-protocol/distributed-secrets';
 import {
   BlockchainId,
-  LoaderSecretPublicKey,
-  LoaderSecretsPublicKeys,
+  LoaderSecretAccessPublicKey,
+  LoaderSecretsAccessPublicKeys,
   LoaderSession,
   LoaderSessions,
+  Offer,
   OfferResources,
   OffersStorageAllocated,
   OffersStorageRequests,
@@ -18,7 +19,7 @@ import {
 export const validateKeys = async (
   keys: {
     session?: LoaderSession;
-    secret?: LoaderSecretPublicKey;
+    secret?: LoaderSecretAccessPublicKey;
   },
   pccsServiceApiUrl: string,
 ): Promise<boolean> => {
@@ -45,7 +46,7 @@ export const getMostRecentlyActiveTeeOfferIds = (params: {
     async verifyOffer(offerId) {
       const [session, secret] = await Promise.all([
         LoaderSessions.get(offerId),
-        LoaderSecretsPublicKeys.get(offerId),
+        LoaderSecretsAccessPublicKeys.get(offerId),
       ]);
 
       return validateKeys({ session, secret }, pccsServiceApiUrl);
@@ -57,7 +58,7 @@ const parseOrderId = (orderId: string | undefined): string | undefined =>
   orderId === '0' ? undefined : orderId;
 
 export const findAllocatedOrderId = async (
-  params: Pick<OfferStorageRequest, 'offerId' | 'offerVersion'>,
+  params: Pick<Required<OfferStorageRequest>, 'offerId' | 'offerVersion'>,
 ): Promise<string | undefined> => {
   const { offerId, offerVersion } = params;
   const allocated = await OffersStorageAllocated.getByOfferVersion(offerId, offerVersion);
@@ -76,7 +77,7 @@ export const findAllocatedOrderId = async (
 };
 
 export const findRequestOrderId = async (
-  params: Pick<OfferStorageRequest, 'offerId' | 'offerVersion'>,
+  params: Pick<Required<OfferStorageRequest>, 'offerId' | 'offerVersion'>,
 ): Promise<string | undefined> => {
   const { offerId, offerVersion } = params;
   const request = await OffersStorageRequests.getByOfferVersion(offerId, offerVersion);
@@ -85,4 +86,16 @@ export const findRequestOrderId = async (
   }
 
   return;
+};
+
+export const findLastOfferVersion = async (
+  params: Pick<OfferStorageRequest, 'offerId'>,
+): Promise<number> => {
+  const { offerId } = params;
+  const lastVersionNumber = await new Offer(offerId).getLastVersionNumber();
+  if (lastVersionNumber === null) {
+    throw Error(`Last version number for offer ${offerId} not found`);
+  }
+
+  return lastVersionNumber;
 };

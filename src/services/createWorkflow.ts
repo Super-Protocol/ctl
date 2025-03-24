@@ -178,7 +178,6 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
     subOrdersSlots,
     params.holdDeposit,
     {
-      gas: BigInt(10_000_000),
       from: params.consumerAddress,
     },
   );

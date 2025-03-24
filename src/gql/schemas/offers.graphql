@@ -27,16 +27,12 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                             types
                             versions
                         }
-                        metadata
                         input
                         output
                         allowedArgs
                         allowedAccounts
                         argsPublicKey
                         resultResource
-                        hash
-                        signatureKeyHash
-                        hardwareContext
                         subType
                     }
                     enabled
@@ -73,6 +69,15 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         metadata
                         name
                         tokenReceiver
+                    }
+                    versions {
+                        version
+                        status
+                        info {
+                            hash
+                            metadata
+                            signatureKeyHash
+                        }
                     }
                 }
                 cursor

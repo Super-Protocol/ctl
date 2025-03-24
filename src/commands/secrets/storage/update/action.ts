@@ -4,7 +4,7 @@ import initBlockchainConnector from '../../../../services/initBlockchainConnecto
 import ConfigLoader from '../../../../config';
 import { RegisterActionOptions } from '../register/action';
 import { buildRegisterStorageCommand, buildStatusCommand } from '../command-builders';
-import { findAllocatedOrderId } from '../../utils';
+import { findAllocatedOrderId, findLastOfferVersion } from '../../utils';
 
 export type UpdateActionOptions = RegisterActionOptions;
 
@@ -34,7 +34,9 @@ export const updateAction = async (
 
     const params: RegisterStorageParams = {
       offerId,
-      offerVersion: options.version,
+      offerVersion: options.offerVersion
+        ? options.offerVersion
+        : await findLastOfferVersion({ offerId }),
       copyPreviousData: true, // (!)
       replicationFactor: options.replicationFactor,
       storageOfferId: options.storageOffer,
@@ -62,7 +64,10 @@ export const updateAction = async (
     if (id) {
       Printer.print(`Storage is updated (orderId=${id})`);
     } else {
-      const statusCommand = buildStatusCommand(offerId, options);
+      const statusCommand = buildStatusCommand(offerId, {
+        offerVersion: params.offerVersion,
+        config: options.config,
+      });
       const msg = [
         `The resource has not yet met the replication target.`,
         ` Please check back later using the command:\n\n ${statusCommand}`,

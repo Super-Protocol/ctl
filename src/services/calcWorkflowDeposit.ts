@@ -7,7 +7,7 @@ import {
 } from '@super-protocol/sdk-js';
 import { BigNumber } from 'ethers';
 import { TeeOfferParams, ValueOfferParams } from './createWorkflow';
-import { FethchedOffer } from './workflowHelpers';
+import { FetchedOffer } from './workflowHelpers';
 import { TeeOfferItem } from './fetchTeeOffers';
 import { PriceType, SlotUsage } from '../gql';
 import { MINUTES_IN_HOUR } from '../constants';
@@ -18,7 +18,7 @@ export type CalcWorkflowDepositParams = {
   solutions: ValueOfferParams[];
   data: ValueOfferParams[];
   teeOffer: TeeOfferItem;
-  valueOffers: Map<string, FethchedOffer>;
+  valueOffers: Map<string, FetchedOffer>;
   minRentMinutes: number;
 };
 
