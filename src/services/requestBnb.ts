@@ -22,7 +22,7 @@ export default async (params: RequestTeeParams) => {
     );
   } catch (error: any) {
     throw ErrorWithCustomMessage(
-      error?.response?.errors[0]?.message || 'MATIC tokens request error',
+      error?.response?.errors[0]?.message || 'BNB tokens request error',
       error,
     );
   }

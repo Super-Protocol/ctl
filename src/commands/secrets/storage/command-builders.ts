@@ -19,7 +19,7 @@ export const buildRegisterStorageCommand = (
     STORAGE_COMMAND,
     REGISTER_COMMAND,
     offerId,
-    options.version ? `--version ${options.version}` : '',
+    options.offerVersion ? `--version ${options.offerVersion}` : '',
     `--storage-offer ${options.storageOffer}`,
     `--storage-slot ${options.storageSlot}`,
     `--min-rent ${options.minRent}`,
@@ -40,7 +40,7 @@ export const buildUpdateStorageCommand = (
     STORAGE_COMMAND,
     UPDATE_COMMAND,
     offerId,
-    options.version ? `--version ${options.version}` : '',
+    options.offerVersion ? `--version ${options.offerVersion}` : '',
     `--storage-offer ${options.storageOffer}`,
     `--storage-slot ${options.storageSlot}`,
     `--min-rent ${options.minRent}`,
@@ -53,7 +53,7 @@ export const buildUpdateStorageCommand = (
 
 export const buildStatusCommand = (
   offerId: string,
-  options: { version?: number; config: string },
+  options: { offerVersion: number; config: string },
 ): string => {
   return [
     SPCTL_COMMAND,
@@ -61,7 +61,7 @@ export const buildStatusCommand = (
     STORAGE_COMMAND,
     STATUS_COMMAND,
     offerId,
-    options.version ? `--version ${options.version}` : '',
+    `--offer-version ${options.offerVersion}`,
     options.config ? `--config ${options.config}` : '',
   ]
     .filter(Boolean)

@@ -2,7 +2,7 @@ import { CryptoAlgorithm, Encoding, EncryptionKey, StorageType } from '@super-pr
 import fs from 'fs';
 import { z } from 'zod';
 import Printer from './printer';
-import { DEFAULT_PCCS_SERVICE } from './constants';
+import { BACKEND_URL_DEFAULT, DEFAULT_PCCS_SERVICE } from './constants';
 import setup from './commands/setup';
 import { getConfigPath } from './utils';
 
@@ -194,6 +194,11 @@ class ConfigLoader {
   }
 
   private getSpaUrlByBackendUrl(backendUrl: string): string {
+    const isMainnet = backendUrl === BACKEND_URL_DEFAULT;
+    if (isMainnet) {
+      return 'https://spa.superprotocol.com';
+    }
+
     const cluster = clusterRegexp.exec(backendUrl);
 
     switch (cluster?.at(1)) {

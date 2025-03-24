@@ -2,9 +2,10 @@ import Printer from '../../../../printer';
 import { getStorageRegistrationStatus, StorageRegistrationStatus } from './service';
 import initBlockchainConnector from '../../../../services/initBlockchainConnector';
 import ConfigLoader from '../../../../config';
+import { findLastOfferVersion } from '../../utils';
 
 export type StatusActionOptions = {
-  version?: number;
+  offerVersion?: number;
   config: string;
 };
 
@@ -24,7 +25,9 @@ export const statusAction = async (
 
     const registrationStatus = await getStorageRegistrationStatus({
       offerId,
-      offerVersion: options.version,
+      offerVersion: options.offerVersion
+        ? options.offerVersion
+        : await findLastOfferVersion({ offerId }),
     });
 
     displayStatus(registrationStatus);

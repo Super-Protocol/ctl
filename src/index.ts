@@ -749,7 +749,7 @@ async function main(): Promise<void> {
   tokensCommand
     .command('request')
     .description('Request tokens for the account')
-    .option('--matic', 'Request Polygon MATIC tokens', false)
+    .option('--bnb', 'Request opBNB tokens', false)
     .option('--tee', 'Request Super Protocol TEE tokens', false)
     .option('--debug', 'Display debug information', false)
     .addOption(
@@ -766,7 +766,7 @@ async function main(): Promise<void> {
         backendUrl: backend.url,
         accessToken: backend.accessToken,
         actionAccountPrivateKey: blockchain.accountPrivateKey,
-        requestMatic: options.matic,
+        requestBnb: options.bnb,
         requestTee: options.tee,
         customAccountPrivateKey: options.customKey,
       };
@@ -778,7 +778,7 @@ async function main(): Promise<void> {
             eventName: AnalyticEvent.TEE_TOKENS_REPLENISHED,
           });
         }
-        if (options.matic) {
+        if (options.bnb) {
           await analytics?.trackSuccessEventCatched({
             eventName: AnalyticEvent.MATIC_TOKENS_REPLENISHED,
           });
@@ -792,7 +792,7 @@ async function main(): Promise<void> {
             err,
           );
         }
-        if (options.matic) {
+        if (options.bnb) {
           await analytics?.trackErrorEventCatched(
             {
               eventName: AnalyticEvent.MATIC_TOKENS_REPLENISHED,

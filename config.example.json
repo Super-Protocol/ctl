@@ -4,7 +4,7 @@
         "accessToken": ""
     },
     "blockchain": {
-        "rpcUrl": "https://polygon.superprotocol.com",
+        "rpcUrl": "https://opbnb.superprotocol.com",
         "smartContractAddress": "0x3C69ea105Fc716C1Dcb41859281Aa817D0A0B279",
         "accountPrivateKey": ""
     },
