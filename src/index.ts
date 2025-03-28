@@ -377,6 +377,10 @@ async function main(): Promise<void> {
       [],
     )
     .option(
+      '--solution-hash <string>',
+      'Solution hash, hex-encoded sha-256 (required only for solution TII)',
+    )
+    .option(
       '--data <id,slot> --date <id> --data <filepath>',
       'Data offer <id,slot> or <id>(slot will be auto selected) or resource file path (accepts multiple values)',
       collectOptions,
@@ -435,6 +439,7 @@ async function main(): Promise<void> {
         teeOptionsCount: options.teeOptionsCount?.map((count: string) => Number(count)),
         storage: options.storage,
         solution: options.solution,
+        solutionHash: options.solutionHash,
         data: options.data,
         solutionConfigurationPath: options.solutionConfiguration,
         dataConfigurationPaths: options.dataConfiguration,
