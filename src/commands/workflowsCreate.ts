@@ -58,6 +58,7 @@ export type WorkflowCreateParams = {
   teeOptionsCount: number[];
   storage: string;
   solution: string[];
+  solutionHash: string;
   data: string[];
   solutionConfigurationPath?: string;
   dataConfigurationPaths: string[];
@@ -314,6 +315,30 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
       hardwareContext: resource.hardwareContext,
     }),
   });
+
+  solutions.tiis.forEach((_) =>
+    runtimeInputInfos.push({
+      args: undefined,
+      hash: { ...constants.ZERO_HASH, hash: params.solutionHash },
+      type: 'Solution',
+    }),
+  );
+
+  data.tiis.forEach((_) =>
+    runtimeInputInfos.push({
+      args: undefined,
+      hash: constants.ZERO_HASH,
+      type: 'Data',
+    }),
+  );
+
+  images.tiis.forEach((_) =>
+    runtimeInputInfos.push({
+      args: undefined,
+      hash: { ...constants.ZERO_HASH, hash: params.solutionHash },
+      type: 'Image',
+    }),
+  );
 
   solutions.resourceFiles.forEach((resource) =>
     runtimeInputInfos.push(buildRuntimeInputInfo(resource, 'Solution')),
