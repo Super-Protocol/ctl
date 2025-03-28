@@ -47,7 +47,7 @@ export default async (params: ParseInputResourcesParams): Promise<ParsedInputRes
 
       // TODO: optimize double file reading
       const file = await readJsonFile({ path: preparePath(param) });
-      if (file.tri) {
+      if (file.encryptedTRI) {
         tiis.push(JSON.stringify(file));
         return;
       }

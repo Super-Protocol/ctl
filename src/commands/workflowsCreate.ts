@@ -315,6 +315,22 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     }),
   });
 
+  solutions.tiis.forEach((_) =>
+    runtimeInputInfos.push({
+      args: undefined,
+      hash: constants.ZERO_HASH,
+      type: 'Solution',
+    }),
+  );
+
+  data.tiis.forEach((_) =>
+    runtimeInputInfos.push({
+      args: undefined,
+      hash: constants.ZERO_HASH,
+      type: 'Data',
+    }),
+  );
+
   solutions.resourceFiles.forEach((resource) =>
     runtimeInputInfos.push(buildRuntimeInputInfo(resource, 'Solution')),
   );

@@ -1561,10 +1561,15 @@ async function main(): Promise<void> {
   tiiCommand
     .command('generate')
     .description('Generate TII')
+    .addArgument(new Argument('type', 'Resource <type>').choices(['solution', 'data']))
     .argument('resourcePath', 'Path to a resource of an uploaded file')
     .requiredOption('--offer <id>', 'TEE offer id')
+    .option(
+      '--solution-hash <string>',
+      'Solution hash, hex-encoded sha-256 (required only for Data resources)',
+    )
     .option('--output <path>', 'Path to write the result into', 'tii.json')
-    .action(async (resourcePath: string, options: any) => {
+    .action(async (type: string, resourcePath: string, options: any) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
@@ -1572,11 +1577,17 @@ async function main(): Promise<void> {
         blockchainUrl: blockchain.rpcUrl,
       };
       const { pccsServiceApiUrl } = configLoader.loadSection('tii');
+      // TODO make solutionHash required if type is data
+      // if (type === 'data' && !options.solutionHash) {
+      //   throw new Error('Solution hash is required for data resources');
+      // }
 
       await generateTii({
         blockchainConfig,
         teeOfferId: options.offer,
-        resourcePath: resourcePath,
+        type,
+        solutionHash: options.solutionHash,
+        resourcePath,
         outputPath: options.output,
         pccsServiceApiUrl,
       });
