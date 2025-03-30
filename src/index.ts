@@ -1,5 +1,5 @@
-import { Encoding, Hash, HashAlgorithm } from '@super-protocol/dto-js';
-import { OfferType, OrderStatus } from '@super-protocol/sdk-js';
+import { Encoding, HashAlgorithm } from '@super-protocol/dto-js';
+import { constants, OfferType, OrderStatus } from '@super-protocol/sdk-js';
 import * as bip39 from 'bip39';
 import { Argument, Command, Option } from 'commander';
 import fs from 'fs';
@@ -439,11 +439,13 @@ async function main(): Promise<void> {
         teeOptionsCount: options.teeOptionsCount?.map((count: string) => Number(count)),
         storage: options.storage,
         solution: options.solution,
-        solutionHash: {
-          algo: HashAlgorithm.SHA256,
-          encoding: Encoding.hex,
-          hash: options.solutionHash,
-        },
+        solutionHash: options.solutionHash
+          ? {
+              algo: HashAlgorithm.SHA256,
+              encoding: Encoding.hex,
+              hash: options.solutionHash,
+            }
+          : constants.ZERO_HASH,
         data: options.data,
         solutionConfigurationPath: options.solutionConfiguration,
         dataConfigurationPaths: options.dataConfiguration,
@@ -1586,16 +1588,18 @@ async function main(): Promise<void> {
         blockchainUrl: blockchain.rpcUrl,
       };
       const { pccsServiceApiUrl } = configLoader.loadSection('tii');
-      // TODO make solutionHash required if type is data
-      // if (type === 'data' && !options.solutionHash) {
-      //   throw new Error('Solution hash is required for data resources');
-      // }
 
       await generateTii({
         blockchainConfig,
         teeOfferId: options.offer,
         type,
-        solutionHash: options.solutionHash,
+        solutionHash: options.solutionHash
+          ? {
+              algo: HashAlgorithm.SHA256,
+              encoding: Encoding.hex,
+              hash: options.solutionHash,
+            }
+          : constants.ZERO_HASH,
         resourcePath,
         outputPath: options.output,
         pccsServiceApiUrl,
