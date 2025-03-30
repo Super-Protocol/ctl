@@ -1,4 +1,4 @@
-import { Encoding, HashAlgorithm } from '@super-protocol/dto-js';
+import { Encoding, Hash, HashAlgorithm } from '@super-protocol/dto-js';
 import { OfferType, OrderStatus } from '@super-protocol/sdk-js';
 import * as bip39 from 'bip39';
 import { Argument, Command, Option } from 'commander';
@@ -439,7 +439,11 @@ async function main(): Promise<void> {
         teeOptionsCount: options.teeOptionsCount?.map((count: string) => Number(count)),
         storage: options.storage,
         solution: options.solution,
-        solutionHash: options.solutionHash,
+        solutionHash: {
+          algo: HashAlgorithm.SHA256,
+          encoding: Encoding.hex,
+          hash: options.solutionHash,
+        },
         data: options.data,
         solutionConfigurationPath: options.solutionConfiguration,
         dataConfigurationPaths: options.dataConfiguration,
