@@ -67,7 +67,7 @@ jobs:
               retention-days: 1
 
     create-release:
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-24.04
         needs: [build-binary, build-package]
         steps:
             - name: "Download binary artifacts"
