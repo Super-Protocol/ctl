@@ -1,4 +1,4 @@
-import { Encoding, Hash, HashAlgorithm, RuntimeInputInfo } from '@super-protocol/dto-js';
+import { Hash, RuntimeInputInfo } from '@super-protocol/dto-js';
 import { Config as BlockchainConfig, TIIGenerator } from '@super-protocol/sdk-js';
 import { promises as fs } from 'fs';
 import Printer from '../printer';
