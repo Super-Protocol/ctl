@@ -1,4 +1,4 @@
-import { Encoding, HashAlgorithm, RuntimeInputInfo } from '@super-protocol/dto-js';
+import { Hash, RuntimeInputInfo } from '@super-protocol/dto-js';
 import { Config as BlockchainConfig, TIIGenerator } from '@super-protocol/sdk-js';
 import { promises as fs } from 'fs';
 import Printer from '../printer';
@@ -10,7 +10,7 @@ export type GenerateTiiParams = {
   blockchainConfig: BlockchainConfig;
   teeOfferId: string;
   type: string;
-  solutionHash: string;
+  solutionHash: Hash;
   resourcePath: string;
   outputPath: string;
   pccsServiceApiUrl: string;
@@ -54,14 +54,10 @@ export default async (params: GenerateTiiParams): Promise<void> => {
       ]
     : [];
 
-  if (params.solutionHash) {
+  if (params.type === 'data') {
     runtimeInputInfos.push({
       args,
-      hash: {
-        algo: HashAlgorithm.SHA256,
-        hash: params.solutionHash,
-        encoding: Encoding.hex,
-      },
+      hash: params.solutionHash,
       type: 'Image',
     });
   }

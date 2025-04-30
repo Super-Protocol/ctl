@@ -5,7 +5,7 @@ import { updateAction } from './action';
 export const updateCommand = new Command(UPDATE_COMMAND)
   .description('Update secrets storage')
   .argument('offer-id', 'Solution offer id')
-  .option('--version <number>', 'Solution offer version')
+  .option('--offer-version <number>', 'Solution offer version')
   .requiredOption('--storage-offer <id>', 'Storage offer id')
   .requiredOption('--storage-slot <id>', 'Storage slot id')
   .requiredOption('--min-rent <hours>', 'Min rent time in hours')

@@ -1,5 +1,6 @@
 import {
   EncryptionKey,
+  Hash,
   RIIType,
   RuntimeInputInfo,
   TeeOrderEncryptedArgs,
@@ -58,7 +59,7 @@ export type WorkflowCreateParams = {
   teeOptionsCount: number[];
   storage: string;
   solution: string[];
-  solutionHash: string;
+  solutionHash: Hash;
   data: string[];
   solutionConfigurationPath?: string;
   dataConfigurationPaths: string[];
@@ -306,7 +307,10 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     ) || MINUTES_IN_HOUR;
 
   const runtimeInputInfos = await TIIGenerator.generateRiiByOfferIds(solutionIds.concat(dataIds));
-  const buildRuntimeInputInfo = (resource: ResourceFile, type: RIIType): RuntimeInputInfo => ({
+  const buildRuntimeInputInfoFromResource = (
+    resource: ResourceFile,
+    type: RIIType,
+  ): RuntimeInputInfo => ({
     args: resource.args,
     hash: resource.hash ?? constants.ZERO_HASH,
     ...(resource.signatureKeyHash && { signatureKeyHash: resource.signatureKeyHash }),
@@ -316,40 +320,34 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     }),
   });
 
-  solutions.tiis.forEach((_) =>
-    runtimeInputInfos.push({
-      args: undefined,
-      hash: { ...constants.ZERO_HASH, hash: params.solutionHash },
-      type: 'Solution',
-    }),
-  );
-
-  data.tiis.forEach((_) =>
-    runtimeInputInfos.push({
-      args: undefined,
-      hash: constants.ZERO_HASH,
-      type: 'Data',
-    }),
-  );
-
-  images.tiis.forEach((_) =>
-    runtimeInputInfos.push({
-      args: undefined,
-      hash: { ...constants.ZERO_HASH, hash: params.solutionHash },
-      type: 'Image',
-    }),
-  );
-
   solutions.resourceFiles.forEach((resource) =>
-    runtimeInputInfos.push(buildRuntimeInputInfo(resource, 'Solution')),
+    runtimeInputInfos.push(buildRuntimeInputInfoFromResource(resource, 'Solution')),
   );
 
   images.resourceFiles.forEach((resource) =>
-    runtimeInputInfos.push(buildRuntimeInputInfo(resource, 'Image')),
+    runtimeInputInfos.push(buildRuntimeInputInfoFromResource(resource, 'Image')),
   );
 
   data.resourceFiles.forEach((resource) =>
-    runtimeInputInfos.push(buildRuntimeInputInfo(resource, 'Data')),
+    runtimeInputInfos.push(buildRuntimeInputInfoFromResource(resource, 'Data')),
+  );
+
+  const buildRuntimeInputInfoFromTii = (hash: Hash, type: RIIType): RuntimeInputInfo => ({
+    args: undefined,
+    hash,
+    type,
+  });
+
+  solutions.tiis.forEach((_) =>
+    runtimeInputInfos.push(buildRuntimeInputInfoFromTii(params.solutionHash, 'Solution')),
+  );
+
+  data.tiis.forEach((_) =>
+    runtimeInputInfos.push(buildRuntimeInputInfoFromTii(constants.ZERO_HASH, 'Data')),
+  );
+
+  images.tiis.forEach((_) =>
+    runtimeInputInfos.push(buildRuntimeInputInfoFromTii(params.solutionHash, 'Image')),
   );
 
   Printer.print('Generating input arguments for TEE');
