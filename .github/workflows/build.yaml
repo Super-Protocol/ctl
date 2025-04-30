@@ -11,7 +11,7 @@ jobs:
                 include:
                     - os: macos-13 # Intel Mac
                       output: spctl-macos-x64
-                    - os: ubuntu-20.04
+                    - os: ubuntu-24.04
                       output: spctl-linux-x64
                     - os: macos-14 # M1 Mac
                       output: spctl-macos-arm64
@@ -67,7 +67,7 @@ jobs:
               retention-days: 1
 
     create-release:
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-24.04
         needs: [build-binary, build-package]
         steps:
             - name: "Download binary artifacts"

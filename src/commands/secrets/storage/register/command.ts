@@ -10,7 +10,6 @@ export const registerCommand = new Command(REGISTER_COMMAND)
   .requiredOption('--storage-slot <id>', 'Storage slot id')
   .requiredOption('--min-rent <hours>', 'Min rent time in hours')
   .requiredOption('--replication-factor <number>', 'Number of replicas')
-  .option('--force', 'Force storage registration if it has already been registered')
   .addOption(
     new Option('--retry-count <number>')
       .default(25)
