@@ -8370,6 +8370,12 @@ export type ModelsFilter = {
   task?: InputMaybe<TaskFilter>;
 };
 
+export type ModerationStatsResponse = {
+  __typename?: 'ModerationStatsResponse';
+  unverified: Scalars['Int'];
+  verified: Scalars['Int'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   /** Transfers custom amount of coins to specific address */
@@ -8380,6 +8386,8 @@ export type Mutation = {
   teeTransfer: Scalars['Boolean'];
   /** Transfers specific amount of coins to specific address */
   transfer: Scalars['Boolean'];
+  /** Mark an offer as verified by a moderator */
+  verifyOffer: OfferVerifyInfo;
 };
 
 
@@ -8404,6 +8412,17 @@ export type MutationTransferArgs = {
   destinationAddress?: InputMaybe<Scalars['String']>;
 };
 
+
+export type MutationVerifyOfferArgs = {
+  input: OfferVerifyInput;
+};
+
+export type NumberFilter = {
+  equals?: InputMaybe<Scalars['Float']>;
+  gt?: InputMaybe<Scalars['Float']>;
+  lt?: InputMaybe<Scalars['Float']>;
+};
+
 export type Offer = {
   __typename?: 'Offer';
   /** system identifier */
@@ -8420,6 +8439,11 @@ export type Offer = {
   providerInfo: ProviderInformation;
   slots: Array<OfferSlot>;
   stats?: Maybe<OfferStats>;
+  /** Date when the offer was verified by a moderator */
+  verifiedAt?: Maybe<Scalars['DateTime']>;
+  /** Ethereum address of the moderator who verified this offer */
+  verifiedBy?: Maybe<Scalars['String']>;
+  /** List of offer versions */
   versions?: Maybe<Array<OfferVersion>>;
 };
 
@@ -8479,13 +8503,17 @@ export type OfferFilter = {
   /** filter by providerInfo → actionAccount */
   providerActionAccounts?: InputMaybe<Array<Scalars['String']>>;
   /** filter by offerInfo -> restrictions -> offers */
-  restrictions?: InputMaybe<Array<Scalars['String']>>;
+  restrictions?: InputMaybe<Array<OfferWithVersionInput>>;
   /** Search by id or name */
   search?: InputMaybe<Scalars['String']>;
   /** get only compatible with selected offers */
   selectedOfferIds?: InputMaybe<Array<Scalars['String']>>;
+  /** Filter offers by nested slotInfo fields */
+  slotInfo?: InputMaybe<SlotInfoFilterInput>;
   /** filter by offerInfo -> subType */
   subType?: InputMaybe<ValueOfferSubtype>;
+  /** filter by verified status, "true" - show only verified offers, "false" - show only unverified offers */
+  verified?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type OfferInfo = {
@@ -8570,6 +8598,11 @@ export type OfferInputType = {
   providerInfo: ProviderInformationInput;
   slots: Array<OfferSlotInput>;
   stats?: InputMaybe<OfferStatsInput>;
+  /** Date when the offer was verified by a moderator */
+  verifiedAt?: InputMaybe<Scalars['DateTime']>;
+  /** Ethereum address of the moderator who verified this offer */
+  verifiedBy?: InputMaybe<Scalars['String']>;
+  /** List of offer versions */
   versions?: InputMaybe<Array<OfferVersionInput>>;
 };
 
@@ -8583,21 +8616,20 @@ export type OfferPageInfo = {
 
 export type OfferRestrictions = {
   __typename?: 'OfferRestrictions';
-  offers?: Maybe<Array<Scalars['String']>>;
+  offers?: Maybe<Array<OfferWithVersion>>;
   types?: Maybe<Array<Scalars['String']>>;
-  versions?: Maybe<Array<Scalars['Float']>>;
 };
 
 export type OfferRestrictionsInput = {
-  offers?: InputMaybe<Array<Scalars['String']>>;
+  offers?: InputMaybe<Array<OfferWithVersionInput>>;
   types?: InputMaybe<Array<Scalars['String']>>;
-  versions?: InputMaybe<Array<Scalars['Float']>>;
 };
 
 export type OfferSlot = {
   __typename?: 'OfferSlot';
   id: Scalars['String'];
   info: SlotInfo;
+  metadata?: Maybe<Scalars['JSON']>;
   option: OptionInfo;
   usage: SlotUsage;
 };
@@ -8605,6 +8637,7 @@ export type OfferSlot = {
 export type OfferSlotInput = {
   id: Scalars['String'];
   info: SlotInfoInput;
+  metadata?: InputMaybe<Scalars['JSON']>;
   option: OptionInfoInput;
   usage: SlotUsageInput;
 };
@@ -8626,7 +8659,10 @@ export type OfferStats = {
   new?: Maybe<Scalars['Float']>;
   ordersInQueue?: Maybe<Scalars['Float']>;
   processing?: Maybe<Scalars['Float']>;
+  /** Number of orders for the offer where both the order and its parent order have the status "Done" or "Canceled". */
+  success?: Maybe<Scalars['Float']>;
   suspended?: Maybe<Scalars['Float']>;
+  total?: Maybe<Scalars['Float']>;
 };
 
 export type OfferStatsInput = {
@@ -8639,7 +8675,10 @@ export type OfferStatsInput = {
   new?: InputMaybe<Scalars['Float']>;
   ordersInQueue?: InputMaybe<Scalars['Float']>;
   processing?: InputMaybe<Scalars['Float']>;
+  /** Number of orders for the offer where both the order and its parent order have the status "Done" or "Canceled". */
+  success?: InputMaybe<Scalars['Float']>;
   suspended?: InputMaybe<Scalars['Float']>;
+  total?: InputMaybe<Scalars['Float']>;
 };
 
 /** The supported offers type. */
@@ -8649,6 +8688,23 @@ export enum OfferType {
   Storage = 'Storage',
   TeeOffer = 'TeeOffer'
 }
+
+export type OfferVerifyInfo = {
+  __typename?: 'OfferVerifyInfo';
+  /** Unique identifier matching the offer ID */
+  id: Scalars['String'];
+  /** Verification date and time */
+  verifiedAt?: Maybe<Scalars['DateTime']>;
+  /** Ethereum address of the moderator */
+  verifiedBy: Scalars['String'];
+};
+
+export type OfferVerifyInput = {
+  /** Offer ID to be verified or unverified */
+  id: Scalars['String'];
+  /** Whether to verify or unverify the offer (true = verify, false = unverify) */
+  verify?: Scalars['Boolean'];
+};
 
 export type OfferVersion = {
   __typename?: 'OfferVersion';
@@ -8690,6 +8746,17 @@ export type OfferVersionInput = {
    */
   status: Scalars['String'];
   version: Scalars['Float'];
+};
+
+export type OfferWithVersion = {
+  __typename?: 'OfferWithVersion';
+  id?: Maybe<Scalars['String']>;
+  version?: Maybe<Scalars['Float']>;
+};
+
+export type OfferWithVersionInput = {
+  id?: InputMaybe<Scalars['String']>;
+  version?: InputMaybe<Scalars['Float']>;
 };
 
 export type OptionInfo = {
@@ -8976,6 +9043,7 @@ export type OrderUsage = {
   optionUsage: Array<SlotUsage>;
   optionsCount: Array<Scalars['Float']>;
   slotCount: Scalars['Float'];
+  slotId: Scalars['String'];
   slotInfo: SlotInfo;
   slotUsage: SlotUsage;
 };
@@ -8986,6 +9054,7 @@ export type OrderUsageInput = {
   optionUsage: Array<SlotUsageInput>;
   optionsCount: Array<Scalars['Float']>;
   slotCount: Scalars['Float'];
+  slotId: Scalars['String'];
   slotInfo: SlotInfoInput;
   slotUsage: SlotUsageInput;
 };
@@ -9264,13 +9333,14 @@ export type Query = {
   getMatchingTeeSlots: ListTeeOffersAndSlots;
   getMinimalConfiguration: OfferConfiguration;
   /** Get all pipeline types used in the system */
-  getUsedPipelineTypes: Array<PipelineType>;
+  getUsedPipelineTypes: Array<UsedPipelineType>;
   /** Get all pipelines types used by concrete engines */
-  getUsedPipelineTypesByEngines: Array<PipelineType>;
+  getUsedPipelineTypesByEngines: Array<UsedPipelineType>;
   listErc20: ListErc20Response;
   offer: Offer;
   offerType: OfferType;
   offers: ListOffersResponse;
+  offersModeration: ModerationStatsResponse;
   order: Order;
   orders: ListOrdersResponse;
   /** Average processing time in milliseconds */
@@ -9377,6 +9447,11 @@ export type QueryOffersArgs = {
 };
 
 
+export type QueryOffersModerationArgs = {
+  filter?: InputMaybe<OfferFilter>;
+};
+
+
 export type QueryOrderArgs = {
   id: Scalars['String'];
 };
@@ -9456,6 +9531,12 @@ export type SlotInfo = {
   gpuCores: Scalars['Float'];
   ram: Scalars['Float'];
   vram: Scalars['Float'];
+};
+
+export type SlotInfoFilterInput = {
+  cpuCores?: InputMaybe<NumberFilter>;
+  gpuCores?: InputMaybe<NumberFilter>;
+  vram?: InputMaybe<NumberFilter>;
 };
 
 export type SlotInfoInput = {
@@ -9692,7 +9773,7 @@ export enum TOfferType {
 
 export type TaskFilter = {
   /** filter by task -> pipelineType */
-  pipelineType?: InputMaybe<PipelineType>;
+  pipelineType?: InputMaybe<Array<PipelineType>>;
 };
 
 export type TasksFilter = {
@@ -9840,11 +9921,11 @@ export type TeeOfferSlotInput = {
 
 /** The supported TEE offers subType. */
 export enum TeeOfferSubtype {
+  Arm = 'ARM',
   Default = 'Default',
-  TeeSubtypeArm = 'TeeSubtypeARM',
-  TeeSubtypeSev = 'TeeSubtypeSEV',
-  TeeSubtypeSgx = 'TeeSubtypeSGX',
-  TeeSubtypeTdx = 'TeeSubtypeTDX'
+  Sev = 'SEV',
+  Sgx = 'SGX',
+  Tdx = 'TDX'
 }
 
 export type TeeOfferTcb = {
@@ -9902,6 +9983,12 @@ export type TeeOffersAndSLotsType = {
 export type TeeSlot = {
   count: Scalars['Float'];
   id: Scalars['String'];
+};
+
+export type UsedPipelineType = {
+  __typename?: 'UsedPipelineType';
+  count: Scalars['Float'];
+  pipelineType: PipelineType;
 };
 
 export type ValidationErrors = {
@@ -10036,7 +10123,7 @@ export type OffersQueryVariables = Exact<{
 }>;
 
 
-export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, configuration?: any | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, subType: string, restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null, types?: Array<string> | null, versions?: Array<number> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number, vram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, versions?: Array<{ __typename?: 'OfferVersion', version: number, status: string, info: { __typename?: 'OfferVersionInfo', hash?: any | null, metadata?: any | null, signatureKeyHash?: any | null } }> | null } | null }> | null } } };
+export type OffersQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', pageData?: { __typename?: 'PageDataDto', count: number, limit: number, offset: number } | null, page: { __typename?: 'OfferConnection', pageInfo?: { __typename?: 'OfferPageInfo', endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null } | null, edges?: Array<{ __typename?: 'OfferEdge', cursor?: string | null, node?: { __typename?: 'Offer', _id: string, id: string, authority?: string | null, configuration?: any | null, enabled: boolean, offerInfo: { __typename?: 'OfferInfo', name: string, group: string, offerType: string, cancelable: boolean, description: string, input: string, output: string, allowedArgs?: string | null, allowedAccounts: Array<string>, argsPublicKey: string, resultResource: string, subType: string, restrictions?: { __typename?: 'OfferRestrictions', types?: Array<string> | null, offers?: Array<{ __typename?: 'OfferWithVersion', id?: string | null, version?: number | null }> | null } | null }, slots: Array<{ __typename?: 'OfferSlot', id: string, info: { __typename?: 'SlotInfo', cpuCores: number, gpuCores: number, diskUsage: number, ram: number, vram: number }, usage: { __typename?: 'SlotUsage', maxTimeMinutes: number, minTimeMinutes: number, price: string, priceType: PriceType }, option: { __typename?: 'OptionInfo', bandwidth: number, externalPort: number, traffic: number } }>, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, providerInfo: { __typename?: 'ProviderInformation', actionAccount: string, description: string, metadata: string, name: string, tokenReceiver: string }, versions?: Array<{ __typename?: 'OfferVersion', version: number, status: string, info: { __typename?: 'OfferVersionInfo', hash?: any | null, metadata?: any | null, signatureKeyHash?: any | null } }> | null } | null }> | null } } };
 
 export type OffersSelectQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -10052,7 +10139,7 @@ export type OffersRestrictionsQueryVariables = Exact<{
 }>;
 
 
-export type OffersRestrictionsQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', page: { __typename?: 'OfferConnection', edges?: Array<{ __typename?: 'OfferEdge', node?: { __typename?: 'Offer', id: string, offerInfo: { __typename?: 'OfferInfo', restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<string> | null } | null } } | null }> | null } } };
+export type OffersRestrictionsQuery = { __typename?: 'Query', result: { __typename?: 'ListOffersResponse', page: { __typename?: 'OfferConnection', edges?: Array<{ __typename?: 'OfferEdge', node?: { __typename?: 'Offer', id: string, offerInfo: { __typename?: 'OfferInfo', restrictions?: { __typename?: 'OfferRestrictions', offers?: Array<{ __typename?: 'OfferWithVersion', id?: string | null, version?: number | null }> | null } | null } } | null }> | null } } };
 
 export type MinimalConfigurationQueryVariables = Exact<{
   offers: Array<Array<Scalars['String']> | Scalars['String']> | Array<Scalars['String']> | Scalars['String'];
@@ -10219,9 +10306,11 @@ export const OffersDocument = gql`
             cancelable
             description
             restrictions {
-              offers
+              offers {
+                id
+                version
+              }
               types
-              versions
             }
             input
             output
@@ -10318,7 +10407,10 @@ export const OffersRestrictionsDocument = gql`
           id
           offerInfo {
             restrictions {
-              offers
+              offers {
+                id
+                version
+              }
             }
           }
         }

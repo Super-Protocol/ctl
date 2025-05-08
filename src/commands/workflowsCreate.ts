@@ -221,8 +221,7 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
 
   const restrictionOffersMap = new Map<string, Offer>(
     fetchedValueOffers
-      .flatMap(({ offerInfo }) => offerInfo.restrictions?.offers || [])
-      .map((id) => [id.toString(), new Offer(id)]),
+      .map(({ id }) => [id.toString(), new Offer(id)]),
   );
 
   Printer.print('Validating workflow configuration');
@@ -233,7 +232,7 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
       const restrictions =
         <Offer[]>(
           (offerToCheck?.offerInfo?.restrictions?.offers || [])
-            .map((o) => restrictionOffersMap.get(o))
+            .map((o) => restrictionOffersMap.get(o.id || ''))
             .filter(Boolean)
         ) ?? [];
       return validateOfferWorkflowService({

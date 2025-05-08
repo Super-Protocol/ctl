@@ -23,9 +23,11 @@ query Offers($pagination: ConnectionArgs!, $filter: OfferFilter) {
                         cancelable
                         description
                         restrictions {
-                            offers
+                            offers {
+                                id
+                                version
+                            }
                             types
-                            versions
                         }
                         input
                         output
@@ -120,7 +122,10 @@ query OffersRestrictions($pagination: ConnectionArgs!, $filter: OfferFilter) {
                     id
                     offerInfo {
                         restrictions {
-                            offers
+                            offers {
+                                id
+                                version
+                            }
                         }
                     }
                 }
