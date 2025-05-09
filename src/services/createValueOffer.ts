@@ -8,7 +8,7 @@ import {
 } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import doWithRetries from './doWithRetries';
-import checkBalanceToCreateOffer from './checkBalanceToCreateOffer';
+import ensureSufficientOfferSecDeposit from './ensureSufficientOfferSecDeposit';
 import { generateExternalId } from '../utils';
 import addValueOfferVersion from './addValueOfferVersion';
 
@@ -31,12 +31,13 @@ export default async (params: CreateOfferParams): Promise<BlockchainId> => {
     params.authority,
   );
 
-  await checkBalanceToCreateOffer({
+  await ensureSufficientOfferSecDeposit({
     contractAddress: params.contractAddress,
     enableAutoDeposit: params.enableAutoDeposit,
     actionAddress,
     authorityAddress,
     offerType: 'value',
+    target: 'createOffer',
   });
 
   Printer.print('Creating value offer');

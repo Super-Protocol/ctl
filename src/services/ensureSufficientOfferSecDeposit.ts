@@ -7,13 +7,13 @@ import approveTeeTokens from './approveTeeTokens';
 
 type OfferType = 'tee' | 'value';
 
-interface GetSecDepositToCreateOfferParams {
+interface CalculateOfferSecDepositShortfallParams {
   authorityAddress: string;
   offerType: OfferType;
 }
 
-async function getSecDepositToCreateOffer(
-  params: GetSecDepositToCreateOfferParams,
+async function calculateOfferSecDepositShortfall(
+  params: CalculateOfferSecDepositShortfallParams,
 ): Promise<BigNumber> {
   const { authorityAddress, offerType } = params;
   const paramName = offerType === 'tee' ? ParamName.TeeOfferSecDeposit : ParamName.OfferSecDeposit;
@@ -34,17 +34,21 @@ async function getSecDepositToCreateOffer(
   return BigNumber.from('0');
 }
 
-interface CheckBalanceToCreateOfferParams extends GetSecDepositToCreateOfferParams {
+interface EnsureSufficientOfferSecDepositParams extends CalculateOfferSecDepositShortfallParams {
   actionAddress: string;
   contractAddress: string;
   enableAutoDeposit: boolean;
+  target: 'createOffer' | 'enableOffer';
 }
 
-export default async function checkBalanceToCreateOffer(
-  params: CheckBalanceToCreateOfferParams,
+export default async function ensureSufficientOfferSecDeposit(
+  params: EnsureSufficientOfferSecDepositParams,
 ): Promise<void> {
-  const { contractAddress, actionAddress, authorityAddress, offerType } = params;
-  const secDepositToCreateOffer = await getSecDepositToCreateOffer({ authorityAddress, offerType });
+  const { contractAddress, actionAddress, authorityAddress, offerType, target } = params;
+  const secDepositToCreateOffer = await calculateOfferSecDepositShortfall({
+    authorityAddress,
+    offerType,
+  });
 
   if (secDepositToCreateOffer.isZero()) {
     return;
@@ -55,13 +59,13 @@ export default async function checkBalanceToCreateOffer(
       return params.enableAutoDeposit;
     }
 
+    const teeValue = weiToEther(secDepositToCreateOffer);
+    const actionMessage = target === 'createOffer' ? 'create' : 'enable';
     const questions: QuestionCollection = [
       {
         type: 'confirm',
         name: 'confirmation',
-        message: `A security deposit of ${weiToEther(
-          secDepositToCreateOffer,
-        )} TEE is required to create this offer. Proceed?`,
+        message: `A security deposit of ${teeValue} TEE is required to ${actionMessage} this offer. Proceed?`,
         default: true,
       },
     ];

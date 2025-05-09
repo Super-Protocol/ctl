@@ -1111,19 +1111,25 @@ async function main(): Promise<void> {
     .command('enable')
     .description('Enable offer')
     .argument('id', 'Offer <id>')
-    .action(async (id: string, options: any) => {
+    .option(
+      '--yes',
+      'if true, then the command automatically refills the security deposit to enable an offer',
+      false,
+    )
+    .action(async (id: string, options: { config: string; yes: boolean }) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const actionAccountKey = blockchain.accountPrivateKey;
 
       await offersEnable({
-        id,
+        offerId: id,
         blockchainConfig,
-        actionAccountKey,
+        actionAccountKey: blockchain.accountPrivateKey,
+        authorityAccountKey: blockchain.authorityAccountPrivateKey,
+        enableAutoDeposit: options.yes,
       });
     });
 
@@ -1131,19 +1137,18 @@ async function main(): Promise<void> {
     .command('disable')
     .description('Disable offer')
     .argument('id', 'Offer <id>')
-    .action(async (id: string, options: any) => {
+    .action(async (id: string, options: { config: string }) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const actionAccountKey = blockchain.accountPrivateKey;
 
       await offersDisable({
-        id,
+        offerId: id,
         blockchainConfig,
-        actionAccountKey,
+        actionAccountKey: blockchain.accountPrivateKey,
       });
     });
 
