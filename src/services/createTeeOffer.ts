@@ -1,7 +1,7 @@
 import { BlockchainConnector, BlockchainId, TeeOfferInfo, TeeOffers } from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import doWithRetries from './doWithRetries';
-import checkBalanceToCreateOffer from './checkBalanceToCreateOffer';
+import ensureSufficientOfferSecDeposit from './ensureSufficientOfferSecDeposit';
 import { generateExternalId } from '../utils';
 
 export type CreateTeeOfferParams = {
@@ -24,12 +24,13 @@ export default async (params: CreateTeeOfferParams): Promise<BlockchainId> => {
   // TODO: make as option parameter with possibility to enable/disable by update command
   const enable = true;
 
-  await checkBalanceToCreateOffer({
+  await ensureSufficientOfferSecDeposit({
     contractAddress: params.contractAddress,
     enableAutoDeposit: params.enableAutoDeposit,
     actionAddress,
     authorityAddress,
     offerType: 'tee',
+    target: 'createOffer',
   });
 
   const currentBlock = await BlockchainConnector.getInstance().getLastBlockInfo();

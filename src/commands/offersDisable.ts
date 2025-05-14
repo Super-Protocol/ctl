@@ -10,22 +10,34 @@ import { ErrorTxRevertedByEvm } from '../utils';
 export type OffersDisableParams = {
   blockchainConfig: BlockchainConfig;
   actionAccountKey: string;
-  id: string;
+  offerId: string;
 };
 
-export default async (params: OffersDisableParams) => {
+export default async ({
+  blockchainConfig,
+  actionAccountKey,
+  offerId,
+}: OffersDisableParams): Promise<void> => {
   Printer.print('Connecting to the blockchain');
 
   await initBlockchainConnectorService({
-    blockchainConfig: params.blockchainConfig,
-    actionAccountKey: params.actionAccountKey,
+    blockchainConfig,
+    actionAccountKey,
   });
 
   try {
-    await new Offer(params.id).disable();
+    const offer = new Offer(offerId);
 
-    Printer.print(`Offer ${params.id} was disabled`);
-  } catch (error: any) {
+    const isEnabled = await offer.isEnabled();
+    if (!isEnabled) {
+      Printer.print(`Offer ${offerId} is already disabled`);
+      return;
+    }
+
+    await offer.disable();
+
+    Printer.print(`Offer ${offerId} was disabled`);
+  } catch (error: unknown) {
     if (error instanceof Web3TransactionRevertedByEvmError)
       throw ErrorTxRevertedByEvm(error.originalError);
     else throw error;

@@ -41,7 +41,7 @@ export const formatFetchedOffer = (item: OfferItem): OfferDto => {
     providerAddress: item?.authority,
     cancelable: item?.offerInfo?.cancelable,
     modifiedDate: formatDate(item?.origins?.modifiedDate),
-    dependsOnOffers: item?.offerInfo.restrictions?.offers || [],
+    dependsOnOffers: item?.offerInfo.restrictions?.offers?.map((o) => o.id!) || [],
     slots: item?.slots.map((slot) => slot.id) || [],
     enabled: item?.enabled,
   };
