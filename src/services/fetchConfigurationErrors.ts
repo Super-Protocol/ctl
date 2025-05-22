@@ -26,7 +26,7 @@ export default async (params: WorkflowValidationParams): Promise<ValidateResult>
     return result;
   } catch (error: any) {
     let message = 'Configuration validation error';
-    if (error?.response?.errors[0]?.message) message += ': ' + error.response.errors[0].message;
+    if (error?.response?.errors?.[0]?.message) message += ': ' + error.response.errors[0].message;
     throw ErrorWithCustomMessage(message, error);
   }
 };
