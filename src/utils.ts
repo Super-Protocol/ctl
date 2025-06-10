@@ -1,6 +1,6 @@
 import { promisify } from 'util';
 import { exec as execCallback } from 'child_process';
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import { DateTime } from 'luxon';
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { ErrorMessageOptions, generateErrorMessage } from 'zod-error';
@@ -198,6 +198,12 @@ export const tryParse = (text: string) => {
   } catch {
     /* empty */
   }
+};
+
+export const parseNumber = (val: string): number => {
+  const parsed = Number(val);
+  if (Number.isNaN(parsed)) throw new InvalidArgumentError('Not a number.');
+  return parsed;
 };
 
 export const isStorageConfigValid = (access: Config['storage']): boolean =>
