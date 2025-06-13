@@ -1,4 +1,4 @@
-import { OrderInfo, Orders, OrderSlots } from '@super-protocol/sdk-js';
+import { BlockchainConnector, OrderInfo, Orders, OrderSlots } from '@super-protocol/sdk-js';
 import doWithRetries from './doWithRetries';
 
 export type CreateOrderParams = {
@@ -9,11 +9,17 @@ export type CreateOrderParams = {
 };
 
 export default async (params: CreateOrderParams): Promise<string> => {
+  const workflowCreationBLock = await BlockchainConnector.getInstance().getLastBlockInfo();
+
   const orderLoaderFn = async (): Promise<string> => {
-    const event = await Orders.getByExternalId({
-      externalId: params.orderInfo.externalId,
-      consumer: params.consumerAddress,
-    });
+    const event = await Orders.getByExternalId(
+      {
+        externalId: params.orderInfo.externalId,
+        consumer: params.consumerAddress,
+      },
+      workflowCreationBLock.index,
+      'latest',
+    );
 
     if (event && event?.orderId !== '-1') {
       return event.orderId;
