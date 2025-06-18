@@ -16,8 +16,12 @@ export type ReadValueOfferInfoFileParams = {
 };
 
 const OfferInfoRestrictionsSchema = z.object({
-  offers: z.array(z.string()),
-  versions: z.array(z.number()),
+  offers: z.array(
+    z.object({
+      id: z.string(),
+      version: z.number(),
+    }),
+  ),
   types: z.array(z.nativeEnum(OfferType)),
 });
 

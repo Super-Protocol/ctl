@@ -22,8 +22,17 @@ import ordersCancel from './commands/ordersCancel';
 import ordersComplete, { OrderCompleteParams } from './commands/ordersComplete';
 import ordersReplenishDeposit from './commands/ordersReplenishDeposit';
 import workflowsCreate, { WorkflowCreateCommandParams } from './commands/workflowsCreate';
+import workflowsReplenishDeposit, {
+  WorkflowReplenishDepositParams,
+} from './commands/workflowsReplenishDeposit';
 import Printer from './printer';
-import { collectOptions, commaSeparatedList, processSubCommands, validateFields } from './utils';
+import {
+  collectOptions,
+  commaSeparatedList,
+  parseNumber,
+  processSubCommands,
+  validateFields,
+} from './utils';
 import generateSolutionKey from './commands/solutionsGenerateKey';
 import prepareSolution from './commands/solutionsPrepare';
 import ordersDownloadResult, { FilesDownloadParams } from './commands/ordersDownloadResult';
@@ -50,6 +59,8 @@ import offersUpdateOption from './commands/offersUpdateOption';
 import offersDeleteOption from './commands/offersDeleteOption';
 import offersGetSlot from './commands/offersGetSlot';
 import offersGetOption from './commands/offersGetOption';
+import offerAddVersion from './commands/offerAddVersion';
+import offerDisableVersion from './commands/offerDisableVersion';
 import { checkForUpdates } from './services/checkReleaseVersion';
 import setup from './commands/setup';
 import { workflowGenerateKey } from './commands/workflowsGenerateKey';
@@ -99,6 +110,8 @@ async function main(): Promise<void> {
   const offersCommand = program.command('offers');
   const offersListCommand = offersCommand.command('list');
   const offersGetCommand = offersCommand.command('get');
+  const offerCommand = program.command('offer');
+  const offerVersionCommand = offerCommand.command('version');
   const quotesCommand = program.command('quotes');
 
   program.addCommand(secretsCommand);
@@ -462,6 +475,41 @@ async function main(): Promise<void> {
 
       await workflowsCreate(requestParams);
     });
+
+  workflowsCommand
+    .command('replenish-deposit')
+    .argument('<orderId>', 'Order Id')
+    .option('--sppi <SPPI>', 'SPPI to add to the order')
+    .addOption(
+      new Option(
+        '--minutes <minutes>',
+        'Time to extend order (automatically calculates tokens)',
+      ).argParser((val) => parseInt(val) || 0),
+    )
+    .option('--yes', 'Silent question mode. All answers will be yes', false)
+    .action(
+      async (
+        orderId: string,
+        options: { config: string; sppi: string; minutes: number; yes: boolean },
+      ) => {
+        const configLoader = new ConfigLoader(options.config);
+        const actionAccountKey = configLoader.loadSection('blockchain').accountPrivateKey;
+        const blockchain = configLoader.loadSection('blockchain');
+        const blockchainConfig = {
+          contractAddress: blockchain.smartContractAddress,
+          blockchainUrl: blockchain.rpcUrl,
+        };
+        const requestParams: WorkflowReplenishDepositParams = {
+          blockchainConfig,
+          actionAccountKey,
+          orderId,
+          minutes: options.minutes,
+          sppi: options.sppi,
+          yes: options.yes,
+        };
+        await workflowsReplenishDeposit(requestParams);
+      },
+    );
 
   const ordersListFields = [
       'id',
@@ -1384,6 +1432,48 @@ async function main(): Promise<void> {
         accessToken: backend.accessToken,
         saveTo: options.saveTo,
         id,
+      });
+    });
+
+  offerVersionCommand
+    .command('add')
+    .description('Add new version of offer')
+    .requiredOption('--offer <id>', 'Offer id')
+    .requiredOption('--path <path>', 'Path to offer version info file')
+    .option('--ver <version>', 'Version number to add', parseNumber)
+    .action(async (options: { offer: string; path: string; ver: number; config: string }) => {
+      const configLoader = new ConfigLoader(options.config);
+      const blockchain = configLoader.loadSection('blockchain');
+      const blockchainConfig = {
+        contractAddress: blockchain.smartContractAddress,
+        blockchainUrl: blockchain.rpcUrl,
+      };
+      await offerAddVersion({
+        actionAccountKey: blockchain.accountPrivateKey,
+        blockchainConfig,
+        id: options.offer,
+        ver: options.ver,
+        path: options.path,
+      });
+    });
+
+  offerVersionCommand
+    .command('disable')
+    .description('Disable offer version')
+    .requiredOption('--offer <id>', 'Offer id')
+    .requiredOption('--ver <version>', 'Version number to delete', parseNumber)
+    .action(async (options: { offer: string; ver: number; config: string }) => {
+      const configLoader = new ConfigLoader(options.config);
+      const blockchain = configLoader.loadSection('blockchain');
+      const blockchainConfig = {
+        contractAddress: blockchain.smartContractAddress,
+        blockchainUrl: blockchain.rpcUrl,
+      };
+      await offerDisableVersion({
+        blockchainConfig,
+        id: options.offer,
+        ver: options.ver,
+        actionAccountKey: blockchain.accountPrivateKey,
       });
     });
 
