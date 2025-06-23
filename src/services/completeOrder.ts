@@ -6,7 +6,7 @@ import {
   Web3TransactionRevertedByEvmError,
   getStorageProvider,
 } from '@super-protocol/sdk-js';
-// import { StorjException } from '@super-protocol/uplink-nodejs/dist/error';
+import { StorjException } from '@super-protocol/uplink-nodejs/dist/error';
 import { ErrorTxRevertedByEvm, ErrorWithCustomMessage, tryParse } from '../utils';
 import readResourceFile, {
   EncryptedResourceFileValidator,
