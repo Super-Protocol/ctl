@@ -75,7 +75,6 @@ export async function readValueOfferInfo({
     path,
     validator: isPartialContent ? OptionalOfferInfoFileValidator : OfferInfoFileSchema,
   });
-
   if (offerInfo.argsPublicKey) {
     const argsPublicKeyValidation = EncryptionValidator.safeParse(
       JSON.parse(offerInfo.argsPublicKey),
