@@ -1,6 +1,5 @@
 import { Encryption, StorageProviderResource, TeeOrderEncryptedArgs } from '@super-protocol/dto-js';
 import {
-  BlockchainConnector,
   BlockchainId,
   OrderInfo,
   Orders,
@@ -17,7 +16,6 @@ import {
   isStorageConfigValid,
   Token,
 } from '../utils';
-import doWithRetries from './doWithRetries';
 import { createOrder, CreateOrderParams, getCredentials } from '../commands/filesUpload.addon';
 
 export type TeeOfferParams = {
