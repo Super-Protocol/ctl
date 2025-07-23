@@ -3,6 +3,8 @@ import { GraphQLClient } from 'graphql-request';
 import { ErrorWithCustomMessage, formatDate, getObjectKey } from '../utils';
 import getGqlHeaders from './gqlHeaders';
 import { OfferType } from '@super-protocol/sdk-js';
+import doWithRetries from './doWithRetries';
+import { getErrorMessage } from '../error.utils';
 
 export type FetchOffersParams = {
   backendUrl: string;
@@ -54,26 +56,26 @@ export default async (
   const headers = getGqlHeaders(params.accessToken);
 
   try {
-    const { result } = await sdk.Offers(
-      {
-        pagination: {
-          first: params.limit,
-          after: params.cursor,
-          sortDir: 'DESC',
-          sortBy: 'origins.createdDate',
+    const { result } = await doWithRetries(() =>
+      sdk.Offers(
+        {
+          pagination: {
+            first: params.limit,
+            after: params.cursor,
+            sortDir: 'DESC',
+            sortBy: 'origins.createdDate',
+          },
+          filter: { id: params.id, ids: params.ids },
         },
-        filter: { id: params.id, ids: params.ids },
-      },
-      headers,
+        headers,
+      ),
     );
 
     return {
       list: result.page.edges?.map((item) => item.node) || [],
       cursor: result.page.pageInfo?.endCursor || '',
     };
-  } catch (error: any) {
-    let message = 'Fetching offers error';
-    if (error?.response?.errors[0]?.message) message += ': ' + error.response.errors[0].message;
-    throw ErrorWithCustomMessage(message, error);
+  } catch (error: unknown) {
+    throw ErrorWithCustomMessage(getErrorMessage(error, 'Fetching offers error'), error);
   }
 };

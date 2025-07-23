@@ -1,6 +1,5 @@
 import { Encryption, StorageProviderResource, TeeOrderEncryptedArgs } from '@super-protocol/dto-js';
 import {
-  BlockchainConnector,
   BlockchainId,
   OrderInfo,
   Orders,
@@ -17,7 +16,6 @@ import {
   isStorageConfigValid,
   Token,
 } from '../utils';
-import doWithRetries from './doWithRetries';
 import { createOrder, CreateOrderParams, getCredentials } from '../commands/filesUpload.addon';
 
 export type TeeOfferParams = {
@@ -169,9 +167,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
     optionsCount: [],
   }));
 
-  const workflowCreationBLock = await BlockchainConnector.getInstance().getLastBlockInfo();
-
-  await Orders.createWorkflow(
+  const parentOrderId = await Orders.createWorkflow(
     parentOrderInfo,
     parentOrderSlot,
     subOrdersInfo,
@@ -181,18 +177,5 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
       from: params.consumerAddress,
     },
   );
-
-  const orderLoaderFn = (): Promise<string> =>
-    Orders.getByExternalId(
-      { externalId, consumer: params.consumerAddress },
-      workflowCreationBLock.index,
-      'latest',
-    ).then((event) => {
-      if (event && event?.orderId !== '-1') {
-        return event.orderId;
-      }
-      throw new Error("TEE order wasn't created. Try increasing the gas price.");
-    });
-
-  return doWithRetries(orderLoaderFn, 10, 5000);
+  return parentOrderId;
 };
