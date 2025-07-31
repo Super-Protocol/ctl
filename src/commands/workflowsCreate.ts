@@ -3,6 +3,7 @@ import {
   Hash,
   RIIType,
   RuntimeInputInfo,
+  StorageType,
   TeeOrderEncryptedArgs,
   TeeOrderEncryptedArgsConfiguration,
 } from '@super-protocol/dto-js';
@@ -64,7 +65,7 @@ export type WorkflowCreateParams = {
   solutionConfigurationPath?: string;
   dataConfigurationPaths: string[];
   resultEncryption: EncryptionKey;
-  userDepositAmount: string;
+  userDepositAmount?: string;
   minRentMinutes: number;
   workflowNumber: number;
   ordersLimit: number;
@@ -96,6 +97,10 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     throw new Error(
       'Invalid solution-configuration param. It must be specified if at least one data-configuration param is provided.',
     );
+  }
+
+  if (params.storageAccess.type !== StorageType.StorJ) {
+    throw new Error('Storage type can only be StorJ');
   }
 
   Printer.print('Connecting to the blockchain');
@@ -186,7 +191,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
       backendUrl: params.backendUrl,
       accessToken: params.accessToken,
       tee: tee,
-      storage,
       data: data.offers,
       solutions: solutions.offers,
       usageMinutes: workflowMinTimeMinutes,
@@ -220,8 +224,7 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
   }
 
   const restrictionOffersMap = new Map<string, Offer>(
-    fetchedValueOffers
-      .map(({ id }) => [id.toString(), new Offer(id)]),
+    fetchedValueOffers.map(({ id }) => [id.toString(), new Offer(id)]),
   );
 
   Printer.print('Validating workflow configuration');
@@ -268,7 +271,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
           offerId: dataOffer.id,
           slot: { id: dataOffer.slotId },
         })),
-        storage: { offerId: storage.id, slot: { id: storage.slotId } },
       },
     });
 
@@ -446,6 +448,14 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     pccsServiceApiUrl: params.pccsServiceApiUrl,
     runtimeInputInfos,
     argsHash,
+    storage: {
+      storageType: StorageType.StorJ,
+      uploadCredentials: {
+        bucket: params.storageAccess.bucket,
+        prefix: params.storageAccess.prefix,
+        token: params.storageAccess.writeAccessToken,
+      },
+    },
   });
 
   Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);

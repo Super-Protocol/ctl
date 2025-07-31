@@ -84,9 +84,7 @@ export const createOrder = async (params: CreateOrderParams): Promise<string> =>
     pccsServiceApiUrl,
     args: {
       inputOffersIds: [],
-      outputOfferId: '0',
       inputOffersVersions: [],
-      outputOfferVersion: 0,
     },
     backendUrl,
     blockchainConfig,
@@ -176,7 +174,7 @@ export default async (params: FilesUploadParams): Promise<void> => {
     return;
   }
 
-  const outputPath = preparePath(params.outputPath);
+  const outputPath = preparePath(params.outputPath || '');
 
   try {
     await fs.stat(outputPath);
@@ -224,7 +222,7 @@ export default async (params: FilesUploadParams): Promise<void> => {
   }
 
   try {
-    if (params.storage.length) {
+    if (params.storage?.length) {
       if (!params.resultEncryption.key) {
         throw Error('Invalid encryption key');
       }

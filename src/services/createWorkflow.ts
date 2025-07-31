@@ -112,7 +112,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
   }
 
   Printer.print('Encrypting arguments');
-  const encryptedArgs = await helpers.OrderArgsHelper.encryptOrderArgs(
+  const encryptedArgs = helpers.OrderArgsHelper.encryptOrderArgs(
     storageProviderResource ? { resource: storageProviderResource } : teeOrderArgsToEncrypt,
     JSON.parse(offerInfo.argsPublicKey),
   );
@@ -124,8 +124,6 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
     status: OrderStatus.New,
     args: {
       inputOffersIds: params.inputOffers.map((offer) => offer.id),
-      outputOfferId: params.storageOffer.id,
-      outputOfferVersion: 0,
       inputOffersVersions: params.inputOffers.map(() => 0),
     },
     encryptedArgs,
@@ -142,24 +140,25 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
     optionsCount: params.teeOffer.optionsCount,
   };
 
-  const subOrdersInfo: OrderInfo[] = params.inputOffers.map((subOrderParams) => ({
-    offerId: subOrderParams.id,
-    offerVersion: 0,
-    externalId: generateExternalId(),
-    status: OrderStatus.New,
-    args: {
-      inputOffersIds: [],
-      outputOfferId: params.storageOffer.id,
-      inputOffersVersions: [],
-      outputOfferVersion: 0,
-    },
-    encryptedArgs: '',
-    resultInfo: {
-      publicKey: '',
-      encryptedInfo: '',
-    },
-    tokenAddress: params.token.address,
-  }));
+  const subOrdersInfo: OrderInfo[] = params.inputOffers.map(
+    (subOrderParams) =>
+      ({
+        offerId: subOrderParams.id,
+        offerVersion: 0,
+        externalId: generateExternalId(),
+        status: OrderStatus.New,
+        args: {
+          inputOffersIds: [],
+          inputOffersVersions: [],
+        },
+        encryptedArgs: '',
+        resultInfo: {
+          publicKey: '',
+          encryptedInfo: '',
+        },
+        tokenAddress: params.token.address,
+      }) satisfies OrderInfo,
+  );
   const subOrdersSlots: OrderSlots[] = params.inputOffers.map((subOrderParams) => ({
     slotId: subOrderParams.slotId,
     slotCount: 0,

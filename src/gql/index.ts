@@ -46,7 +46,6 @@ export type BaseOrder = {
   offerType: TOfferType;
   orderDeposit?: Maybe<Scalars['String']>;
   orderInfo: OrderInfo;
-  orderOutputReserve?: Maybe<Scalars['String']>;
   orderResult: OrderResult;
   origins?: Maybe<Origins>;
   selectedUsage?: Maybe<OrderUsage>;
@@ -68,7 +67,6 @@ export type BaseOrderInputType = {
   offerType: TOfferType;
   orderDeposit?: InputMaybe<Scalars['String']>;
   orderInfo: OrderInfoInput;
-  orderOutputReserve?: InputMaybe<Scalars['String']>;
   orderResult: OrderResultInput;
   selectedUsage?: InputMaybe<OrderUsageInput>;
   startDate: Scalars['Float'];
@@ -8199,6 +8197,8 @@ export enum LicenseCode {
   Afl_3_0 = 'AFL_3_0',
   Agpl_3_0 = 'AGPL_3_0',
   Apache_2_0 = 'APACHE_2_0',
+  AppleAmlr = 'APPLE_AMLR',
+  AppleAscl = 'APPLE_ASCL',
   Artistic_2_0 = 'ARTISTIC_2_0',
   BigcodeOpenrailM = 'BIGCODE_OPENRAIL_M',
   BigscienceBloomRail_1_0 = 'BIGSCIENCE_BLOOM_RAIL_1_0',
@@ -8228,6 +8228,7 @@ export enum LicenseCode {
   CdlaPermissive_1_0 = 'CDLA_PERMISSIVE_1_0',
   CdlaPermissive_2_0 = 'CDLA_PERMISSIVE_2_0',
   CdlaSharing_1_0 = 'CDLA_SHARING_1_0',
+  CreativemlOpenrailM = 'CREATIVEML_OPENRAIL_M',
   Cuda = 'CUDA',
   DeepfloydIfLicense = 'DEEPFLOYD_IF_LICENSE',
   Ecl_2_0 = 'ECL_2_0',
@@ -8235,6 +8236,7 @@ export enum LicenseCode {
   Epl_2_0 = 'EPL_2_0',
   Etalab_2_0 = 'ETALAB_2_0',
   Eupl_1_1 = 'EUPL_1_1',
+  Faipl_1_0Sd = 'FAIPL_1_0_SD',
   Gemma = 'GEMMA',
   Gfdl = 'GFDL',
   Gpl = 'GPL',
@@ -8244,10 +8246,12 @@ export enum LicenseCode {
   Lgpl = 'LGPL',
   Lgpl_2_1 = 'LGPL_2_1',
   Lgpl_3_0 = 'LGPL_3_0',
+  LgplLr = 'LGPL_LR',
   Llama2 = 'LLAMA2',
   Llama3 = 'LLAMA3',
   Llama3_1 = 'LLAMA3_1',
   Llama3_2 = 'LLAMA3_2',
+  Llama3_3 = 'LLAMA3_3',
   Lppl_1_3C = 'LPPL_1_3C',
   Mit = 'MIT',
   Mpl_2_0 = 'MPL_2_0',
@@ -8789,7 +8793,6 @@ export type Order = {
   offerType: TOfferType;
   orderDeposit?: Maybe<Scalars['String']>;
   orderInfo: OrderInfo;
-  orderOutputReserve?: Maybe<Scalars['String']>;
   orderResult: OrderResult;
   origins?: Maybe<Origins>;
   parentOrder?: Maybe<ParentOrder>;
@@ -8807,15 +8810,11 @@ export type OrderArgs = {
   __typename?: 'OrderArgs';
   inputOffersIds: Array<Scalars['String']>;
   inputOffersVersions: Array<Scalars['Float']>;
-  outputOfferId: Scalars['String'];
-  outputOfferVersion: Scalars['Float'];
 };
 
 export type OrderArgsInput = {
   inputOffersIds: Array<Scalars['String']>;
   inputOffersVersions: Array<Scalars['Float']>;
-  outputOfferId: Scalars['String'];
-  outputOfferVersion: Scalars['Float'];
 };
 
 export type OrderConnection = {
@@ -8947,7 +8946,6 @@ export type OrderInputType = {
   offerType: TOfferType;
   orderDeposit?: InputMaybe<Scalars['String']>;
   orderInfo: OrderInfoInput;
-  orderOutputReserve?: InputMaybe<Scalars['String']>;
   orderResult: OrderResultInput;
   parentOrder?: InputMaybe<ParentOrderInputType>;
   providerInfo: ProviderInformationInput;
@@ -8971,12 +8969,11 @@ export type OrderObject = {
   /** blockchain id */
   id: Scalars['String'];
   offerInfo?: Maybe<OfferInfo>;
-  offerType: Scalars['String'];
+  offerType: TOfferType;
   orderDeposit?: Maybe<Scalars['String']>;
   /** blockchain id */
   orderId: Scalars['String'];
   orderInfo: OrderInfo;
-  orderOutputReserve?: Maybe<Scalars['String']>;
   orderResult: OrderResult;
   origins?: Maybe<Origins>;
   parentOrder?: Maybe<Scalars['String']>;
@@ -9134,7 +9131,6 @@ export type ParentOrder = {
   offerType: TOfferType;
   orderDeposit?: Maybe<Scalars['String']>;
   orderInfo: OrderInfo;
-  orderOutputReserve?: Maybe<Scalars['String']>;
   orderResult: OrderResult;
   origins?: Maybe<Origins>;
   parentOrder?: Maybe<Scalars['String']>;
@@ -9157,7 +9153,6 @@ export type ParentOrderInputType = {
   offerType: TOfferType;
   orderDeposit?: InputMaybe<Scalars['String']>;
   orderInfo: OrderInfoInput;
-  orderOutputReserve?: InputMaybe<Scalars['String']>;
   orderResult: OrderResultInput;
   parentOrder?: InputMaybe<Scalars['String']>;
   selectedUsage?: InputMaybe<OrderUsageInput>;
@@ -9343,6 +9338,7 @@ export type Query = {
   offersModeration: ModerationStatsResponse;
   order: Order;
   orders: ListOrdersResponse;
+  ordersAi: ListOrdersResponse;
   /** Average processing time in milliseconds */
   ordersProcessingStatistic: Array<StatisticPoint>;
   ordersStatusesStatistic: Array<StatisticPoint>;
@@ -9458,6 +9454,12 @@ export type QueryOrderArgs = {
 
 
 export type QueryOrdersArgs = {
+  filter?: InputMaybe<OrdersFilter>;
+  pagination: ConnectionArgs;
+};
+
+
+export type QueryOrdersAiArgs = {
   filter?: InputMaybe<OrdersFilter>;
   pagination: ConnectionArgs;
 };
@@ -9629,7 +9631,7 @@ export type Subscription = {
   /** event - create or update an entity. My be filtered by consumer */
   event: SubscriptionPayload;
   /** order event */
-  order: OrderPayload;
+  order?: Maybe<OrderPayload>;
   /** order events updated event. My be filtered by order ID */
   orderEventsUpdated: OrderEventsUpdated;
   /** order status updated event. My be filtered by order ID */
@@ -9652,6 +9654,7 @@ export type SubscriptionOrderArgs = {
   externalId?: InputMaybe<Scalars['String']>;
   offerSubType?: InputMaybe<Array<ValueOfferSubtype>>;
   orderIds?: InputMaybe<Array<Scalars['String']>>;
+  subOrderOfferSubType?: InputMaybe<Array<ValueOfferSubtype>>;
   teeOfferSubType?: InputMaybe<Array<TeeOfferSubtype>>;
 };
 
@@ -9843,6 +9846,8 @@ export type TeeOfferFilter = {
   search?: InputMaybe<Scalars['String']>;
   /** filter by teeOfferInfo -> subType */
   subType?: InputMaybe<TeeOfferSubtype>;
+  /** filter by teeOfferInfo -> subType list */
+  subTypes?: InputMaybe<Array<TeeOfferSubtype>>;
   /** filter by teeOfferInfo.hardwareInfo.optionInfo → traffic */
   traffic?: InputMaybe<Scalars['Float']>;
   /** filter by slot/option usage → minTimeMinutes,maxTimeMinutes */
@@ -10056,7 +10061,6 @@ export type WorkflowConfigurationValidation = {
   data: Array<ValueOfferWithSlotsAndOptions>;
   minTimeMinutes?: InputMaybe<Scalars['Float']>;
   solution?: InputMaybe<Array<ValueOfferWithSlotsAndOptions>>;
-  storage: ValueOfferWithSlotsAndOptions;
   tee: TeeOfferWithSlotsAndOptions;
 };
 
@@ -10191,7 +10195,7 @@ export type OrderQueryVariables = Exact<{
 }>;
 
 
-export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offerId: string, args: { __typename?: 'OrderArgs', inputOffersIds: Array<string>, outputOfferId: string, inputOffersVersions: Array<number>, outputOfferVersion: number }, resultInfo: { __typename?: 'OrderResultInfo', encryptedInfo: string, publicKey: string } }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null }, parentOrder?: { __typename?: 'ParentOrder', id: string, offerType: TOfferType } | null } };
+export type OrderQuery = { __typename?: 'Query', order: { __typename?: 'Order', id: string, consumer: string, offerType: TOfferType, origins?: { __typename?: 'Origins', createdBy: string, createdDate: number, modifiedBy: string, modifiedDate: number } | null, orderInfo: { __typename?: 'OrderInfo', status: string, offerId: string, args: { __typename?: 'OrderArgs', inputOffersIds: Array<string>, inputOffersVersions: Array<number> }, resultInfo: { __typename?: 'OrderResultInfo', encryptedInfo: string, publicKey: string } }, teeOfferInfo?: { __typename?: 'TeeOfferInfo', name: string, description: string } | null, orderResult: { __typename?: 'OrderResult', encryptedResult?: string | null }, parentOrder?: { __typename?: 'ParentOrder', id: string, offerType: TOfferType } | null } };
 
 export type SubOrdersQueryVariables = Exact<{
   pagination: ConnectionArgs;
@@ -10612,9 +10616,7 @@ export const OrderDocument = gql`
       offerId
       args {
         inputOffersIds
-        outputOfferId
         inputOffersVersions
-        outputOfferVersion
       }
       resultInfo {
         encryptedInfo

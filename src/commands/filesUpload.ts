@@ -16,7 +16,7 @@ import readJsonFileService from '../services/readJsonFile';
 import generateEncryptionService from '../services/generateEncryption';
 import { createOrder, FilesUploadParams, getCredentials } from './filesUpload.addon';
 import { AnalyticEvent } from '../services/analytics';
-import crypto from 'crypto';
+import crypto, { BinaryLike } from 'crypto';
 
 export default async (params: FilesUploadParams): Promise<void> => {
   Printer.print('File uploading command is starting...');
@@ -47,7 +47,7 @@ export default async (params: FilesUploadParams): Promise<void> => {
 
   if (!metadata.hash?.hash) {
     originFileStream.on('data', (chunk) => {
-      hash.update(chunk);
+      hash.update(chunk as unknown as BinaryLike);
     });
 
     originFileStream.on('end', () => {
@@ -64,11 +64,11 @@ export default async (params: FilesUploadParams): Promise<void> => {
   let encryptedFilePath: string | null = null;
   if (params.withEncryption) {
     remotePath += '.encrypted';
-    const encryption = await generateEncryptionService();
+    const encryptionConfig = generateEncryptionService();
     const encryptionResult = await encryptFileService(
       originFileStream,
       localPath,
-      encryption,
+      encryptionConfig,
       (total: number, current: number) => {
         Printer.progress('Encrypting file', total, current);
       },
@@ -103,8 +103,9 @@ export default async (params: FilesUploadParams): Promise<void> => {
         throw Error('Invalid encryption key');
       }
 
+      const storage = params.storage[0].split(',') as [string, string]; // id, slot
       const orderId = await createOrder({
-        storage: params.storage[0].split(','),
+        storage,
         minRentMinutes: params.minRentMinutes,
         backendUrl: params.backendUrl,
         accessToken: params.accessToken,

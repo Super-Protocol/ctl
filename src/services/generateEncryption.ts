@@ -1,7 +1,7 @@
 import { Cipher, CryptoAlgorithm, Encoding, Encryption } from '@super-protocol/dto-js';
 import * as crypto from 'crypto';
 
-export default async (): Promise<Encryption> => {
+export default (): Encryption<undefined> => {
   return {
     algo: CryptoAlgorithm.AES,
     cipher: Cipher.AES_256_CTR,

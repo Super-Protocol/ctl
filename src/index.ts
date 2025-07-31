@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Encoding, HashAlgorithm } from '@super-protocol/dto-js';
 import { constants, OfferType, OrderStatus } from '@super-protocol/sdk-js';
 import * as bip39 from 'bip39';
@@ -74,6 +76,10 @@ import { secretsCommand } from './commands/secrets';
 import { OrderValidateReportParams, ordersValidateReport } from './commands/ordersValidateReport';
 import { OrderGetReportParams, ordersGetReport } from './commands/ordersGetReport';
 
+interface ICommonOptions {
+  config: string;
+}
+
 const ORDER_STATUS_KEYS = Object.keys(OrderStatus) as Array<keyof typeof OrderStatus>;
 const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce(
   (acc, key) => {
@@ -146,7 +152,7 @@ async function main(): Promise<void> {
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       validateFields(options.fields, providersGetFields);
 
@@ -365,10 +371,29 @@ async function main(): Promise<void> {
       Printer.print(mnemonic);
     });
 
+  interface IWorkflowsCommandCreateOptions extends ICommonOptions {
+    tee: string;
+    teeSlotCount?: string;
+    teeOptions: string[];
+    teeOptionsCount: string[];
+    storage: string;
+    solution: string[];
+    solutionHash?: string;
+    data: string[];
+    deposit?: string;
+    minRentMinutes?: string;
+    debug: boolean;
+    workflowNumber: string;
+    ordersLimit: string;
+    skipHardwareCheck: boolean;
+    dataConfiguration: string[];
+    solutionConfiguration?: string;
+    token?: string;
+  }
   workflowsCommand
     .command('create')
     .description('Create workflow')
-    .option('--tee <id,slot>', 'TEE offer <id,slot> (required)')
+    .requiredOption('--tee <id,slot>', 'TEE offer <id,slot> (required)')
     .option('--tee-slot-count <id>', 'TEE slot count')
     .option(
       '--tee-options <id...>',
@@ -429,7 +454,7 @@ async function main(): Promise<void> {
       '--token <symbol>',
       'Token symbol (if not specified, the first primary token will be used)',
     )
-    .action(async (options: any) => {
+    .action(async (options: IWorkflowsCommandCreateOptions) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = configLoader.loadSection('backend');
       const blockchain = configLoader.loadSection('blockchain');
@@ -1477,6 +1502,16 @@ async function main(): Promise<void> {
       });
     });
 
+  interface IFilesCommandUploadOptions extends ICommonOptions {
+    filename?: string;
+    output: string;
+    skipEncryption?: boolean;
+    metadata?: string;
+    maximumConcurrent?: string;
+    storage: string[];
+    minRentMinutes: string;
+    useAddon: boolean;
+  }
   filesCommand
     .command('upload')
     .description('Upload a file specified by the <localPath> argument to the remote storage')
@@ -1507,7 +1542,7 @@ async function main(): Promise<void> {
     .addOption(
       new Option('--use-addon', 'work will be performed via the addon').default(false).hideHelp(),
     )
-    .action(async (localPath: string, options: any) => {
+    .action(async (localPath: string, options: IFilesCommandUploadOptions) => {
       const configLoader = new ConfigLoader(options.config);
       const storageConfig = configLoader.loadSection('storage');
       const backendConfig = configLoader.loadSection('backend');

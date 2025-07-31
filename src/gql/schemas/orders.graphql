@@ -121,9 +121,7 @@ query Order($id: String!) {
             offerId
             args {
                 inputOffersIds
-                outputOfferId
                 inputOffersVersions
-                outputOfferVersion
             }
             resultInfo {
                 encryptedInfo
