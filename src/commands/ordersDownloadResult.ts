@@ -250,9 +250,12 @@ function getEncryptedResultPath(customPath?: string, sourcePath?: string): strin
   }
 
   if (sourcePath) {
-    sourcePath = preparePath(sourcePath);
-    if (!/\.encrypted$/.test(sourcePath)) sourcePath += '.encrypted';
-    return sourcePath;
+    const filename = path.basename(sourcePath);
+    const preparedPath = preparePath(filename);
+    if (!/\.encrypted$/.test(preparedPath)) {
+      return `${preparedPath}.encrypted`;
+    }
+    return preparedPath;
   }
 
   return `${preparePath(localTarPath)}.encrypted`;
