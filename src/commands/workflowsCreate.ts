@@ -58,7 +58,7 @@ export type WorkflowCreateParams = {
   teeSlotCount?: number;
   teeOptionsIds: string[];
   teeOptionsCount: number[];
-  storage: string;
+  storage?: string;
   solution: string[];
   solutionHash: Hash;
   data: string[];
@@ -136,12 +136,14 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
       }).then(({ offers }) => offers[0])
     : { id: '', slotId: '' };
 
-  const storage = await parseInputResourcesService({
-    options: [params.storage],
-    backendUrl: params.backendUrl,
-    accessToken: params.accessToken,
-    minRentMinutes: params.minRentMinutes,
-  }).then(({ offers }) => offers[0]);
+  const storage = params.storage
+    ? await parseInputResourcesService({
+        options: [params.storage],
+        backendUrl: params.backendUrl,
+        accessToken: params.accessToken,
+        minRentMinutes: params.minRentMinutes,
+      }).then(({ offers }) => offers[0])
+    : undefined;
 
   let solutions = await parseInputResourcesService({
     options: params.solution,
@@ -163,7 +165,7 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
   });
   const dataIds = data.offers.map((offer) => offer.id);
 
-  const valueOfferIds = [...solutionIds, ...dataIds, storage.id];
+  const valueOfferIds = [...solutionIds, ...dataIds];
 
   const fetchedValueOffers = await getFetchedOffers({
     backendUrl: params.backendUrl,
@@ -174,7 +176,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
 
   const offersMap = new Map<string, FetchedOffer>(fetchedValueOffers.map((o) => [o.id, o]));
 
-  checkFetchedOffers([storage], offersMap, OfferType.Storage);
   checkFetchedOffers(solutions.offers, offersMap, OfferType.Solution);
   checkFetchedOffers(data.offers, offersMap, OfferType.Data);
 
@@ -397,7 +398,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
 
   let holdDeposit = await calcWorkflowDepositService({
     tee: teeOfferParams,
-    storage: storage,
     solutions: solutions.offers,
     data: data.offers,
     minRentMinutes: workflowMinTimeMinutes,
@@ -520,7 +520,7 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
           resolve(workflowId);
         })
         .catch((error) => {
-          Printer.error(`Error creating workflow ${error}`);
+          Printer.error(`Failed to create workflow. ${error}`);
           properties.push({
             result: 'error',
             error: error.message,
@@ -541,7 +541,9 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
   }
   const id = JSON.stringify(results);
 
-  Printer.print(`Workflow was created, TEE order id: ${id}`);
+  if (results.filter(Boolean).length) {
+    Printer.print(`Workflow was created, TEE order id: ${id}`);
+  }
 
   return id;
 };

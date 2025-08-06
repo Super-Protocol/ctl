@@ -376,7 +376,7 @@ async function main(): Promise<void> {
     teeSlotCount?: string;
     teeOptions: string[];
     teeOptionsCount: string[];
-    storage: string;
+    storage?: string;
     solution: string[];
     solutionHash?: string;
     data: string[];
@@ -407,7 +407,10 @@ async function main(): Promise<void> {
       collectOptions,
       [],
     )
-    .requiredOption('--storage <id,slot> --storage <id>', 'Storage offer <id> (required)')
+    .option(
+      '--storage <id,slot> --storage <id>',
+      'Storage offer <id> (required when TEE arguments are large and no storage config is provided)',
+    )
     .option(
       '--solution <id,slot> --solution <id> --solution <filepath>',
       'Solution offer <id,slot> or <id>(slot will be auto selected) or resource file path (accepts multiple values)',

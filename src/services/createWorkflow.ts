@@ -33,7 +33,7 @@ export type ValueOfferParams = {
 
 export type CreateWorkflowParams = Omit<CreateOrderParams, 'storage'> & {
   teeOffer: TeeOfferParams;
-  storageOffer: ValueOfferParams;
+  storageOffer?: ValueOfferParams;
   inputOffers: ValueOfferParams[];
   resultPublicKey: string;
   encryptedInfo: string;
@@ -49,7 +49,7 @@ const createStorageOrderByOfferId = async (
 ): Promise<helpers.ReadWriteStorageAccess> => {
   const storageOrderId = await createOrder({
     ...params,
-    storage: [params.storageOffer.id],
+    storage: [params.storageOffer!.id],
   });
   Printer.print(`The storage order has been created successfully (id=${storageOrderId})`);
 
@@ -79,14 +79,24 @@ const processUploadToStorage = async (
   },
 ): Promise<StorageProviderResource> => {
   Printer.print('TEE order arguments will be stored in distributed storage');
-  const storageAccess: helpers.ReadWriteStorageAccess = isStorageConfigValid(params.storageAccess)
-    ? convertReadWriteStorageAccess(params.storageAccess)
-    : await createStorageOrderByOfferId(params);
+  const getStorageAccess = async (): Promise<helpers.ReadWriteStorageAccess> => {
+    if (isStorageConfigValid(params.storageAccess)) {
+      return convertReadWriteStorageAccess(params.storageAccess);
+    }
+
+    if (!params.storageOffer?.id) {
+      throw new Error(
+        'Storage offer ID is required when storage config is not provided for uploading order arguments',
+      );
+    }
+
+    return await createStorageOrderByOfferId(params);
+  };
 
   const resource = await helpers.OrderArgsHelper.uploadToStorage({
     args: params.teeOrderArgsToEncrypt,
     key: params.key,
-    access: storageAccess,
+    access: await getStorageAccess(),
     encryption: params.encryption,
   });
   Printer.print('Order arguments have been successfully uploaded to distributed storage.');
