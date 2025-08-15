@@ -13,6 +13,7 @@ import addonDownload from './commands/filesDownload.addon';
 import upload from './commands/filesUpload';
 import addonUpload, { FilesUploadParams } from './commands/filesUpload.addon';
 import filesDelete from './commands/filesDelete';
+import filesCalculateHash from './commands/filesCalculateHash';
 import addonFilesDelete from './commands/filesDelete.addon';
 import providersList from './commands/providersList';
 import providersGet from './commands/providersGet';
@@ -1592,6 +1593,14 @@ async function main(): Promise<void> {
           writeAccessToken: storage.writeAccessToken,
         });
       }
+    });
+
+  filesCommand
+    .command('calculate-hash')
+    .description('Calculate the hash of a file or all files in a folder')
+    .argument('localPath', 'Path to the file or folder')
+    .action(async (localPath: string) => {
+      await filesCalculateHash({ localPath });
     });
 
   solutionsCommand
