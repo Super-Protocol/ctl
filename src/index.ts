@@ -36,6 +36,7 @@ import {
   processSubCommands,
   validateFields,
 } from './utils';
+import { checkStorageConfig } from './services/checkStorageConfig';
 import generateSolutionKey from './commands/solutionsGenerateKey';
 import prepareSolution from './commands/solutionsPrepare';
 import ordersDownloadResult, { FilesDownloadParams } from './commands/ordersDownloadResult';
@@ -44,7 +45,7 @@ import tokensBalance from './commands/tokensBalance';
 import offersListTee from './commands/offersListTee';
 import offersListValue from './commands/offersListValue';
 import offersDownloadContent from './commands/offersDownloadContent';
-import { CONFIG_DEFAULT_FILENAME, MAX_ORDERS_RUNNING, MINUTES_IN_HOUR } from './constants';
+import { CONFIG_DEFAULT_FILENAME, MAX_ORDERS_RUNNING } from './constants';
 import offersGet from './commands/offersGet';
 import offersCreate from './commands/offersCreate';
 import offersUpdate from './commands/offersUpdate';
@@ -377,7 +378,6 @@ async function main(): Promise<void> {
     teeSlotCount?: string;
     teeOptions: string[];
     teeOptionsCount: string[];
-    storage?: string;
     solution: string[];
     solutionHash?: string;
     data: string[];
@@ -407,10 +407,6 @@ async function main(): Promise<void> {
       'TEE options count <id> (accepts multiple values)',
       collectOptions,
       [],
-    )
-    .option(
-      '--storage <id,slot> --storage <id>',
-      'Storage offer <id> (required when TEE arguments are large and no storage config is provided)',
     )
     .option(
       '--solution <id,slot> --solution <id> --solution <filepath>',
@@ -469,6 +465,8 @@ async function main(): Promise<void> {
       const { pccsServiceApiUrl } = configLoader.loadSection('tii');
       const workflowConfig = configLoader.loadSection('workflow');
       const storageConfig = configLoader.loadSection('storage');
+      const checkedStorageConfig = checkStorageConfig(storageConfig);
+
       const requestParams: WorkflowCreateCommandParams = {
         analytics: createAnalyticsService(configLoader),
         backendUrl: backend.url,
@@ -479,7 +477,6 @@ async function main(): Promise<void> {
         teeSlotCount: Number(options.teeSlotCount || 0),
         teeOptionsIds: options.teeOptions,
         teeOptionsCount: options.teeOptionsCount?.map((count: string) => Number(count)),
-        storage: options.storage,
         solution: options.solution,
         solutionHash: options.solutionHash
           ? {
@@ -498,7 +495,7 @@ async function main(): Promise<void> {
         ordersLimit: Number(options.ordersLimit),
         pccsServiceApiUrl,
         skipHardwareCheck: options.skipHardwareCheck,
-        storageAccess: storageConfig,
+        storageConfig: checkedStorageConfig,
         tokenSymbol: options.token,
       };
 
@@ -722,6 +719,7 @@ async function main(): Promise<void> {
         blockchainUrl: blockchain.rpcUrl,
       };
       const backendConfig = configLoader.loadSection('backend');
+      const storageConfig = configLoader.loadSection('storage');
       const requestParams: FilesDownloadParams = {
         analytics: createAnalyticsService(configLoader),
         blockchainConfig,
@@ -730,6 +728,7 @@ async function main(): Promise<void> {
         resultDecryption: workflowConfig.resultEncryption,
         accessToken: backendConfig.accessToken,
         backendUrl: backendConfig.url,
+        storageConfig,
       };
 
       await ordersDownloadResult(requestParams);
@@ -1512,8 +1511,6 @@ async function main(): Promise<void> {
     skipEncryption?: boolean;
     metadata?: string;
     maximumConcurrent?: string;
-    storage: string[];
-    minRentMinutes: string;
     useAddon: boolean;
   }
   filesCommand
@@ -1532,17 +1529,6 @@ async function main(): Promise<void> {
       '--maximum-concurrent <number>',
       'Maximum concurrent pieces to upload at once per transfer',
     )
-    .option(
-      '--storage <id,slot>',
-      'Storage offer <id,slot>. If used, credentials for temporary storage will be created to upload the file.',
-      collectOptions,
-      [],
-    )
-    .option(
-      '--min-rent-minutes <number>',
-      'Storage rent time to be paid in advance. ("storage" option is required)',
-      String(MINUTES_IN_HOUR),
-    )
     .addOption(
       new Option('--use-addon', 'work will be performed via the addon').default(false).hideHelp(),
     )
@@ -1553,21 +1539,21 @@ async function main(): Promise<void> {
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
       const tiiConfig = configLoader.loadSection('tii');
+
+      const checkedStorageConfig = checkStorageConfig(storageConfig);
       const params: FilesUploadParams = {
         analytics: createAnalyticsService(configLoader),
         localPath,
-        storageType: storageConfig.type,
-        writeAccessToken: storageConfig.writeAccessToken,
-        readAccessToken: storageConfig.readAccessToken,
-        bucket: storageConfig.bucket,
-        prefix: storageConfig.prefix,
+        storageType: checkedStorageConfig.type,
+        writeAccessToken: checkedStorageConfig.writeAccessToken,
+        readAccessToken: checkedStorageConfig.readAccessToken,
+        bucket: checkedStorageConfig.bucket,
+        prefix: checkedStorageConfig.prefix,
         remotePath: options.filename,
         outputPath: options.output,
         metadataPath: options.metadata,
         withEncryption: !options.skipEncryption,
         maximumConcurrent: options.maximumConcurrent,
-        storage: options.storage,
-        minRentMinutes: Number(options.minRentMinutes),
         accessToken: backendConfig.accessToken,
         backendUrl: backendConfig.url,
         actionAccountKey: blockchain.accountPrivateKey,

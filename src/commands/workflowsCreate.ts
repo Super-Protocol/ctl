@@ -58,7 +58,6 @@ export type WorkflowCreateParams = {
   teeSlotCount?: number;
   teeOptionsIds: string[];
   teeOptionsCount: number[];
-  storage?: string;
   solution: string[];
   solutionHash: Hash;
   data: string[];
@@ -71,7 +70,7 @@ export type WorkflowCreateParams = {
   ordersLimit: number;
   skipHardwareCheck: boolean;
   pccsServiceApiUrl: string;
-  storageAccess: Config['storage'];
+  storageConfig: Config['storage'];
 };
 
 const buildConfiguration = async (params: {
@@ -99,7 +98,7 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     );
   }
 
-  if (params.storageAccess.type !== StorageType.StorJ) {
+  if (params.storageConfig.type !== StorageType.StorJ) {
     throw new Error('Storage type can only be StorJ');
   }
 
@@ -135,15 +134,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
         isTee: true,
       }).then(({ offers }) => offers[0])
     : { id: '', slotId: '' };
-
-  const storage = params.storage
-    ? await parseInputResourcesService({
-        options: [params.storage],
-        backendUrl: params.backendUrl,
-        accessToken: params.accessToken,
-        minRentMinutes: params.minRentMinutes,
-      }).then(({ offers }) => offers[0])
-    : undefined;
 
   let solutions = await parseInputResourcesService({
     options: params.solution,
@@ -451,9 +441,9 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     storage: {
       storageType: StorageType.StorJ,
       uploadCredentials: {
-        bucket: params.storageAccess.bucket,
-        prefix: params.storageAccess.prefix,
-        token: params.storageAccess.writeAccessToken,
+        bucket: params.storageConfig.bucket,
+        prefix: params.storageConfig.prefix,
+        token: params.storageConfig.writeAccessToken,
       },
     },
   });
@@ -472,14 +462,13 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
         resultEncryption: params.resultEncryption,
         analytics: params.analytics,
         teeOffer: teeOfferParams,
-        storageOffer: storage,
         inputOffers: inputOffersParams,
         argsToEncrypt,
         resultPublicKey: orderResultKeys.publicKey,
         encryptedInfo: orderResultKeys.encryptedInfo,
         holdDeposit: holdDeposit.toString(),
         consumerAddress: consumerAddress!,
-        storageAccess: params.storageAccess,
+        storageConfig: params.storageConfig,
         token,
       })
         .then((workflowId) => {

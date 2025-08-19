@@ -21,13 +21,21 @@ const configValidator = z.object({
     accountPrivateKey: z.string(),
     authorityAccountPrivateKey: z.string().optional(),
   }),
-  storage: z.object({
-    type: z.nativeEnum(StorageType),
-    bucket: z.string(),
-    prefix: z.string().default(''),
-    writeAccessToken: z.string(),
-    readAccessToken: z.string(),
-  }),
+  storage: z
+    .object({
+      type: z.nativeEnum(StorageType).default(StorageType.StorJ),
+      bucket: z.string().default(''),
+      prefix: z.string().default(''),
+      writeAccessToken: z.string().default(''),
+      readAccessToken: z.string().default(''),
+    })
+    .default({
+      type: StorageType.StorJ,
+      bucket: '',
+      prefix: '',
+      writeAccessToken: '',
+      readAccessToken: '',
+    }),
   workflow: z.object({
     resultEncryption: z.object({
       algo: z.nativeEnum(CryptoAlgorithm),
@@ -54,7 +62,7 @@ const configValidator = z.object({
     .object({
       lastCheckForUpdates: z.number().optional(),
     })
-    .optional(),
+    .default({}),
 });
 
 export interface IAnalyticsConfig {
@@ -89,7 +97,7 @@ export type Config = {
   tii: {
     pccsServiceApiUrl: string;
   };
-  metadata: { lastCheckForUpdates: number };
+  metadata: { lastCheckForUpdates?: number };
 };
 
 class ConfigLoader {

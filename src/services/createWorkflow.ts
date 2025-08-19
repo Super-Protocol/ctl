@@ -10,13 +10,8 @@ import {
 } from '@super-protocol/sdk-js';
 import { Config } from '../config';
 import Printer from '../printer';
-import {
-  convertReadWriteStorageAccess,
-  generateExternalId,
-  isStorageConfigValid,
-  Token,
-} from '../utils';
-import { createOrder, CreateOrderParams, getCredentials } from '../commands/filesUpload.addon';
+import { convertReadWriteStorageAccess, generateExternalId, Token } from '../utils';
+import { CreateOrderParams } from '../commands/filesUpload.addon';
 
 export type TeeOfferParams = {
   id: string;
@@ -33,42 +28,14 @@ export type ValueOfferParams = {
 
 export type CreateWorkflowParams = Omit<CreateOrderParams, 'storage'> & {
   teeOffer: TeeOfferParams;
-  storageOffer?: ValueOfferParams;
   inputOffers: ValueOfferParams[];
   resultPublicKey: string;
   encryptedInfo: string;
   argsToEncrypt: TeeOrderEncryptedArgs;
   holdDeposit: string;
   consumerAddress: string;
-  storageAccess: Config['storage'];
+  storageConfig: Config['storage'];
   token: Pick<Token, 'address'>;
-};
-
-const createStorageOrderByOfferId = async (
-  params: CreateWorkflowParams,
-): Promise<helpers.ReadWriteStorageAccess> => {
-  const storageOrderId = await createOrder({
-    ...params,
-    storage: [params.storageOffer!.id],
-  });
-  Printer.print(`The storage order has been created successfully (id=${storageOrderId})`);
-
-  const credentials = await getCredentials({
-    ...params,
-    key: params.resultEncryption.key,
-    orderId: storageOrderId,
-  });
-
-  return {
-    read: {
-      storageType: params.storageAccess.type,
-      credentials: credentials.read,
-    },
-    write: {
-      storageType: params.storageAccess.type,
-      credentials: credentials.write,
-    },
-  };
 };
 
 const processUploadToStorage = async (
@@ -79,24 +46,10 @@ const processUploadToStorage = async (
   },
 ): Promise<StorageProviderResource> => {
   Printer.print('TEE order arguments will be stored in distributed storage');
-  const getStorageAccess = async (): Promise<helpers.ReadWriteStorageAccess> => {
-    if (isStorageConfigValid(params.storageAccess)) {
-      return convertReadWriteStorageAccess(params.storageAccess);
-    }
-
-    if (!params.storageOffer?.id) {
-      throw new Error(
-        'Storage offer ID is required when storage config is not provided for uploading order arguments',
-      );
-    }
-
-    return await createStorageOrderByOfferId(params);
-  };
-
   const resource = await helpers.OrderArgsHelper.uploadToStorage({
     args: params.teeOrderArgsToEncrypt,
     key: params.key,
-    access: await getStorageAccess(),
+    access: convertReadWriteStorageAccess(params.storageConfig),
     encryption: params.encryption,
   });
   Printer.print('Order arguments have been successfully uploaded to distributed storage.');

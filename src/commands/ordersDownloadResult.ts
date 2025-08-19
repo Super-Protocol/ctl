@@ -12,6 +12,7 @@ import {
   StorageProviderResource,
   UrlResource,
   EncryptionKey,
+  StorageType,
 } from '@super-protocol/dto-js';
 import {
   Crypto,
@@ -20,14 +21,18 @@ import {
   OrderResult,
   Analytics,
   RIGenerator,
+  parseStorageCredentials,
 } from '@super-protocol/sdk-js';
 import downloadFileByUrl from '../services/downloadFileByUrl';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import getPublicFromPrivate from '../services/getPublicFromPrivate';
 import { preparePath, tryParse } from '../utils';
+import { Config } from '../config';
 import checkOrderService from '../services/checkOrder';
 import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, AnalyticsUtils } from '../services/analytics';
+import { checkStorageConfig } from '../services/checkStorageConfig';
+import { isStorageOrder } from '../services/isStorageOrder';
 
 export type FilesDownloadParams = {
   accessToken: string;
@@ -37,6 +42,7 @@ export type FilesDownloadParams = {
   localPath?: string;
   orderId: string;
   resultDecryption: EncryptionKey;
+  storageConfig?: Config['storage'];
 };
 
 export const localTxtPath = './result.txt';
@@ -147,6 +153,14 @@ export default async (params: FilesDownloadParams): Promise<void> => {
       if (!result.resource) throw Error('Resource could not be found');
       decrypted = result;
     } catch (e) {
+      try {
+        if (await isStorageOrder(params.orderId)) {
+          printAdviceToUseStorage(stringResult);
+        }
+      } catch {
+        // write result to file anyway
+      }
+
       await writeResult(localTxtPath, stringResult, 'Result message was decrypted, saving to file');
       return;
     }
@@ -172,6 +186,19 @@ export default async (params: FilesDownloadParams): Promise<void> => {
     case ResourceType.StorageProvider: {
       if (!isCommandSupported()) return;
       const storageProviderResource = resource as StorageProviderResource;
+      if (storageProviderResource.storageType !== StorageType.StorJ) {
+        throw new Error(
+          `Unsupported storage type ${storageProviderResource.storageType}. Only StorJ is supported.`,
+        );
+      }
+
+      const storageConfig = checkStorageConfig(params.storageConfig);
+
+      storageProviderResource.credentials = {
+        bucket: storageConfig.bucket,
+        prefix: storageConfig.prefix,
+        token: storageConfig.readAccessToken,
+      };
       localPathEncrypted = getEncryptedResultPath(
         params.localPath,
         storageProviderResource.filepath,
@@ -259,4 +286,25 @@ function getEncryptedResultPath(customPath?: string, sourcePath?: string): strin
   }
 
   return `${preparePath(localTarPath)}.encrypted`;
+}
+
+function printAdviceToUseStorage(stringResult: string): void {
+  const credentials = parseStorageCredentials<StorageType.StorJ>(stringResult);
+
+  Printer.print(
+    'You can paste following storage credentials to config.json under "storage" section:',
+  );
+  Printer.print(
+    JSON.stringify(
+      {
+        type: credentials.storageType,
+        bucket: credentials.downloadCredentials.bucket,
+        prefix: credentials.downloadCredentials.prefix,
+        writeAccessToken: credentials.uploadCredentials.token,
+        readAccessToken: credentials.downloadCredentials.token,
+      },
+      null,
+      2,
+    ),
+  );
 }

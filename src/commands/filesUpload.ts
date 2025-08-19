@@ -14,7 +14,7 @@ import { isCommandSupported } from '../services/uplinkSetupHelper';
 import { generateExternalId, preparePath } from '../utils';
 import readJsonFileService from '../services/readJsonFile';
 import generateEncryptionService from '../services/generateEncryption';
-import { createOrder, FilesUploadParams, getCredentials } from './filesUpload.addon';
+import { FilesUploadParams } from './filesUpload.addon';
 import { AnalyticEvent } from '../services/analytics';
 import crypto, { BinaryLike } from 'crypto';
 
@@ -78,12 +78,12 @@ export default async (params: FilesUploadParams): Promise<void> => {
     fileEncryption = encryptionResult.encryption;
   }
 
-  let writeCredentials = {
+  const writeCredentials = {
     token: params.writeAccessToken,
     bucket: params.bucket,
     prefix: params.prefix,
   };
-  let readCredentials = {
+  const readCredentials = {
     token: params.readAccessToken,
     bucket: params.bucket,
     prefix: params.prefix,
@@ -98,35 +98,6 @@ export default async (params: FilesUploadParams): Promise<void> => {
   }
 
   try {
-    if (params.storage.length) {
-      if (!params.resultEncryption.key) {
-        throw Error('Invalid encryption key');
-      }
-
-      const storage = params.storage[0].split(',') as [string, string]; // id, slot
-      const orderId = await createOrder({
-        storage,
-        minRentMinutes: params.minRentMinutes,
-        backendUrl: params.backendUrl,
-        accessToken: params.accessToken,
-        actionAccountKey: params.actionAccountKey,
-        blockchainConfig: params.blockchainConfig,
-        resultEncryption: params.resultEncryption,
-        pccsServiceApiUrl: params.pccsServiceApiUrl,
-      });
-
-      Printer.print('Getting storage credentials from created order...');
-      const credentials = await getCredentials({
-        accessToken: params.accessToken,
-        analytics: params.analytics,
-        backendUrl: params.backendUrl,
-        key: params.resultEncryption.key,
-        orderId,
-      });
-      readCredentials = credentials.read;
-      writeCredentials = credentials.write;
-    }
-
     const filePathToUpload = encryptedFilePath || params.localPath;
     const size = (await fs.stat(filePathToUpload)).size;
     const uploadFileStream = encryptedFilePath
