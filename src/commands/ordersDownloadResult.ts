@@ -31,7 +31,7 @@ import { Config } from '../config';
 import checkOrderService from '../services/checkOrder';
 import { AnalyticsEvent } from '@super-protocol/sdk-js';
 import { AnalyticEvent, AnalyticsUtils } from '../services/analytics';
-import { checkStorageConfig } from '../services/checkStorageConfig';
+import { ensureStorageConfig } from '../services/ensureStorageConfig';
 import { isStorageOrder } from '../services/isStorageOrder';
 
 export type FilesDownloadParams = {
@@ -192,7 +192,7 @@ export default async (params: FilesDownloadParams): Promise<void> => {
         );
       }
 
-      const storageConfig = checkStorageConfig(params.storageConfig);
+      const storageConfig = await ensureStorageConfig(params.storageConfig);
 
       storageProviderResource.credentials = {
         bucket: storageConfig.bucket,

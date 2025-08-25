@@ -36,7 +36,7 @@ import {
   processSubCommands,
   validateFields,
 } from './utils';
-import { checkStorageConfig } from './services/checkStorageConfig';
+import { ensureStorageConfig } from './services/ensureStorageConfig';
 import generateSolutionKey from './commands/solutionsGenerateKey';
 import prepareSolution from './commands/solutionsPrepare';
 import ordersDownloadResult, { FilesDownloadParams } from './commands/ordersDownloadResult';
@@ -465,7 +465,7 @@ async function main(): Promise<void> {
       const { pccsServiceApiUrl } = configLoader.loadSection('tii');
       const workflowConfig = configLoader.loadSection('workflow');
       const storageConfig = configLoader.loadSection('storage');
-      const checkedStorageConfig = checkStorageConfig(storageConfig);
+      const ensuredStorageConfig = await ensureStorageConfig(storageConfig);
 
       const requestParams: WorkflowCreateCommandParams = {
         analytics: createAnalyticsService(configLoader),
@@ -495,7 +495,7 @@ async function main(): Promise<void> {
         ordersLimit: Number(options.ordersLimit),
         pccsServiceApiUrl,
         skipHardwareCheck: options.skipHardwareCheck,
-        storageConfig: checkedStorageConfig,
+        storageConfig: ensuredStorageConfig,
         tokenSymbol: options.token,
       };
 
@@ -1540,15 +1540,15 @@ async function main(): Promise<void> {
       const workflowConfig = configLoader.loadSection('workflow');
       const tiiConfig = configLoader.loadSection('tii');
 
-      const checkedStorageConfig = checkStorageConfig(storageConfig);
+      const ensuredStorageConfig = await ensureStorageConfig(storageConfig);
       const params: FilesUploadParams = {
         analytics: createAnalyticsService(configLoader),
         localPath,
-        storageType: checkedStorageConfig.type,
-        writeAccessToken: checkedStorageConfig.writeAccessToken,
-        readAccessToken: checkedStorageConfig.readAccessToken,
-        bucket: checkedStorageConfig.bucket,
-        prefix: checkedStorageConfig.prefix,
+        storageType: ensuredStorageConfig.type,
+        writeAccessToken: ensuredStorageConfig.writeAccessToken,
+        readAccessToken: ensuredStorageConfig.readAccessToken,
+        bucket: ensuredStorageConfig.bucket,
+        prefix: ensuredStorageConfig.prefix,
         remotePath: options.filename,
         outputPath: options.output,
         metadataPath: options.metadata,
