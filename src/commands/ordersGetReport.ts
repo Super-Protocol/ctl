@@ -1,6 +1,11 @@
 import path from 'path';
 import { promises as fs } from 'fs';
-import { Config as BlockchainConfig, Order, constants } from '@super-protocol/sdk-js';
+import {
+  Config as BlockchainConfig,
+  CertificatesHelper,
+  Order,
+  constants,
+} from '@super-protocol/sdk-js';
 import Printer from '../printer';
 import initBlockchainConnector from '../services/initBlockchainConnector';
 import {
@@ -31,8 +36,14 @@ export const ordersGetReport = async (params: OrderGetReportParams): Promise<voi
 
   const validationResult = await validateOrderReport(orderReport);
 
-  //add root cert at the end of certificate chain to have full chain
-  orderReport.certificate += `\n${constants.SUPERPROTOCOL_CA}`;
+  const pkiCerts = CertificatesHelper.toPkiCerts(
+    orderReport.certificate.concat(constants.SUPERPROTOCOL_CA),
+  );
+  orderReport.certificate = CertificatesHelper.buildChain(pkiCerts[0], pkiCerts)
+    .map((certWithKeyIdent) =>
+      CertificatesHelper.derToPem(certWithKeyIdent.cert.toSchema().toBER()),
+    )
+    .join('\n');
 
   Printer.print(JSON.stringify(orderReport, null, 2));
 

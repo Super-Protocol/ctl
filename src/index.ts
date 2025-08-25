@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Encoding, HashAlgorithm } from '@super-protocol/dto-js';
 import { constants, OfferType, OrderStatus } from '@super-protocol/sdk-js';
 import * as bip39 from 'bip39';
@@ -13,6 +15,7 @@ import addonDownload from './commands/filesDownload.addon';
 import upload from './commands/filesUpload';
 import addonUpload, { FilesUploadParams } from './commands/filesUpload.addon';
 import filesDelete from './commands/filesDelete';
+import filesCalculateHash from './commands/filesCalculateHash';
 import addonFilesDelete from './commands/filesDelete.addon';
 import providersList from './commands/providersList';
 import providersGet from './commands/providersGet';
@@ -33,6 +36,7 @@ import {
   processSubCommands,
   validateFields,
 } from './utils';
+import { ensureStorageConfig } from './services/ensureStorageConfig';
 import generateSolutionKey from './commands/solutionsGenerateKey';
 import prepareSolution from './commands/solutionsPrepare';
 import ordersDownloadResult, { FilesDownloadParams } from './commands/ordersDownloadResult';
@@ -41,7 +45,7 @@ import tokensBalance from './commands/tokensBalance';
 import offersListTee from './commands/offersListTee';
 import offersListValue from './commands/offersListValue';
 import offersDownloadContent from './commands/offersDownloadContent';
-import { CONFIG_DEFAULT_FILENAME, MAX_ORDERS_RUNNING, MINUTES_IN_HOUR } from './constants';
+import { CONFIG_DEFAULT_FILENAME, MAX_ORDERS_RUNNING } from './constants';
 import offersGet from './commands/offersGet';
 import offersCreate from './commands/offersCreate';
 import offersUpdate from './commands/offersUpdate';
@@ -73,6 +77,10 @@ import { AnalyticEvent, createAnalyticsService } from './services/analytics';
 import { secretsCommand } from './commands/secrets';
 import { OrderValidateReportParams, ordersValidateReport } from './commands/ordersValidateReport';
 import { OrderGetReportParams, ordersGetReport } from './commands/ordersGetReport';
+
+interface ICommonOptions {
+  config: string;
+}
 
 const ORDER_STATUS_KEYS = Object.keys(OrderStatus) as Array<keyof typeof OrderStatus>;
 const ORDER_STATUS_MAP: { [Key: string]: OrderStatus } = ORDER_STATUS_KEYS.reduce(
@@ -146,7 +154,7 @@ async function main(): Promise<void> {
     .option('--cursor <cursorString>', 'Cursor for pagination')
     .action(async (options: any) => {
       const configLoader = new ConfigLoader(options.config);
-      const backend = await configLoader.loadSection('backend');
+      const backend = configLoader.loadSection('backend');
 
       validateFields(options.fields, providersGetFields);
 
@@ -365,10 +373,28 @@ async function main(): Promise<void> {
       Printer.print(mnemonic);
     });
 
+  interface IWorkflowsCommandCreateOptions extends ICommonOptions {
+    tee: string;
+    teeSlotCount?: string;
+    teeOptions: string[];
+    teeOptionsCount: string[];
+    solution: string[];
+    solutionHash?: string;
+    data: string[];
+    deposit?: string;
+    minRentMinutes?: string;
+    debug: boolean;
+    workflowNumber: string;
+    ordersLimit: string;
+    skipHardwareCheck: boolean;
+    dataConfiguration: string[];
+    solutionConfiguration?: string;
+    token?: string;
+  }
   workflowsCommand
     .command('create')
     .description('Create workflow')
-    .option('--tee <id,slot>', 'TEE offer <id,slot> (required)')
+    .requiredOption('--tee <id,slot>', 'TEE offer <id,slot> (required)')
     .option('--tee-slot-count <id>', 'TEE slot count')
     .option(
       '--tee-options <id...>',
@@ -382,7 +408,6 @@ async function main(): Promise<void> {
       collectOptions,
       [],
     )
-    .requiredOption('--storage <id,slot> --storage <id>', 'Storage offer <id> (required)')
     .option(
       '--solution <id,slot> --solution <id> --solution <filepath>',
       'Solution offer <id,slot> or <id>(slot will be auto selected) or resource file path (accepts multiple values)',
@@ -429,7 +454,7 @@ async function main(): Promise<void> {
       '--token <symbol>',
       'Token symbol (if not specified, the first primary token will be used)',
     )
-    .action(async (options: any) => {
+    .action(async (options: IWorkflowsCommandCreateOptions) => {
       const configLoader = new ConfigLoader(options.config);
       const backend = configLoader.loadSection('backend');
       const blockchain = configLoader.loadSection('blockchain');
@@ -440,6 +465,8 @@ async function main(): Promise<void> {
       const { pccsServiceApiUrl } = configLoader.loadSection('tii');
       const workflowConfig = configLoader.loadSection('workflow');
       const storageConfig = configLoader.loadSection('storage');
+      const ensuredStorageConfig = await ensureStorageConfig(storageConfig);
+
       const requestParams: WorkflowCreateCommandParams = {
         analytics: createAnalyticsService(configLoader),
         backendUrl: backend.url,
@@ -450,7 +477,6 @@ async function main(): Promise<void> {
         teeSlotCount: Number(options.teeSlotCount || 0),
         teeOptionsIds: options.teeOptions,
         teeOptionsCount: options.teeOptionsCount?.map((count: string) => Number(count)),
-        storage: options.storage,
         solution: options.solution,
         solutionHash: options.solutionHash
           ? {
@@ -469,7 +495,7 @@ async function main(): Promise<void> {
         ordersLimit: Number(options.ordersLimit),
         pccsServiceApiUrl,
         skipHardwareCheck: options.skipHardwareCheck,
-        storageAccess: storageConfig,
+        storageConfig: ensuredStorageConfig,
         tokenSymbol: options.token,
       };
 
@@ -693,6 +719,7 @@ async function main(): Promise<void> {
         blockchainUrl: blockchain.rpcUrl,
       };
       const backendConfig = configLoader.loadSection('backend');
+      const storageConfig = configLoader.loadSection('storage');
       const requestParams: FilesDownloadParams = {
         analytics: createAnalyticsService(configLoader),
         blockchainConfig,
@@ -701,6 +728,7 @@ async function main(): Promise<void> {
         resultDecryption: workflowConfig.resultEncryption,
         accessToken: backendConfig.accessToken,
         backendUrl: backendConfig.url,
+        storageConfig,
       };
 
       await ordersDownloadResult(requestParams);
@@ -1477,6 +1505,14 @@ async function main(): Promise<void> {
       });
     });
 
+  interface IFilesCommandUploadOptions extends ICommonOptions {
+    filename?: string;
+    output: string;
+    skipEncryption?: boolean;
+    metadata?: string;
+    maximumConcurrent?: string;
+    useAddon: boolean;
+  }
   filesCommand
     .command('upload')
     .description('Upload a file specified by the <localPath> argument to the remote storage')
@@ -1493,42 +1529,31 @@ async function main(): Promise<void> {
       '--maximum-concurrent <number>',
       'Maximum concurrent pieces to upload at once per transfer',
     )
-    .option(
-      '--storage <id,slot>',
-      'Storage offer <id,slot>. If used, credentials for temporary storage will be created to upload the file.',
-      collectOptions,
-      [],
-    )
-    .option(
-      '--min-rent-minutes <number>',
-      'Storage rent time to be paid in advance. ("storage" option is required)',
-      String(MINUTES_IN_HOUR),
-    )
     .addOption(
       new Option('--use-addon', 'work will be performed via the addon').default(false).hideHelp(),
     )
-    .action(async (localPath: string, options: any) => {
+    .action(async (localPath: string, options: IFilesCommandUploadOptions) => {
       const configLoader = new ConfigLoader(options.config);
       const storageConfig = configLoader.loadSection('storage');
       const backendConfig = configLoader.loadSection('backend');
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
       const tiiConfig = configLoader.loadSection('tii');
+
+      const ensuredStorageConfig = await ensureStorageConfig(storageConfig);
       const params: FilesUploadParams = {
         analytics: createAnalyticsService(configLoader),
         localPath,
-        storageType: storageConfig.type,
-        writeAccessToken: storageConfig.writeAccessToken,
-        readAccessToken: storageConfig.readAccessToken,
-        bucket: storageConfig.bucket,
-        prefix: storageConfig.prefix,
+        storageType: ensuredStorageConfig.type,
+        writeAccessToken: ensuredStorageConfig.writeAccessToken,
+        readAccessToken: ensuredStorageConfig.readAccessToken,
+        bucket: ensuredStorageConfig.bucket,
+        prefix: ensuredStorageConfig.prefix,
         remotePath: options.filename,
         outputPath: options.output,
         metadataPath: options.metadata,
         withEncryption: !options.skipEncryption,
         maximumConcurrent: options.maximumConcurrent,
-        storage: options.storage,
-        minRentMinutes: Number(options.minRentMinutes),
         accessToken: backendConfig.accessToken,
         backendUrl: backendConfig.url,
         actionAccountKey: blockchain.accountPrivateKey,
@@ -1592,6 +1617,14 @@ async function main(): Promise<void> {
           writeAccessToken: storage.writeAccessToken,
         });
       }
+    });
+
+  filesCommand
+    .command('calculate-hash')
+    .description('Calculate the hash of a file or all files in a folder')
+    .argument('localPath', 'Path to the file or folder')
+    .action(async (localPath: string) => {
+      await filesCalculateHash({ localPath });
     });
 
   solutionsCommand

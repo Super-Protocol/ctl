@@ -36,9 +36,7 @@ export type FilesUploadParams = {
   writeAccessToken: string;
   readAccessToken: string;
   withEncryption: boolean;
-  storage: string[];
   maximumConcurrent?: string;
-  minRentMinutes: number;
   backendUrl: string;
   accessToken: string;
   actionAccountKey: string;
@@ -48,15 +46,15 @@ export type FilesUploadParams = {
 };
 
 export type CreateOrderParams = {
-  analytics?: FilesUploadParams['analytics'];
-  storage: FilesUploadParams['storage'];
-  minRentMinutes: FilesUploadParams['minRentMinutes'];
-  backendUrl: FilesUploadParams['backendUrl'];
-  accessToken: FilesUploadParams['accessToken'];
-  actionAccountKey: FilesUploadParams['actionAccountKey'];
-  blockchainConfig: FilesUploadParams['blockchainConfig'];
-  resultEncryption: FilesUploadParams['resultEncryption'];
-  pccsServiceApiUrl: FilesUploadParams['pccsServiceApiUrl'];
+  analytics?: Analytics<AnalyticsEvent> | null;
+  storage: string[];
+  minRentMinutes: number;
+  backendUrl: string;
+  accessToken: string;
+  actionAccountKey: string;
+  blockchainConfig: BlockchainConfig;
+  resultEncryption: EncryptionKey;
+  pccsServiceApiUrl: string;
 };
 
 export const createOrder = async (params: CreateOrderParams): Promise<string> => {
@@ -84,9 +82,7 @@ export const createOrder = async (params: CreateOrderParams): Promise<string> =>
     pccsServiceApiUrl,
     args: {
       inputOffersIds: [],
-      outputOfferId: '0',
       inputOffersVersions: [],
-      outputOfferVersion: 0,
     },
     backendUrl,
     blockchainConfig,
@@ -176,7 +172,7 @@ export default async (params: FilesUploadParams): Promise<void> => {
     return;
   }
 
-  const outputPath = preparePath(params.outputPath);
+  const outputPath = preparePath(params.outputPath || '');
 
   try {
     await fs.stat(outputPath);
@@ -204,12 +200,12 @@ export default async (params: FilesUploadParams): Promise<void> => {
 
   const remotePath = `${params.remotePath || generateExternalId()}`;
 
-  let writeCredentials = {
+  const writeCredentials = {
     token: params.writeAccessToken,
     bucket: params.bucket,
     prefix: path.join(params.prefix, remotePath),
   };
-  let readCredentials = {
+  const readCredentials = {
     token: params.readAccessToken,
     bucket: params.bucket,
     prefix: path.join(params.prefix, remotePath),
@@ -224,34 +220,6 @@ export default async (params: FilesUploadParams): Promise<void> => {
   }
 
   try {
-    if (params.storage.length) {
-      if (!params.resultEncryption.key) {
-        throw Error('Invalid encryption key');
-      }
-
-      const orderId = await createOrder({
-        storage: params.storage[0].split(','),
-        minRentMinutes: params.minRentMinutes,
-        backendUrl: params.backendUrl,
-        accessToken: params.accessToken,
-        actionAccountKey: params.actionAccountKey,
-        blockchainConfig: params.blockchainConfig,
-        resultEncryption: params.resultEncryption,
-        pccsServiceApiUrl: params.pccsServiceApiUrl,
-      });
-
-      Printer.print('Getting storage credentials from created order...');
-      const credentials = await getCredentials({
-        accessToken: params.accessToken,
-        analytics: params.analytics,
-        backendUrl: params.backendUrl,
-        key: params.resultEncryption.key,
-        orderId,
-      });
-      readCredentials = credentials.read;
-      writeCredentials = credentials.write;
-    }
-
     const { upload } = await import('@super-protocol/sp-files-addon');
     const uploadResult = await upload(
       localPath,

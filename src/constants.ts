@@ -14,3 +14,4 @@ export const BASE64_CHECK_REGEX = /^[A-Za-z0-9+/]{1,}={0,3}$/;
 export const JWT_CHECK_REGEX = /(^[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*$)/;
 export const CONFIG_DEFAULT_FILENAME = './config.json';
 export const DEFAULT_TEE_AMOUNT_FOR_APPROVE = 1e10;
+export const MINUTES_IN_YEAR = 60 * 24 * 365;

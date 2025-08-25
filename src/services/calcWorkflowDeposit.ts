@@ -14,7 +14,6 @@ import { MINUTES_IN_HOUR } from '../constants';
 
 export type CalcWorkflowDepositParams = {
   tee: TeeOfferParams;
-  storage: ValueOfferParams;
   solutions: ValueOfferParams[];
   data: ValueOfferParams[];
   teeOffer: TeeOfferItem;
@@ -23,7 +22,7 @@ export type CalcWorkflowDepositParams = {
 };
 
 const calcWorkflowDeposit = async (params: CalcWorkflowDepositParams): Promise<BigNumber> => {
-  const valueOffers = [...params.solutions, ...params.data, params.storage];
+  const valueOffers = [...params.solutions, ...params.data];
   const deposit = {
     fixed: BigNumber.from(0),
     perHour: BigNumber.from(0),

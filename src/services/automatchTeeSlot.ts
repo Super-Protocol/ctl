@@ -9,19 +9,19 @@ export type FetchMatchingTeeSlotsParams = {
   backendUrl: string;
   accessToken: string;
   tee: Partial<ValueOfferParams>;
-  storage: ValueOfferParams;
   data: ValueOfferParams[];
   solutions: ValueOfferParams[];
   usageMinutes: number;
 };
 
 export default async (params: FetchMatchingTeeSlotsParams): Promise<MatchingTeeSlot> => {
-  const { storage, data, solutions } = params;
+  const { data, solutions } = params;
 
   try {
-    const valueOffers: [string, string][] = [<[string, string]>[storage.id, storage.slotId]]
-      .concat(data.map((offer): [string, string] => [offer.id, offer.slotId]))
-      .concat(solutions.map((solution): [string, string] => [solution.id, solution.slotId]));
+    const valueOffers: [string, string][] = [
+      ...data.map((offer): [string, string] => [offer.id, offer.slotId]),
+      ...solutions.map((solution): [string, string] => [solution.id, solution.slotId]),
+    ];
 
     const minConfiguration = await fetchMinConfiguration({
       backendUrl: params.backendUrl,
@@ -55,6 +55,7 @@ export default async (params: FetchMatchingTeeSlotsParams): Promise<MatchingTeeS
     }).then((slots) => slots?.at(0)?.node);
 
     return slot;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     let message = error?.message || 'Unable to find a TEE slot';
     if (error?.response?.errors[0]?.message) message += ': ' + error.response.errors[0].message;
