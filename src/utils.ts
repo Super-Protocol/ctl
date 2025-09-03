@@ -206,27 +206,28 @@ export const parseNumber = (val: string): number => {
   return parsed;
 };
 
-export const isStorageConfigValid = (access: Config['storage']): boolean =>
-  Boolean(access.bucket && access.readAccessToken && access.writeAccessToken);
+export const isStorageConfigValid = (access?: Config['storage']): boolean => {
+  return Boolean(access?.bucket && access?.readAccessToken && access?.writeAccessToken);
+};
 
 export const convertReadWriteStorageAccess = (
-  configStorageAccess: Config['storage'],
+  storageConfig: Config['storage'],
 ): helpers.ReadWriteStorageAccess => {
   return {
     read: {
-      storageType: configStorageAccess.type,
+      storageType: storageConfig.type,
       credentials: {
-        bucket: configStorageAccess.bucket,
-        prefix: configStorageAccess.prefix,
-        token: configStorageAccess.readAccessToken,
+        bucket: storageConfig.bucket,
+        prefix: storageConfig.prefix,
+        token: storageConfig.readAccessToken,
       },
     },
     write: {
-      storageType: configStorageAccess.type,
+      storageType: storageConfig.type,
       credentials: {
-        bucket: configStorageAccess.bucket,
-        prefix: configStorageAccess.prefix,
-        token: configStorageAccess.writeAccessToken,
+        bucket: storageConfig.bucket,
+        prefix: storageConfig.prefix,
+        token: storageConfig.writeAccessToken,
       },
     },
   };

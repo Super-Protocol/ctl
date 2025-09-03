@@ -3,6 +3,7 @@ import {
   Hash,
   RIIType,
   RuntimeInputInfo,
+  StorageType,
   TeeOrderEncryptedArgs,
   TeeOrderEncryptedArgsConfiguration,
 } from '@super-protocol/dto-js';
@@ -57,20 +58,19 @@ export type WorkflowCreateParams = {
   teeSlotCount?: number;
   teeOptionsIds: string[];
   teeOptionsCount: number[];
-  storage: string;
   solution: string[];
   solutionHash: Hash;
   data: string[];
   solutionConfigurationPath?: string;
   dataConfigurationPaths: string[];
   resultEncryption: EncryptionKey;
-  userDepositAmount: string;
+  userDepositAmount?: string;
   minRentMinutes: number;
   workflowNumber: number;
   ordersLimit: number;
   skipHardwareCheck: boolean;
   pccsServiceApiUrl: string;
-  storageAccess: Config['storage'];
+  storageConfig: Config['storage'];
 };
 
 const buildConfiguration = async (params: {
@@ -96,6 +96,10 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     throw new Error(
       'Invalid solution-configuration param. It must be specified if at least one data-configuration param is provided.',
     );
+  }
+
+  if (params.storageConfig.type !== StorageType.StorJ) {
+    throw new Error('Storage type can only be StorJ');
   }
 
   Printer.print('Connecting to the blockchain');
@@ -131,13 +135,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
       }).then(({ offers }) => offers[0])
     : { id: '', slotId: '' };
 
-  const storage = await parseInputResourcesService({
-    options: [params.storage],
-    backendUrl: params.backendUrl,
-    accessToken: params.accessToken,
-    minRentMinutes: params.minRentMinutes,
-  }).then(({ offers }) => offers[0]);
-
   let solutions = await parseInputResourcesService({
     options: params.solution,
     backendUrl: params.backendUrl,
@@ -158,7 +155,7 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
   });
   const dataIds = data.offers.map((offer) => offer.id);
 
-  const valueOfferIds = [...solutionIds, ...dataIds, storage.id];
+  const valueOfferIds = [...solutionIds, ...dataIds];
 
   const fetchedValueOffers = await getFetchedOffers({
     backendUrl: params.backendUrl,
@@ -169,7 +166,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
 
   const offersMap = new Map<string, FetchedOffer>(fetchedValueOffers.map((o) => [o.id, o]));
 
-  checkFetchedOffers([storage], offersMap, OfferType.Storage);
   checkFetchedOffers(solutions.offers, offersMap, OfferType.Solution);
   checkFetchedOffers(data.offers, offersMap, OfferType.Data);
 
@@ -186,7 +182,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
       backendUrl: params.backendUrl,
       accessToken: params.accessToken,
       tee: tee,
-      storage,
       data: data.offers,
       solutions: solutions.offers,
       usageMinutes: workflowMinTimeMinutes,
@@ -220,8 +215,7 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
   }
 
   const restrictionOffersMap = new Map<string, Offer>(
-    fetchedValueOffers
-      .map(({ id }) => [id.toString(), new Offer(id)]),
+    fetchedValueOffers.map(({ id }) => [id.toString(), new Offer(id)]),
   );
 
   Printer.print('Validating workflow configuration');
@@ -268,7 +262,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
           offerId: dataOffer.id,
           slot: { id: dataOffer.slotId },
         })),
-        storage: { offerId: storage.id, slot: { id: storage.slotId } },
       },
     });
 
@@ -395,7 +388,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
 
   let holdDeposit = await calcWorkflowDepositService({
     tee: teeOfferParams,
-    storage: storage,
     solutions: solutions.offers,
     data: data.offers,
     minRentMinutes: workflowMinTimeMinutes,
@@ -446,6 +438,14 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     pccsServiceApiUrl: params.pccsServiceApiUrl,
     runtimeInputInfos,
     argsHash,
+    storage: {
+      storageType: StorageType.StorJ,
+      uploadCredentials: {
+        bucket: params.storageConfig.bucket,
+        prefix: params.storageConfig.prefix,
+        token: params.storageConfig.writeAccessToken,
+      },
+    },
   });
 
   Printer.print(`Creating workflow${params.workflowNumber > 1 ? 's' : ''}`);
@@ -462,14 +462,13 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
         resultEncryption: params.resultEncryption,
         analytics: params.analytics,
         teeOffer: teeOfferParams,
-        storageOffer: storage,
         inputOffers: inputOffersParams,
         argsToEncrypt,
         resultPublicKey: orderResultKeys.publicKey,
         encryptedInfo: orderResultKeys.encryptedInfo,
         holdDeposit: holdDeposit.toString(),
         consumerAddress: consumerAddress!,
-        storageAccess: params.storageAccess,
+        storageConfig: params.storageConfig,
         token,
       })
         .then((workflowId) => {
@@ -510,7 +509,7 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
           resolve(workflowId);
         })
         .catch((error) => {
-          Printer.error(`Error creating workflow ${error}`);
+          Printer.error(`Failed to create workflow. ${error}`);
           properties.push({
             result: 'error',
             error: error.message,
@@ -531,7 +530,9 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
   }
   const id = JSON.stringify(results);
 
-  Printer.print(`Workflow was created, TEE order id: ${id}`);
+  if (results.filter(Boolean).length) {
+    Printer.print(`Workflow was created, TEE order id: ${id}`);
+  }
 
   return id;
 };

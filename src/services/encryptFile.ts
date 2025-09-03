@@ -4,13 +4,13 @@ import fs from 'fs';
 
 type Result = {
   encryptedFilePath: string;
-  encryption: any;
+  encryption: Encryption;
 };
 
 export default async (
   readStream: fs.ReadStream,
   filepath: string,
-  encryptionConfig: Encryption,
+  encryptionConfig: Encryption<undefined>,
   progressListener?: (total: number, current: number) => void,
 ): Promise<Result> => {
   const encryptedFilepath = `${filepath}.encrypted`;
@@ -25,7 +25,11 @@ export default async (
     }
   });
 
-  const fileEncryption = await Crypto.encryptStream(readStream, writeStream, encryptionConfig);
+  const fileEncryption = await Crypto.encryptStream(
+    readStream,
+    writeStream,
+    encryptionConfig as unknown as Encryption<string>,
+  );
 
   if (progressListener) {
     progressListener(fileSize, fileSize);

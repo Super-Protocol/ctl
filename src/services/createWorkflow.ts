@@ -10,13 +10,8 @@ import {
 } from '@super-protocol/sdk-js';
 import { Config } from '../config';
 import Printer from '../printer';
-import {
-  convertReadWriteStorageAccess,
-  generateExternalId,
-  isStorageConfigValid,
-  Token,
-} from '../utils';
-import { createOrder, CreateOrderParams, getCredentials } from '../commands/filesUpload.addon';
+import { convertReadWriteStorageAccess, generateExternalId, Token } from '../utils';
+import { CreateOrderParams } from '../commands/filesUpload.addon';
 
 export type TeeOfferParams = {
   id: string;
@@ -33,42 +28,14 @@ export type ValueOfferParams = {
 
 export type CreateWorkflowParams = Omit<CreateOrderParams, 'storage'> & {
   teeOffer: TeeOfferParams;
-  storageOffer: ValueOfferParams;
   inputOffers: ValueOfferParams[];
   resultPublicKey: string;
   encryptedInfo: string;
   argsToEncrypt: TeeOrderEncryptedArgs;
   holdDeposit: string;
   consumerAddress: string;
-  storageAccess: Config['storage'];
+  storageConfig: Config['storage'];
   token: Pick<Token, 'address'>;
-};
-
-const createStorageOrderByOfferId = async (
-  params: CreateWorkflowParams,
-): Promise<helpers.ReadWriteStorageAccess> => {
-  const storageOrderId = await createOrder({
-    ...params,
-    storage: [params.storageOffer.id],
-  });
-  Printer.print(`The storage order has been created successfully (id=${storageOrderId})`);
-
-  const credentials = await getCredentials({
-    ...params,
-    key: params.resultEncryption.key,
-    orderId: storageOrderId,
-  });
-
-  return {
-    read: {
-      storageType: params.storageAccess.type,
-      credentials: credentials.read,
-    },
-    write: {
-      storageType: params.storageAccess.type,
-      credentials: credentials.write,
-    },
-  };
 };
 
 const processUploadToStorage = async (
@@ -79,14 +46,10 @@ const processUploadToStorage = async (
   },
 ): Promise<StorageProviderResource> => {
   Printer.print('TEE order arguments will be stored in distributed storage');
-  const storageAccess: helpers.ReadWriteStorageAccess = isStorageConfigValid(params.storageAccess)
-    ? convertReadWriteStorageAccess(params.storageAccess)
-    : await createStorageOrderByOfferId(params);
-
   const resource = await helpers.OrderArgsHelper.uploadToStorage({
     args: params.teeOrderArgsToEncrypt,
     key: params.key,
-    access: storageAccess,
+    access: convertReadWriteStorageAccess(params.storageConfig),
     encryption: params.encryption,
   });
   Printer.print('Order arguments have been successfully uploaded to distributed storage.');
@@ -112,7 +75,7 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
   }
 
   Printer.print('Encrypting arguments');
-  const encryptedArgs = await helpers.OrderArgsHelper.encryptOrderArgs(
+  const encryptedArgs = helpers.OrderArgsHelper.encryptOrderArgs(
     storageProviderResource ? { resource: storageProviderResource } : teeOrderArgsToEncrypt,
     JSON.parse(offerInfo.argsPublicKey),
   );
@@ -124,8 +87,6 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
     status: OrderStatus.New,
     args: {
       inputOffersIds: params.inputOffers.map((offer) => offer.id),
-      outputOfferId: params.storageOffer.id,
-      outputOfferVersion: 0,
       inputOffersVersions: params.inputOffers.map(() => 0),
     },
     encryptedArgs,
@@ -142,24 +103,25 @@ export default async (params: CreateWorkflowParams): Promise<BlockchainId> => {
     optionsCount: params.teeOffer.optionsCount,
   };
 
-  const subOrdersInfo: OrderInfo[] = params.inputOffers.map((subOrderParams) => ({
-    offerId: subOrderParams.id,
-    offerVersion: 0,
-    externalId: generateExternalId(),
-    status: OrderStatus.New,
-    args: {
-      inputOffersIds: [],
-      outputOfferId: params.storageOffer.id,
-      inputOffersVersions: [],
-      outputOfferVersion: 0,
-    },
-    encryptedArgs: '',
-    resultInfo: {
-      publicKey: '',
-      encryptedInfo: '',
-    },
-    tokenAddress: params.token.address,
-  }));
+  const subOrdersInfo: OrderInfo[] = params.inputOffers.map(
+    (subOrderParams) =>
+      ({
+        offerId: subOrderParams.id,
+        offerVersion: 0,
+        externalId: generateExternalId(),
+        status: OrderStatus.New,
+        args: {
+          inputOffersIds: [],
+          inputOffersVersions: [],
+        },
+        encryptedArgs: '',
+        resultInfo: {
+          publicKey: '',
+          encryptedInfo: '',
+        },
+        tokenAddress: params.token.address,
+      }) satisfies OrderInfo,
+  );
   const subOrdersSlots: OrderSlots[] = params.inputOffers.map((subOrderParams) => ({
     slotId: subOrderParams.slotId,
     slotCount: 0,
