@@ -8,6 +8,7 @@ import completeOrderService, {
 } from '../services/completeOrder';
 import { getObjectKey } from '../utils';
 import { OrderStatus } from '@super-protocol/sdk-js';
+import { Hash } from '@super-protocol/dto-js';
 
 export type OrderCompleteParams = OrderCancelParams & {
   accessToken: string;
@@ -15,6 +16,7 @@ export type OrderCompleteParams = OrderCancelParams & {
   pccsApiUrl: string;
   resourcePath?: string;
   status: TerminatedOrderStatus;
+  solutionHash?: Hash;
 };
 export default async (params: OrderCompleteParams): Promise<void> => {
   Printer.print('Connecting to the blockchain');
@@ -60,6 +62,7 @@ export default async (params: OrderCompleteParams): Promise<void> => {
           pccsApiUrl: params.pccsApiUrl,
           backendUrl: params.backendUrl,
           accessToken: params.accessToken,
+          solutionHash: params.solutionHash,
           actionAccountAddress,
         });
         Printer.print(
