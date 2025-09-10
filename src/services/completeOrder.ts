@@ -16,7 +16,7 @@ import readJsonFile from './readJsonFile';
 import { getSdk, Order as SdkOrder, OrderInfo, ParentOrder, TOfferType } from '../gql';
 import { GraphQLClient } from 'graphql-request';
 import getGqlHeaders from './gqlHeaders';
-import { EncryptionKey, Hash, ResourceType } from '@super-protocol/dto-js';
+import { EncryptionKey, Hash, ResourceType, StorageProviderResource } from '@super-protocol/dto-js';
 
 export const AVAILABLE_STATUSES = [OrderStatus.New, OrderStatus.Processing, OrderStatus.Canceling];
 export type TerminatedOrderStatus = OrderStatus.Done | OrderStatus.Canceled | OrderStatus.Error;
@@ -148,12 +148,19 @@ export default async (params: CompleteOrderParams): Promise<void> => {
     resource: typeof StorageProviderResourceValidator._type,
   ): Promise<boolean> => {
     try {
-      const storageProvider = getStorageProvider({
-        storageType: resource.storageType,
-        credentials: resource.credentials!,
-      });
+      const { getResourceInfo } = await import('@super-protocol/sp-files-addon');
 
-      const objectSize = await storageProvider.getObjectSize(resource.filepath);
+      let objectSize = await getResourceInfo(resource as StorageProviderResource).then((resourceInfo) => resourceInfo?.size);
+
+      if (!objectSize) {
+        const storageProvider = getStorageProvider({
+          storageType: resource.storageType,
+          credentials: resource.credentials!,
+        });
+  
+        objectSize = await storageProvider.getObjectSize(resource.filepath);
+      }
+
       if (objectSize > 0) {
         return true;
       }
