@@ -311,6 +311,7 @@ async function main(): Promise<void> {
       }),
     )
     .option('--result <string>', "path to file with result's resource information")
+    .option('--solution-hash <string>', 'Solution hash, hex-encoded sha-256 (Optional. Only for type Data)')
     .action(async (ids: string[], options: Record<string, string>) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
@@ -329,6 +330,11 @@ async function main(): Promise<void> {
         pccsApiUrl: tii.pccsServiceApiUrl,
         accessToken: backend.accessToken,
         backendUrl: backend.url,
+        solutionHash: options.solutionHash ? {
+          algo: HashAlgorithm.SHA256,
+          encoding: Encoding.hex,
+          hash: options.solutionHash,
+        } : undefined,
       };
 
       await ordersComplete(requestParams);
