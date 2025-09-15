@@ -16,7 +16,7 @@ import readJsonFile from './readJsonFile';
 import { getSdk, Order as SdkOrder, OrderInfo, ParentOrder, TOfferType } from '../gql';
 import { GraphQLClient } from 'graphql-request';
 import getGqlHeaders from './gqlHeaders';
-import { EncryptionKey, ResourceType } from '@super-protocol/dto-js';
+import { EncryptionKey, Hash, ResourceType, StorageProviderResource } from '@super-protocol/dto-js';
 
 export const AVAILABLE_STATUSES = [OrderStatus.New, OrderStatus.Processing, OrderStatus.Canceling];
 export type TerminatedOrderStatus = OrderStatus.Done | OrderStatus.Canceled | OrderStatus.Error;
@@ -28,6 +28,7 @@ export type CompleteOrderParams = {
   pccsApiUrl: string;
   resourcePath?: string;
   status: TerminatedOrderStatus;
+  solutionHash?: Hash;
   actionAccountAddress: string;
 };
 
@@ -41,6 +42,7 @@ type GetEncryptedResultFn = (
   order: IOrder,
   path: string,
   newStatus: OrderStatus,
+  solutionHash?: Hash,
 ) => Promise<string>;
 const ZERO_ID = '0';
 
@@ -59,7 +61,7 @@ export class StorageResourceValidationError extends Error {
 }
 
 export default async (params: CompleteOrderParams): Promise<void> => {
-  const { id, status, resourcePath: path, pccsApiUrl } = params;
+  const { id, status, resourcePath: path, pccsApiUrl, solutionHash } = params;
   const getOrderById = async (orderId: string): Promise<IOrder> => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
     const headers = getGqlHeaders(params.accessToken);
@@ -84,7 +86,7 @@ export default async (params: CompleteOrderParams): Promise<void> => {
     );
   };
 
-  const dataOfferResolver: GetEncryptedResultFn = async (order, path, newStatus) => {
+  const dataOfferResolver: GetEncryptedResultFn = async (order, path, newStatus, solutionHash) => {
     if (
       order.parentOrder?.id &&
       order.parentOrder?.id !== ZERO_ID &&
@@ -107,6 +109,7 @@ export default async (params: CompleteOrderParams): Promise<void> => {
           order.orderInfo.args,
           resource.encryption!,
           pccsApiUrl,
+          solutionHash,
         );
       } else {
         const resultResource = await readJsonFile({ path });
@@ -145,12 +148,19 @@ export default async (params: CompleteOrderParams): Promise<void> => {
     resource: typeof StorageProviderResourceValidator._type,
   ): Promise<boolean> => {
     try {
-      const storageProvider = getStorageProvider({
-        storageType: resource.storageType,
-        credentials: resource.credentials!,
-      });
+      const { getResourceInfo } = await import('@super-protocol/sp-files-addon');
 
-      const objectSize = await storageProvider.getObjectSize(resource.filepath);
+      let objectSize = await getResourceInfo(resource as StorageProviderResource).then((resourceInfo) => resourceInfo?.size);
+
+      if (!objectSize) {
+        const storageProvider = getStorageProvider({
+          storageType: resource.storageType,
+          credentials: resource.credentials!,
+        });
+  
+        objectSize = await storageProvider.getObjectSize(resource.filepath);
+      }
+
       if (objectSize > 0) {
         return true;
       }
@@ -180,7 +190,7 @@ export default async (params: CompleteOrderParams): Promise<void> => {
     throw Error(`Order cancellation is possible only from "canceling" status`);
   }
   if (path) {
-    encryptedResult = await resultPublicResolvers[dbOrder.offerType](dbOrder, path, status);
+    encryptedResult = await resultPublicResolvers[dbOrder.offerType](dbOrder, path, status, solutionHash);
   }
   try {
     const order = new Order(id);
