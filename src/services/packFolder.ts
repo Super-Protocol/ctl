@@ -113,7 +113,7 @@ export default async (
     addFiles(folderPath)
       .then(() => {
         process.nextTick(() => {
-          outputStream.on('finish', resolve);
+          outputStream.on('finish', () => resolve(undefined));
           outputStream.on('error', reject);
         });
       })
