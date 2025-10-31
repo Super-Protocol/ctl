@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "tsx --tsconfig tsconfig.build.json src/index.ts",
     "build:prepare": "tsc -p tsconfig.build.json",
-    "build": "npm run build:prepare && pkg -o dist/spctl .",
+    "build": "npm run build:prepare && pkg -o dist/spctl . --no-bytecode --public-packages \"*\" --public",
     "build:win:x64": "npm run build -- --target win-x64",
     "build:win:arm64": "npm run build -- --target win-arm64",
     "build:linux:x64": "npm run build -- --target linux-x64",
