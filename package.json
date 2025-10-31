@@ -85,6 +85,7 @@
     "assets": [
       "config.example.json",
       "node_modules/@super-protocol/uplink-nodejs/build/Release/*",
+      "node_modules/@super-protocol/sp-files-addon/*.node",
       "node_modules/axios/**/*"
     ]
   },
