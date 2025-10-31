@@ -42,7 +42,6 @@ export type FilesUploadParams = {
   actionAccountKey: string;
   blockchainConfig: BlockchainConfig;
   resultEncryption: EncryptionKey;
-  pccsServiceApiUrl: string;
 };
 
 export type CreateOrderParams = {
@@ -54,7 +53,6 @@ export type CreateOrderParams = {
   actionAccountKey: string;
   blockchainConfig: BlockchainConfig;
   resultEncryption: EncryptionKey;
-  pccsServiceApiUrl: string;
 };
 
 export const createOrder = async (params: CreateOrderParams): Promise<string> => {
@@ -67,7 +65,6 @@ export const createOrder = async (params: CreateOrderParams): Promise<string> =>
     actionAccountKey,
     blockchainConfig,
     resultEncryption,
-    pccsServiceApiUrl,
   } = params;
   Printer.print('Storage order creating...');
   if (!Array.isArray(storage) || !storage.length) {
@@ -79,7 +76,6 @@ export const createOrder = async (params: CreateOrderParams): Promise<string> =>
     ...(analytics && { analytics }),
     accessToken,
     actionAccountKey,
-    pccsServiceApiUrl,
     args: {
       inputOffersIds: [],
       inputOffersVersions: [],

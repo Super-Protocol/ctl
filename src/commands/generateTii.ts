@@ -13,7 +13,6 @@ export type GenerateTiiParams = {
   solutionHash: Hash;
   resourcePath: string;
   outputPath: string;
-  pccsServiceApiUrl: string;
 };
 
 export default async (params: GenerateTiiParams): Promise<void> => {
@@ -67,7 +66,6 @@ export default async (params: GenerateTiiParams): Promise<void> => {
     resource: resource,
     args,
     encryption: encryption,
-    sgxApiUrl: params.pccsServiceApiUrl,
     runtimeInputInfos,
   });
 

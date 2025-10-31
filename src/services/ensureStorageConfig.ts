@@ -61,7 +61,6 @@ export const ensureStorageConfig = async (
     const backend = configLoader.loadSection('backend');
     const blockchain = configLoader.loadSection('blockchain');
     const workflow = configLoader.loadSection('workflow');
-    const { pccsServiceApiUrl } = configLoader.loadSection('tii');
 
     Printer.print('Storage credentials are missing. Auto-provisioning storage...');
 
@@ -80,7 +79,6 @@ export const ensureStorageConfig = async (
         blockchainUrl: blockchain.rpcUrl,
       },
       resultEncryption: workflow.resultEncryption,
-      pccsServiceApiUrl,
     });
 
     const creds = await getCredentials({
