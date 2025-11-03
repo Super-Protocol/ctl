@@ -52,7 +52,6 @@ export type OrderCreateParams = {
   blockchainConfig: BlockchainConfig;
   offerId: BlockchainId;
   offerVersion: number;
-  pccsServiceApiUrl: string;
   resultEncryption: EncryptionKey;
   slotId?: BlockchainId;
   userDepositAmount?: string;
@@ -114,7 +113,6 @@ const buildOrderInfo = async (params: {
   offerType: OfferType;
   slot: ValueOfferSlot;
   offerArgsPublicKey: string;
-  pccsServiceApiUrl: string;
   token: Pick<Token, 'address'>;
 }): Promise<OrderInfo> => {
   const orderResultKeys = {
@@ -256,7 +254,6 @@ export default async (params: OrderCreateParams): Promise<string | undefined> =>
       slot,
       offerType: offer.offerInfo.offerType as OfferType,
       offerArgsPublicKey: offer.offerInfo.argsPublicKey,
-      pccsServiceApiUrl: params.pccsServiceApiUrl,
       token,
     });
     const slots = buildOrderSlots({

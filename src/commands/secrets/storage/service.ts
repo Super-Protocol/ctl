@@ -24,7 +24,6 @@ export type RegisterStorageParams = CalculateStorageOrderDepositParams & {
   copyPreviousData: boolean;
   retryCount: number;
   retryInterval: number;
-  pccsServiceApiUrl: string;
 };
 
 export const checkParamsToRegisterStorage = async (params: {
@@ -105,19 +104,10 @@ const setOfferStorageRequest = async (params: {
   storageOfferId: string;
   storageSlotId: string;
   storageOrderDepositDurationInHours: number;
-  pccsServiceApiUrl: string;
 }): Promise<Pick<OfferStorageRequest, 'replicationFactor'>> => {
-  const {
-    offerId,
-    offerVersion,
-    storageOfferId,
-    storageSlotId,
-    copyPreviousData,
-    pccsServiceApiUrl,
-  } = params;
+  const { offerId, offerVersion, storageOfferId, storageSlotId, copyPreviousData } = params;
   const activeTeeOfferIds = await getMostRecentlyActiveTeeOfferIds({
     size: params.replicationFactor,
-    pccsServiceApiUrl,
   });
   const teeOfferIssuerId = findTeeOfferIssuerId({ activeTeeOfferIds });
   if (!teeOfferIssuerId) {

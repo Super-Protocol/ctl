@@ -29,6 +29,19 @@ jest.mock('../../src/services/decryptFile', () => {
     default: mock,
   };
 });
+jest.mock('../../src/services/ensureStorageConfig', () => {
+  const { StorageType } = require('@super-protocol/dto-js');
+  return {
+    __esModule: true,
+    ensureStorageConfig: jest.fn().mockResolvedValue({
+      type: StorageType.StorJ,
+      bucket: 'test-bucket',
+      prefix: 'test-prefix',
+      readAccessToken: 'test-read-token',
+      writeAccessToken: 'test-write-token',
+    }),
+  };
+});
 
 const privateKey = {
   key: 'U1O5yVbsN4F2liuI2Ml3Z1DzPl9pjNuQlU/XlhEU2NM=',
@@ -95,7 +108,7 @@ describe('ordersDownloadResult', () => {
     (<any>fs).__setMockFiles({});
   });
 
-  it('should save order result to txt file when it does not have resource', async () => {
+  it('should download and decrypt file when it has resource', async () => {
     await ordersDownloadResult({
       accessToken: 'secret',
       backendUrl: 'https://backend.com',

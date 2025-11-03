@@ -69,7 +69,6 @@ export type WorkflowCreateParams = {
   workflowNumber: number;
   ordersLimit: number;
   skipHardwareCheck: boolean;
-  pccsServiceApiUrl: string;
   storageConfig: Config['storage'];
 };
 
@@ -354,7 +353,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
           resource: resource.resource,
           args: resource.args,
           encryption: resource.encryption!,
-          sgxApiUrl: params.pccsServiceApiUrl,
         }),
       ),
     );
@@ -425,7 +423,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
     const encryptedConfiguration = await RIGenerator.encryptByTeeBlock(
       teeOfferParams.id,
       JSON.stringify(configuration),
-      params.pccsServiceApiUrl,
     );
     argsToEncrypt.configuration = JSON.stringify(encryptedConfiguration);
   }
@@ -435,7 +432,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
   const orderResultKeys = await RIGenerator.generate({
     offerId: teeOfferParams.id,
     encryptionPrivateKey: params.resultEncryption,
-    pccsServiceApiUrl: params.pccsServiceApiUrl,
     runtimeInputInfos,
     argsHash,
     storage: {
@@ -458,7 +454,6 @@ const workflowCreate = async (params: WorkflowCreateCommandParams): Promise<stri
         backendUrl: params.backendUrl,
         blockchainConfig: params.blockchainConfig,
         minRentMinutes: 3 * 24 * MINUTES_IN_HOUR,
-        pccsServiceApiUrl: params.pccsServiceApiUrl,
         resultEncryption: params.resultEncryption,
         analytics: params.analytics,
         teeOffer: teeOfferParams,

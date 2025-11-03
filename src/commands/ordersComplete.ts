@@ -13,7 +13,6 @@ import { Hash } from '@super-protocol/dto-js';
 export type OrderCompleteParams = OrderCancelParams & {
   accessToken: string;
   backendUrl: string;
-  pccsApiUrl: string;
   resourcePath?: string;
   status: TerminatedOrderStatus;
   solutionHash?: Hash;
@@ -59,7 +58,6 @@ export default async (params: OrderCompleteParams): Promise<void> => {
           id,
           status: params.status,
           resourcePath: params.resourcePath,
-          pccsApiUrl: params.pccsApiUrl,
           backendUrl: params.backendUrl,
           accessToken: params.accessToken,
           solutionHash: params.solutionHash,

@@ -28,7 +28,6 @@ export const registerAction = async (
       contractAddress: blockchain.smartContractAddress,
       blockchainUrl: blockchain.rpcUrl,
     };
-    const { pccsServiceApiUrl } = configLoader.loadSection('tii');
 
     await initBlockchainConnector({
       blockchainConfig,
@@ -54,7 +53,6 @@ export const registerAction = async (
       storageOrderDepositDurationInHours: options.minRent,
       retryCount: options.retryCount,
       retryInterval: options.retryInterval,
-      pccsServiceApiUrl,
     };
 
     const storageOrderId = await findStorageOrderId(params);
