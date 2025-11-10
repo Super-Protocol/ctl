@@ -2,7 +2,7 @@ import { CryptoAlgorithm, Encoding, EncryptionKey, StorageType } from '@super-pr
 import fs from 'fs';
 import { z } from 'zod';
 import Printer from './printer';
-import { BACKEND_URL_DEFAULT, DEFAULT_PCCS_SERVICE } from './constants';
+import { BACKEND_URL_DEFAULT } from './constants';
 import setup from './commands/setup';
 import { getConfigPath } from './utils';
 
@@ -51,13 +51,6 @@ const configValidator = z.object({
       spaUrl: z.string().optional(),
     })
     .default({}),
-  tii: z
-    .object({
-      pccsServiceApiUrl: z.string().default(DEFAULT_PCCS_SERVICE),
-    })
-    .default({
-      pccsServiceApiUrl: DEFAULT_PCCS_SERVICE,
-    }),
   metadata: z
     .object({
       lastCheckForUpdates: z.number().optional(),
@@ -94,9 +87,6 @@ export type Config = {
     resultEncryption: EncryptionKey;
   };
   analytics: IAnalyticsConfig;
-  tii: {
-    pccsServiceApiUrl: string;
-  };
   metadata: { lastCheckForUpdates?: number };
 };
 

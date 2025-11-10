@@ -1,5 +1,4 @@
 import path from 'path';
-import { calculateResourceHash } from '@super-protocol/sp-files-addon';
 import { cryptoUtils } from '@super-protocol/sdk-js';
 import { promises as fs } from 'fs';
 import Printer from '../printer';
@@ -41,6 +40,7 @@ export default async (params: FilesCalculateHashParams): Promise<void> => {
     const objectName = path.basename(localPath);
     Printer.print('Calculating hash...');
 
+    const { calculateResourceHash } = await import('@super-protocol/sp-files-addon');
     const objectHash = await calculateResourceHash(localPath);
     const rootHash = await cryptoUtils.getDirHashFileContents({ [objectName]: objectHash });
 

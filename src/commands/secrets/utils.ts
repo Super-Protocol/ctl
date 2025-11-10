@@ -16,19 +16,16 @@ import {
   OfferStorageRequest,
 } from '@super-protocol/sdk-js';
 
-export const validateKeys = async (
-  keys: {
-    session?: LoaderSession;
-    secret?: LoaderSecretAccessPublicKey;
-  },
-  pccsServiceApiUrl: string,
-): Promise<boolean> => {
+export const validateKeys = async (keys: {
+  session?: LoaderSession;
+  secret?: LoaderSecretAccessPublicKey;
+}): Promise<boolean> => {
   const { session, secret } = keys;
   if (!session || !secret) {
     return false;
   }
   const isValidate = await Promise.all([
-    validateSession(session, pccsServiceApiUrl),
+    validateSession(session),
     validateSecret({ session, secret }),
   ]);
 
@@ -37,9 +34,8 @@ export const validateKeys = async (
 
 export const getMostRecentlyActiveTeeOfferIds = (params: {
   size: number;
-  pccsServiceApiUrl: string;
 }): Promise<BlockchainId[]> => {
-  const { size, pccsServiceApiUrl } = params;
+  const { size } = params;
 
   return getMostActiveTeeOffers({
     size,
@@ -49,7 +45,7 @@ export const getMostRecentlyActiveTeeOfferIds = (params: {
         LoaderSecretsAccessPublicKeys.get(offerId),
       ]);
 
-      return validateKeys({ session, secret }, pccsServiceApiUrl);
+      return validateKeys({ session, secret });
     },
   });
 };

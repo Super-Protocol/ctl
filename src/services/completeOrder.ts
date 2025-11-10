@@ -25,7 +25,6 @@ export type CompleteOrderParams = {
   accessToken: string;
   backendUrl: string;
   id: string;
-  pccsApiUrl: string;
   resourcePath?: string;
   status: TerminatedOrderStatus;
   solutionHash?: Hash;
@@ -61,7 +60,7 @@ export class StorageResourceValidationError extends Error {
 }
 
 export default async (params: CompleteOrderParams): Promise<void> => {
-  const { id, status, resourcePath: path, pccsApiUrl, solutionHash } = params;
+  const { id, status, resourcePath: path, solutionHash } = params;
   const getOrderById = async (orderId: string): Promise<IOrder> => {
     const sdk = getSdk(new GraphQLClient(params.backendUrl));
     const headers = getGqlHeaders(params.accessToken);
@@ -108,7 +107,6 @@ export default async (params: CompleteOrderParams): Promise<void> => {
           resource.resource,
           order.orderInfo.args,
           resource.encryption!,
-          pccsApiUrl,
           solutionHash,
         );
       } else {
@@ -150,14 +148,16 @@ export default async (params: CompleteOrderParams): Promise<void> => {
     try {
       const { getResourceInfo } = await import('@super-protocol/sp-files-addon');
 
-      let objectSize = await getResourceInfo(resource as StorageProviderResource).then((resourceInfo) => resourceInfo?.size);
+      let objectSize = await getResourceInfo(resource as StorageProviderResource).then(
+        (resourceInfo) => resourceInfo?.size,
+      );
 
       if (!objectSize) {
         const storageProvider = getStorageProvider({
           storageType: resource.storageType,
           credentials: resource.credentials!,
         });
-  
+
         objectSize = await storageProvider.getObjectSize(resource.filepath);
       }
 
@@ -190,7 +190,12 @@ export default async (params: CompleteOrderParams): Promise<void> => {
     throw Error(`Order cancellation is possible only from "canceling" status`);
   }
   if (path) {
-    encryptedResult = await resultPublicResolvers[dbOrder.offerType](dbOrder, path, status, solutionHash);
+    encryptedResult = await resultPublicResolvers[dbOrder.offerType](
+      dbOrder,
+      path,
+      status,
+      solutionHash,
+    );
   }
   try {
     const order = new Order(id);

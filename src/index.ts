@@ -68,7 +68,6 @@ import offerDisableVersion from './commands/offerDisableVersion';
 import { checkForUpdates } from './services/checkReleaseVersion';
 import setup from './commands/setup';
 import { workflowGenerateKey } from './commands/workflowsGenerateKey';
-import quotesValidate from './commands/quotesValidate';
 import providersCreate from './commands/providersCreate';
 import providersUpdate from './commands/providersUpdate';
 import { TerminatedOrderStatus } from './services/completeOrder';
@@ -120,7 +119,6 @@ async function main(): Promise<void> {
   const offersGetCommand = offersCommand.command('get');
   const offerCommand = program.command('offer');
   const offerVersionCommand = offerCommand.command('version');
-  const quotesCommand = program.command('quotes');
 
   program.addCommand(secretsCommand);
 
@@ -311,11 +309,13 @@ async function main(): Promise<void> {
       }),
     )
     .option('--result <string>', "path to file with result's resource information")
-    .option('--solution-hash <string>', 'Solution hash, hex-encoded sha-256 (Optional. Only for type Data)')
+    .option(
+      '--solution-hash <string>',
+      'Solution hash, hex-encoded sha-256 (Optional. Only for type Data)',
+    )
     .action(async (ids: string[], options: Record<string, string>) => {
       const configLoader = new ConfigLoader(options.config);
       const blockchain = configLoader.loadSection('blockchain');
-      const tii = configLoader.loadSection('tii');
       const backend = configLoader.loadSection('backend');
       const blockchainConfig = {
         contractAddress: blockchain.smartContractAddress,
@@ -327,14 +327,15 @@ async function main(): Promise<void> {
         ids,
         status: ORDER_STATUS_MAP[options.status] as TerminatedOrderStatus,
         resourcePath: options.result,
-        pccsApiUrl: tii.pccsServiceApiUrl,
         accessToken: backend.accessToken,
         backendUrl: backend.url,
-        solutionHash: options.solutionHash ? {
-          algo: HashAlgorithm.SHA256,
-          encoding: Encoding.hex,
-          hash: options.solutionHash,
-        } : undefined,
+        solutionHash: options.solutionHash
+          ? {
+              algo: HashAlgorithm.SHA256,
+              encoding: Encoding.hex,
+              hash: options.solutionHash,
+            }
+          : undefined,
       };
 
       await ordersComplete(requestParams);
@@ -468,7 +469,6 @@ async function main(): Promise<void> {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const { pccsServiceApiUrl } = configLoader.loadSection('tii');
       const workflowConfig = configLoader.loadSection('workflow');
       const storageConfig = configLoader.loadSection('storage');
       const ensuredStorageConfig = await ensureStorageConfig(storageConfig);
@@ -499,7 +499,6 @@ async function main(): Promise<void> {
         minRentMinutes: Number(options.minRentMinutes || 0),
         workflowNumber: Number(options.workflowNumber),
         ordersLimit: Number(options.ordersLimit),
-        pccsServiceApiUrl,
         skipHardwareCheck: options.skipHardwareCheck,
         storageConfig: ensuredStorageConfig,
         tokenSymbol: options.token,
@@ -810,7 +809,6 @@ async function main(): Promise<void> {
       const backend = configLoader.loadSection('backend');
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
-      const tii = configLoader.loadSection('tii');
       const params: OrderCreateParams = {
         analytics: createAnalyticsService(configLoader),
         accessToken: backend.accessToken,
@@ -828,7 +826,6 @@ async function main(): Promise<void> {
         },
         offerId: options.offer,
         offerVersion: 0,
-        pccsServiceApiUrl: tii.pccsServiceApiUrl,
         resultEncryption: workflowConfig.resultEncryption,
         slotId: options.slot,
         userDepositAmount: options.deposit,
@@ -1544,7 +1541,6 @@ async function main(): Promise<void> {
       const backendConfig = configLoader.loadSection('backend');
       const blockchain = configLoader.loadSection('blockchain');
       const workflowConfig = configLoader.loadSection('workflow');
-      const tiiConfig = configLoader.loadSection('tii');
 
       const ensuredStorageConfig = await ensureStorageConfig(storageConfig);
       const params: FilesUploadParams = {
@@ -1568,7 +1564,6 @@ async function main(): Promise<void> {
           contractAddress: blockchain.smartContractAddress,
         },
         resultEncryption: workflowConfig.resultEncryption,
-        pccsServiceApiUrl: tiiConfig.pccsServiceApiUrl,
       };
       if (options.useAddon) {
         await addonUpload(params);
@@ -1721,7 +1716,6 @@ async function main(): Promise<void> {
         contractAddress: blockchain.smartContractAddress,
         blockchainUrl: blockchain.rpcUrl,
       };
-      const { pccsServiceApiUrl } = configLoader.loadSection('tii');
 
       await generateTii({
         blockchainConfig,
@@ -1736,23 +1730,7 @@ async function main(): Promise<void> {
           : constants.ZERO_HASH,
         resourcePath,
         outputPath: options.output,
-        pccsServiceApiUrl,
       });
-    });
-
-  quotesCommand
-    .command('validate')
-    .description('Validate a quote')
-    .argument(
-      'url',
-      'a valid URL with only the domain, excluding any path, for instance, https://ugli-etch-vic.superprotocol.io',
-    )
-    .action(async (url: string, options: { config: string }) => {
-      const configLoader = new ConfigLoader(options.config);
-      const backend = configLoader.loadSection('backend');
-      const { pccsServiceApiUrl } = configLoader.loadSection('tii');
-
-      await quotesValidate({ url, pccsServiceApiUrl, backend });
     });
 
   // Add global options

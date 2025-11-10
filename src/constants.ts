@@ -6,7 +6,6 @@ export const MAX_ORDERS_RUNNING = 2;
 export const MINUTES_IN_HOUR = 60;
 export const MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
 export const TX_REVERTED_BY_EVM_ERROR = 'Transaction has been reverted by the EVM';
-export const DEFAULT_PCCS_SERVICE = 'https://pccs.superprotocol.io';
 export const BACKEND_URL_DEFAULT = 'https://bff.superprotocol.com/graphql';
 export const BLOCKCHAIN_RPC_URL_DEFAULT = 'https://opbnb.superprotocol.com';
 export const SMART_CONTRACT_ADDRESS_DEFAULT = '0x3C69ea105Fc716C1Dcb41859281Aa817D0A0B279';
