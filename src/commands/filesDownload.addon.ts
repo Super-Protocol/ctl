@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs';
+import path from 'path';
 import Printer from '../printer';
 import { isCommandSupported } from '../services/uplinkSetupHelper';
 import readResourceFileService from '../services/readResourceFile';
@@ -23,15 +23,12 @@ export default async (params: FilesDownloadParams): Promise<void> => {
       `Resource type ${resource.type} is not supported, use StorageProvider type for this command`,
     );
 
-  const localPath = preparePath(params.localDirectory).replace(/\/$/, '');
-  const exists = await fs.stat(localPath).catch(() => null);
-
-  if (!exists) {
-    await fs.mkdir(localPath, { recursive: true });
-  } else if (!exists.isDirectory()) {
-    throw new Error('localDirectory argument must be the path to a folder');
+  let localPath = preparePath(params.localDirectory).replace(/\/$/, '');
+  if (resource.filepath) {
+    localPath = path.join(localPath, resource.filepath);
   }
 
+  Printer.print(`Downloading file to ${localPath}`);
   try {
     const { download } = await import('@super-protocol/sp-files-addon');
     await download(resource, localPath, {
